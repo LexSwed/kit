@@ -1,0 +1,19 @@
+{
+  "name": "fxtrot-sphere",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/solid-js": "^2.1.0",
+    "@astrojs/tailwind": "^3.1.1",
+    "astro": "^2.1.8",
+    "solid-js": "^1.6.16",
+    "tailwindcss": "^3.3.0"
+  }
+}

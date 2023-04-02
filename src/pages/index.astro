@@ -1,12 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { App } from "../lib/Dialog";
+import { App as SolidJSApp } from "../lib/Dialog";
 ---
 
 <Layout title="Welcome to Astro.">
   <main>
     <h1>Welcome to <span class="text-gradient">Astro</span></h1>
-    <App client:visible />
+    <SolidJSApp client:visible />
   </main>
 </Layout>
 

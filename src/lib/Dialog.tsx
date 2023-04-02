@@ -56,12 +56,6 @@ const Dialog: ParentComponent<Props> = (props) => {
     )
   );
 
-  // onMount(() => {
-  //   c.toArray().forEach((item) => {
-  //     console.log(item);
-  //   });
-  // });
-
   return (
     <Portal mount={document.getElementById("root")}>
       <dialog
@@ -71,7 +65,7 @@ const Dialog: ParentComponent<Props> = (props) => {
           local.controls.close();
         }}
         onCancel={() => local.controls.close()}
-        class="absolute top-[50%] left-[50%] bg-slate-500"
+        class=""
         {...others}
       >
         {c()}

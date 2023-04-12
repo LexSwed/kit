@@ -31,7 +31,7 @@ export function ImagesPlugin({ captionsEnabled }: { captionsEnabled?: boolean })
         PASTE_COMMAND,
         (payload) => {
           console.log(payload);
-          return true;
+          return false;
         },
         COMMAND_PRIORITY_EDITOR
       ),

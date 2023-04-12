@@ -1,43 +1,46 @@
 'use client';
-import { $getRoot, $getSelection, EditorState } from 'lexical';
-
 import { LexicalComposer, type InitialConfigType, type InitialEditorStateType } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
+import { ListItemNode, ListNode } from '@lexical/list';
+import { LinkNode, AutoLinkNode } from '@lexical/link';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import { CodeHighlightNode, CodeNode } from '@lexical/code';
+import { TRANSFORMERS } from '@lexical/markdown';
+import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
 import { ImageNode, ImagesPlugin } from './plugins/image';
-
-// When the editor changes, you can get notified via the
-// LexicalOnChangePlugin!
-function onChange(editorState: EditorState) {
-  editorState.read(() => {
-    // Read the contents of the EditorState here.
-    const root = $getRoot();
-    const selection = $getSelection();
-
-    console.log(root, selection);
-  });
-}
-
-// Catch any errors that occur during Lexical updates and log them
-// or throw them as needed. If you don't throw them, Lexical will
-// try to recover gracefully without losing user data.
-function onError(error: Error) {
-  console.error(error);
-}
+import { LinkPlugin } from './plugins/link';
+import CodeHighlightPlugin from './plugins/code';
 
 interface Props {
   initialEditorState: InitialEditorStateType;
 }
 
 export const Editor = ({ initialEditorState }: Props) => {
+  // Catch any errors that occur during Lexical updates and log them
+  // or throw them as needed. If you don't throw them, Lexical will
+  // try to recover gracefully without losing user data.
+  function onError(error: Error) {
+    console.error(error);
+  }
   const initialConfig: InitialConfigType = {
     namespace: 'MyEditor',
     onError,
     editorState: initialEditorState,
-    nodes: [ImageNode],
+    nodes: [
+      ImageNode,
+      HeadingNode,
+      ListNode,
+      ListItemNode,
+      QuoteNode,
+      CodeNode,
+      CodeHighlightNode,
+      LinkNode,
+      AutoLinkNode,
+    ],
   };
 
   return (
@@ -53,9 +56,12 @@ export const Editor = ({ initialEditorState }: Props) => {
         }
         ErrorBoundary={LexicalErrorBoundary}
       />
-      <OnChangePlugin onChange={onChange} />
       <HistoryPlugin />
+      <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+      <ListPlugin />
+      <LinkPlugin />
       <ImagesPlugin />
+      <CodeHighlightPlugin />
     </LexicalComposer>
   );
 };

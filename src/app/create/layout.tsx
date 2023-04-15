@@ -3,5 +3,5 @@ export const metadata = {
 };
 
 export default function EditorLayout({ children }: { children: React.ReactNode }) {
-  return <div className="max-w-lg mx-auto">{children}</div>;
+  return <div className="max-w-2xl mx-auto">{children}</div>;
 }

@@ -1,6 +1,8 @@
 import { AppContext } from './context';
 import './globals.css';
 
+import '@fxtrot/ui/style.css';
+
 export const metadata = {
   title: 'LaKit',
   description: 'Something something about education',

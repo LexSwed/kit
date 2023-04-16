@@ -1,22 +1,24 @@
+import { useEffect } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $wrapNodeInElement, mergeRegister } from '@lexical/utils';
+import { $wrapNodeInElement, mergeRegister, isMimeType, mediaFileReader } from '@lexical/utils';
 import {
   $createParagraphNode,
   $insertNodes,
   $isRootOrShadowRoot,
   COMMAND_PRIORITY_EDITOR,
+  COMMAND_PRIORITY_LOW,
   createCommand,
   LexicalCommand,
-  PASTE_COMMAND,
-  PasteCommandType,
 } from 'lexical';
-import { useEffect } from 'react';
+import { DRAG_DROP_PASTE } from '@lexical/rich-text';
 
 import { $createImageNode, ImageNode, ImagePayload } from './node';
 
 export type InsertImagePayload = Readonly<ImagePayload>;
 
 export const INSERT_IMAGE_COMMAND: LexicalCommand<InsertImagePayload> = createCommand('INSERT_IMAGE_COMMAND');
+
+const ACCEPTABLE_IMAGE_TYPES = ['image/', 'image/heic', 'image/heif', 'image/gif', 'image/webp'];
 
 export function ImagesPlugin({ captionsEnabled }: { captionsEnabled?: boolean }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
@@ -27,13 +29,26 @@ export function ImagesPlugin({ captionsEnabled }: { captionsEnabled?: boolean })
     }
 
     return mergeRegister(
-      editor.registerCommand<PasteCommandType>(
-        PASTE_COMMAND,
-        (payload) => {
-          console.log(payload);
-          return false;
+      editor.registerCommand(
+        DRAG_DROP_PASTE,
+        (files) => {
+          (async () => {
+            const filesResult = await mediaFileReader(
+              files,
+              [ACCEPTABLE_IMAGE_TYPES].flatMap((x) => x)
+            );
+            for (const { file, result } of filesResult) {
+              if (isMimeType(file, ACCEPTABLE_IMAGE_TYPES)) {
+                editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
+                  altText: file.name,
+                  src: result,
+                });
+              }
+            }
+          })();
+          return true;
         },
-        COMMAND_PRIORITY_EDITOR
+        COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand<InsertImagePayload>(
         INSERT_IMAGE_COMMAND,

@@ -16,6 +16,7 @@ import { ImageNode, ImagesPlugin } from './plugins/image';
 import { LinkPlugin } from './plugins/link';
 import CodeHighlightPlugin from './plugins/code';
 import { theme } from './theme';
+import { FloatingToolbarPlugin } from './plugins/toolbar';
 
 interface Props {
   initialEditorState: InitialEditorStateType;
@@ -51,7 +52,7 @@ export const Editor = ({ initialEditorState }: Props) => {
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none text-on-background font-sans focus-within:ring-2 shadow-2xl rounded-sm relative ring-outline p-2" />
+            <ContentEditable className="outline-none min-h-[70vh] text-on-background font-sans focus-within:ring-2 shadow-2xl rounded-sm relative ring-outline p-2" />
           }
           placeholder={
             <div className="p-2 absolute text-on-surface-variant top-0 start-0 pointer-events-none">
@@ -67,6 +68,7 @@ export const Editor = ({ initialEditorState }: Props) => {
         <ImagesPlugin />
         <CodeHighlightPlugin />
         <TabIndentationPlugin />
+        <FloatingToolbarPlugin />
       </LexicalComposer>
     </div>
   );

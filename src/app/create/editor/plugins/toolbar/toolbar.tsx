@@ -15,7 +15,7 @@ import {
 import { ReactNode, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { $isAtNodeEnd } from '@lexical/selection';
 import { ElementNode, RangeSelection, TextNode } from 'lexical';
-import { ActionGroup, PopoverBox, Presence, ToggleButton } from '@fxtrot/ui';
+import { PopoverBox, ToggleButton } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
 import { useFloating, offset, flip, shift, inline, Placement } from '@floating-ui/react';
 import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
@@ -58,6 +58,8 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
             return;
           }
 
+          console.log(selection);
+
           // Update text format
           setIsBold(selection.hasFormat('bold'));
           setIsItalic(selection.hasFormat('italic'));
@@ -72,8 +74,9 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
   }, [editor]);
 
   return (
-    <>
+    <div className="flex flex-row [&>button:where(:not(:first-child):not(:last-child))]:rounded-none [&>button:where(:last-child)]:rounded-s-none [&>button:where(:first-child)]:rounded-e-none [&>button:where(:not(:last-child))]:ml-[-1px]">
       <ToggleButton
+        pressed={isBold}
         onPressedChange={() => {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
         }}
@@ -142,7 +145,7 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
         icon={BsLink}
         size="sm"
       />
-    </>
+    </div>
   );
 }
 
@@ -161,7 +164,7 @@ const FloatingPopup = ({
     middleware: [offset(10), flip(), shift(), inline()],
   });
   const [side, align] = getSideAndAlignFromPlacement(context.placement);
-  const [pointerUp, dispatch] = useReducer(pointerReducer, true);
+  const [pointerUp, setPointerUp] = useState(true);
   const [open, setOpen] = useState(false);
 
   const setFloatingPosition = useCallback(() => {
@@ -189,10 +192,10 @@ const FloatingPopup = ({
     if (open) return;
 
     function handlePointerDown() {
-      dispatch({ type: 'pointer-down' });
+      setPointerUp(false);
     }
     function handlePointerUp() {
-      dispatch({ type: 'pointer-up' });
+      setPointerUp(true);
     }
 
     document.addEventListener('pointerdown', handlePointerDown);
@@ -311,37 +314,6 @@ export function getSelectedNode(selection: RangeSelection): TextNode | ElementNo
     return $isAtNodeEnd(focus) ? anchorNode : focusNode;
   } else {
     return $isAtNodeEnd(anchor) ? anchorNode : focusNode;
-  }
-}
-
-/**
- * set to true when the pointer is up, false when the selection is still in progress
- */
-type SelectionState =
-  | {
-      isOpen: true;
-    }
-  | {
-      isOpen: false;
-      pointerDown: false;
-    };
-
-type Action =
-  | {
-      type: 'pointer-down';
-    }
-  | {
-      type: 'pointer-up';
-    };
-
-function pointerReducer(state: SelectionState, action: Action) {
-  switch (action.type) {
-    case 'pointer-down': {
-      return false;
-    }
-    case 'pointer-up': {
-      return true;
-    }
   }
 }
 

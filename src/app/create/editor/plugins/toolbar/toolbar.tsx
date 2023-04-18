@@ -2,20 +2,11 @@ import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { mergeRegister } from '@lexical/utils';
-import {
-  $getSelection,
-  $isRangeSelection,
-  $isTextNode,
-  COMMAND_PRIORITY_LOW,
-  FORMAT_TEXT_COMMAND,
-  LexicalEditor,
-  SELECTION_CHANGE_COMMAND,
-  TextFormatType,
-} from 'lexical';
+import { $getSelection, $isRangeSelection, $isTextNode, FORMAT_TEXT_COMMAND, LexicalEditor } from 'lexical';
 import { ReactNode, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { $isAtNodeEnd } from '@lexical/selection';
 import { ElementNode, RangeSelection, TextNode } from 'lexical';
-import { PopoverBox, ToggleButton } from '@fxtrot/ui';
+import { PopoverBox, Row, ToggleButton } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
 import { useFloating, offset, flip, shift, inline, Placement } from '@floating-ui/react';
 import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
@@ -29,6 +20,7 @@ import {
   BsCodeSlash,
   BsLink,
 } from 'react-icons/bs';
+import { ToggleGroup } from './toggle-group';
 
 function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.Element {
   const [isLink, setIsLink] = useState(false);
@@ -48,33 +40,42 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
     }
   }, [editor, isLink]);
 
+  const updateFormat = useCallback(() => {
+    const selection = $getSelection();
+
+    if (!$isRangeSelection(selection)) {
+      return;
+    }
+    const node = getSelectedNode(selection);
+    const parent = node.getParent();
+    if ($isLinkNode(parent) || $isLinkNode(node)) {
+      setIsLink(true);
+    } else {
+      setIsLink(false);
+    }
+
+    // Update text format
+    setIsBold(selection.hasFormat('bold'));
+    setIsItalic(selection.hasFormat('italic'));
+    setIsUnderline(selection.hasFormat('underline'));
+    setIsStrikethrough(selection.hasFormat('strikethrough'));
+    setIsSubscript(selection.hasFormat('subscript'));
+    setIsSuperscript(selection.hasFormat('superscript'));
+    setIsCode(selection.hasFormat('code'));
+  }, []);
+
   useEffect(() => {
+    // get initial values
+    editor.getEditorState().read(updateFormat);
     return mergeRegister(
       editor.registerUpdateListener(({ editorState }) => {
-        editorState.read(() => {
-          const selection = $getSelection();
-
-          if (!$isRangeSelection(selection)) {
-            return;
-          }
-
-          console.log(selection);
-
-          // Update text format
-          setIsBold(selection.hasFormat('bold'));
-          setIsItalic(selection.hasFormat('italic'));
-          setIsUnderline(selection.hasFormat('underline'));
-          setIsStrikethrough(selection.hasFormat('strikethrough'));
-          setIsSubscript(selection.hasFormat('subscript'));
-          setIsSuperscript(selection.hasFormat('superscript'));
-          setIsCode(selection.hasFormat('code'));
-        });
+        editorState.read(updateFormat);
       })
     );
-  }, [editor]);
+  }, [editor, updateFormat]);
 
   return (
-    <div className="flex flex-row [&>button:where(:not(:first-child):not(:last-child))]:rounded-none [&>button:where(:last-child)]:rounded-s-none [&>button:where(:first-child)]:rounded-e-none [&>button:where(:not(:last-child))]:ml-[-1px]">
+    <ToggleGroup>
       <ToggleButton
         pressed={isBold}
         onPressedChange={() => {
@@ -145,7 +146,7 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
         icon={BsLink}
         size="sm"
       />
-    </div>
+    </ToggleGroup>
   );
 }
 
@@ -182,7 +183,6 @@ const FloatingPopup = ({
         rootElement.contains(nativeSelection.anchorNode)
       ) {
         const element = getElementFromDomRange(nativeSelection, rootElement);
-
         refs.setPositionReference(element);
       }
     });
@@ -267,6 +267,7 @@ export function FloatingToolbarPlugin(props: Props) {
         }
 
         if (!$isRangeSelection(selection)) {
+          setIsTextSelected(false);
           return;
         }
 

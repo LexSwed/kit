@@ -1,14 +1,22 @@
 import { $isCodeHighlightNode } from '@lexical/code';
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $isAutoLinkNode, $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { mergeRegister } from '@lexical/utils';
-import { $getSelection, $isRangeSelection, $isTextNode, FORMAT_TEXT_COMMAND, LexicalEditor } from 'lexical';
-import { ReactNode, useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { $isAtNodeEnd } from '@lexical/selection';
-import { ElementNode, RangeSelection, TextNode } from 'lexical';
-import { PopoverBox, Row, ToggleButton } from '@fxtrot/ui';
+import { $findMatchingParent, mergeRegister } from '@lexical/utils';
+import {
+  $getSelection,
+  $getNodeByKey,
+  $isRangeSelection,
+  $isTextNode,
+  COMMAND_PRIORITY_CRITICAL,
+  FORMAT_TEXT_COMMAND,
+  LexicalEditor,
+  SELECTION_CHANGE_COMMAND,
+  TextFormatType,
+} from 'lexical';
+import { Dispatch, MouseEvent, ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
+import { PopoverBox, ToggleButton, useLatest } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
-import { useFloating, offset, flip, shift, inline, Placement } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, inline, Placement, VirtualElement } from '@floating-ui/react';
 import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
 import {
   BsTypeItalic,
@@ -21,6 +29,8 @@ import {
   BsLink,
 } from 'react-icons/bs';
 import { ToggleGroup } from './toggle-group';
+import { getSelectedNode } from '../../utils/getSelectedNode';
+import { isHTMLAnchorElement } from '@lexical/utils';
 
 function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.Element {
   const [isLink, setIsLink] = useState(false);
@@ -34,7 +44,7 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
 
   const insertLink = useCallback(() => {
     if (!isLink) {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, 'https://');
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, 'https://www.example.com');
     } else {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
@@ -48,6 +58,7 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
     }
     const node = getSelectedNode(selection);
     const parent = node.getParent();
+    // console.log({ parent: $isLinkNode(parent), node: $isLinkNode(node) });
     if ($isLinkNode(parent) || $isLinkNode(node)) {
       setIsLink(true);
     } else {
@@ -74,128 +85,82 @@ function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.E
     );
   }, [editor, updateFormat]);
 
+  const handleToggle = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      editor.dispatchCommand(FORMAT_TEXT_COMMAND, e.currentTarget.value as TextFormatType);
+    },
+    [editor]
+  );
+
   return (
     <ToggleGroup>
       <ToggleButton
         pressed={isBold}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
-        }}
+        onClick={handleToggle}
+        value="bold"
         label="Format text as bold"
         size="sm"
         icon={BsTypeBold}
       />
-      <ToggleButton
-        pressed={isItalic}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
-        }}
-        size="sm"
-        label="Format text as italics"
-        icon={BsTypeItalic}
-      />
+      <ToggleButton pressed={isItalic} value="italic" size="sm" label="Format text as italics" icon={BsTypeItalic} />
       <ToggleButton
         pressed={isUnderline}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
-        }}
+        value="underline"
         size="sm"
         label="Format text to underlined"
         icon={BsTypeUnderline}
       />
       <ToggleButton
         pressed={isStrikethrough}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough');
-        }}
+        value="strikethrough"
         size="sm"
         label="Format text with a strikethrough"
         icon={BsTypeStrikethrough}
       />
-      <ToggleButton
-        pressed={isSubscript}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
-        }}
-        size="sm"
-        label="Format Subscript"
-        icon={BsSubscript}
-      />
+      <ToggleButton pressed={isSubscript} value="subscript" size="sm" label="Format Subscript" icon={BsSubscript} />
       <ToggleButton
         pressed={isSuperscript}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'superscript');
-        }}
+        value="superscript"
         size="sm"
         label="Format Superscript"
         icon={BsSuperscript}
       />
-      <ToggleButton
-        pressed={isCode}
-        onPressedChange={() => {
-          editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
-        }}
-        size="sm"
-        label="Insert code block"
-        icon={BsCodeSlash}
-      />
-      <ToggleButton
-        onClick={insertLink}
-        className={'popup-item spaced ' + (isLink ? 'active' : '')}
-        label="Insert link"
-        icon={BsLink}
-        size="sm"
-      />
+      <ToggleButton pressed={isCode} value="code" size="sm" label="Insert code block" icon={BsCodeSlash} />
+      <ToggleButton pressed={isLink} onPressedChange={insertLink} size="sm" label="Insert link" icon={BsLink} />
     </ToggleGroup>
   );
 }
 
 const FloatingPopup = ({
-  editor,
-  hasSelection,
+  state,
+  dispatch,
   children,
 }: {
   editor: LexicalEditor;
-  hasSelection: boolean;
+  state: State;
+  dispatch: Dispatch<Action>;
   children: ReactNode;
 }) => {
   const { x, y, strategy, refs, context } = useFloating({
-    open: hasSelection,
+    open: state.floatingToolbarOpen,
     placement: 'top',
-    middleware: [offset(10), flip(), shift(), inline()],
+    middleware: [inline(), offset(8), flip(), shift()],
   });
   const [side, align] = getSideAndAlignFromPlacement(context.placement);
-  const [pointerUp, setPointerUp] = useState(true);
-  const [open, setOpen] = useState(false);
-
-  const setFloatingPosition = useCallback(() => {
-    editor.getEditorState().read(() => {
-      const selection = $getSelection();
-
-      const nativeSelection = window.getSelection();
-
-      const rootElement = editor.getRootElement();
-      if (
-        selection !== null &&
-        nativeSelection !== null &&
-        !nativeSelection.isCollapsed &&
-        rootElement !== null &&
-        rootElement.contains(nativeSelection.anchorNode)
-      ) {
-        const element = getElementFromDomRange(nativeSelection, rootElement);
-        refs.setPositionReference(element);
-      }
-    });
-  }, [editor, refs]);
 
   useEffect(() => {
-    if (open) return;
+    if (state.pointerUp && state.referenceElement) {
+      console.log(state);
+      refs.setReference(state.referenceElement);
+    }
+  }, [refs, state.pointerUp, state.referenceElement]);
 
+  useEffect(() => {
     function handlePointerDown() {
-      setPointerUp(false);
+      dispatch({ type: 'pointer-down' });
     }
     function handlePointerUp() {
-      setPointerUp(true);
+      dispatch({ type: 'pointer-up' });
     }
 
     document.addEventListener('pointerdown', handlePointerDown);
@@ -205,32 +170,21 @@ const FloatingPopup = ({
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [open]);
-
-  useEffect(() => {
-    if (hasSelection && pointerUp) {
-      setOpen(true);
-      setFloatingPosition();
-    }
-    if (!hasSelection) {
-      setOpen(false);
-    }
-  }, [hasSelection, pointerUp, setFloatingPosition]);
+  }, [dispatch]);
 
   return (
-    <RdxPresence.Presence present={open}>
+    <RdxPresence.Presence present={context.open}>
       <PopoverBox
         data-align={align}
         data-side={side}
         ref={refs.setFloating}
-        data-state={open ? 'open' : 'closed'}
+        data-state={context.open ? 'open' : 'closed'}
         style={{
           position: strategy,
           top: y ?? 0,
           left: x ?? 0,
           width: 'max-content',
         }}
-        onAnimationEnd={() => setOpen((open) => (open ? open : false))}
       >
         {children}
       </PopoverBox>
@@ -238,14 +192,9 @@ const FloatingPopup = ({
   );
 };
 
-interface Props {
-  // rootNode?: HTMLElement
-}
-
-export function FloatingToolbarPlugin(props: Props) {
+export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
-
-  const [isTextSelected, setIsTextSelected] = useState(false);
+  const [state, dispatch] = useFloatingToolbar();
 
   useEffect(() => {
     const updateShouldRenderPopup = () => {
@@ -255,34 +204,37 @@ export function FloatingToolbarPlugin(props: Props) {
           return;
         }
         const selection = $getSelection();
-        const nativeSelection = window.getSelection();
-        const rootElement = editor.getRootElement();
 
-        if (
-          nativeSelection !== null &&
-          (!$isRangeSelection(selection) || rootElement === null || !rootElement.contains(nativeSelection.anchorNode))
-        ) {
-          setIsTextSelected(false);
-          return;
-        }
-
-        if (!$isRangeSelection(selection)) {
-          setIsTextSelected(false);
-          return;
+        if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
+          return dispatch({ type: 'deselected' });
         }
 
         const node = getSelectedNode(selection);
+        const linkParent = $findMatchingParent(node, $isLinkNode);
 
-        if (!$isCodeHighlightNode(selection.anchor.getNode()) && selection.getTextContent() !== '') {
-          setIsTextSelected($isTextNode(node));
-        } else {
-          setIsTextSelected(false);
+        if (linkParent !== null) {
+          const link = editor.getElementByKey(linkParent.getKey());
+          if (link && isHTMLAnchorElement(link)) {
+            return dispatch({ type: 'selected', payload: link });
+          }
         }
 
         const rawTextContent = selection.getTextContent().replace(/\n/g, '');
-        if (!selection.isCollapsed() && rawTextContent === '') {
-          setIsTextSelected(false);
-          return;
+
+        if ((!selection.isCollapsed() && rawTextContent === '') || selection.getTextContent() === '') {
+          return dispatch({ type: 'deselected' });
+        }
+
+        const nativeSelection = window.getSelection();
+        const rootElement = editor.getRootElement();
+        if (
+          nativeSelection !== null &&
+          !nativeSelection.isCollapsed &&
+          rootElement !== null &&
+          rootElement.contains(nativeSelection.anchorNode)
+        ) {
+          const element = getElementFromDomRange(nativeSelection, rootElement);
+          dispatch({ type: 'selected', payload: element });
         }
       });
     };
@@ -296,29 +248,85 @@ export function FloatingToolbarPlugin(props: Props) {
   if (!editor.isEditable()) return null;
 
   return (
-    <FloatingPopup editor={editor} hasSelection={isTextSelected}>
+    <FloatingPopup editor={editor} state={state} dispatch={dispatch}>
       <TextFormatFloatingToolbar editor={editor} />
     </FloatingPopup>
   );
 }
-
-export function getSelectedNode(selection: RangeSelection): TextNode | ElementNode {
-  const anchor = selection.anchor;
-  const focus = selection.focus;
-  const anchorNode = selection.anchor.getNode();
-  const focusNode = selection.focus.getNode();
-  if (anchorNode === focusNode) {
-    return anchorNode;
-  }
-  const isBackward = selection.isBackward();
-  if (isBackward) {
-    return $isAtNodeEnd(focus) ? anchorNode : focusNode;
-  } else {
-    return $isAtNodeEnd(anchor) ? anchorNode : focusNode;
-  }
-}
-
 function getSideAndAlignFromPlacement(placement: Placement) {
   const [side, align = 'center'] = placement.split('-');
   return [side, align] as const;
+}
+
+type Action =
+  | {
+      type: 'selected';
+      payload: HTMLElement | VirtualElement;
+    }
+  | {
+      type: 'pointer-up';
+    }
+  | {
+      type: 'pointer-down';
+    }
+  | {
+      type: 'deselected';
+    };
+
+type State = {
+  pointerUp: boolean;
+  floatingToolbarOpen: boolean;
+  referenceElement: null | HTMLElement | VirtualElement;
+};
+
+function useFloatingToolbar() {
+  return useReducer(floatingToolbarReducer, floatingInitialState);
+}
+
+const floatingInitialState = { pointerUp: true, floatingToolbarOpen: false, referenceElement: null } as const;
+function floatingToolbarReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'selected': {
+      return {
+        ...state,
+        floatingToolbarOpen: true,
+        referenceElement: action.payload,
+      };
+    }
+    case 'deselected': {
+      if (!state.pointerUp && state.floatingToolbarOpen) {
+        return {
+          ...state,
+          referenceElement: null,
+        };
+      }
+      return {
+        ...state,
+        floatingToolbarOpen: false,
+        referenceElement: null,
+      };
+    }
+    case 'pointer-down': {
+      return {
+        ...state,
+        pointerUp: false,
+      };
+    }
+    case 'pointer-up': {
+      if (state.floatingToolbarOpen && !state.referenceElement) {
+        return {
+          floatingToolbarOpen: false,
+          referenceElement: null,
+          pointerUp: true,
+        };
+      }
+      return {
+        ...state,
+        pointerUp: true,
+      };
+    }
+    default: {
+      return state;
+    }
+  }
 }

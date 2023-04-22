@@ -23,9 +23,9 @@ export const theme: EditorThemeClasses = {
     underlineStrikethrough: css('[text-decoration:underline_line-through]')
   },
   paragraph: css('relative m-0'),
-  quote: css('ml-6 mb-3 border-l-2 border-outline pl-4'),
+  quote: css('mb-3 p-4 bg-surface text-on-surface border-2 rounded-sm border-outline'),
   indent: css('pl-6'),
-  link: css('underline text-primary underline-offset-2 hover:decoration-primary focus:decoration-primary'),
+  link: css('underline text-primary underline-offset-2 cursor-pointer hover:decoration-primary focus:decoration-primary'),
   list: {
     listitem: css('ml-6'),
     nested: {

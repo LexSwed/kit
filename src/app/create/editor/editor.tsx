@@ -52,7 +52,7 @@ export const Editor = ({ initialEditorState }: Props) => {
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none min-h-[70vh] text-on-background font-sans focus-within:ring-2 shadow-2xl rounded-sm relative ring-outline p-6" />
+            <ContentEditable className="outline-none min-h-[70vh] text-on-background font-sans shadow-2xl rounded-sm relative p-6" />
           }
           placeholder={
             <div className="p-6 absolute text-on-surface-variant top-0 start-0 pointer-events-none">

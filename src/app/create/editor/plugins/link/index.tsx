@@ -1,29 +1,28 @@
 import { LinkPlugin as LexicalLinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { AutoLinkPlugin as LexicalAutoLinkPlugin } from '@lexical/react/LexicalAutoLinkPlugin';
+import { useEffect } from 'react';
+import { mergeRegister } from '@lexical/utils';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { MATCHERS, validateUrl } from './utils';
 
-const URL_MATCHER =
-  /((https?:\/\/(www\.)?)|(www\.))[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
+export const LinkPlugin = () => {
+  const [editor] = useLexicalComposerContext();
 
-const MATCHERS = [
-  (text: string) => {
-    const match = URL_MATCHER.exec(text);
-    if (match === null) {
-      return null;
-    }
-    const fullMatch = match[0];
-    return {
-      index: match.index,
-      length: fullMatch.length,
-      text: fullMatch,
-      url: fullMatch.startsWith('http') ? fullMatch : `https://${fullMatch}`,
-      // attributes: { rel: 'noopener', target: '_blank' }, // Optional link attributes
-    };
-  },
-];
+  useEffect(() => {
+    return mergeRegister(
+      editor.registerUpdateListener(({ editorState }) => {
+        editorState.read(() => {
+          console.log(editorState);
+        });
+      })
+    );
+  }, [editor]);
 
-export const LinkPlugin = () => (
-  <>
-    <LexicalLinkPlugin />
-    <LexicalAutoLinkPlugin matchers={MATCHERS} />
-  </>
-);
+  return (
+    <>
+      <LexicalLinkPlugin validateUrl={validateUrl} />
+      <LexicalAutoLinkPlugin matchers={MATCHERS} />
+      {/* <FloatingLinkEditorPlugin /> */}
+    </>
+  );
+};

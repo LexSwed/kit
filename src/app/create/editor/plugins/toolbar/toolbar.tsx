@@ -150,7 +150,12 @@ const FloatingPopup = ({
 
   useEffect(() => {
     if (state.pointerUp && state.referenceElement) {
-      console.log(state);
+      /**
+       * Resetting position reference as we switch between range and real element
+       * Range will be assigned to position reference, so when switching to a real element
+       * floating will still use old position reference. setPositionReference only cannot be used 🤷‍♂️
+       */
+      refs.setPositionReference(null);
       refs.setReference(state.referenceElement);
     }
   }, [refs, state.pointerUp, state.referenceElement]);
@@ -171,6 +176,8 @@ const FloatingPopup = ({
       document.removeEventListener('pointerup', handlePointerUp);
     };
   }, [dispatch]);
+
+  console.log({ ...context });
 
   return (
     <RdxPresence.Presence present={context.open}>
@@ -209,19 +216,19 @@ export function FloatingToolbarPlugin() {
           return dispatch({ type: 'deselected' });
         }
 
-        const node = getSelectedNode(selection);
-        const linkParent = $findMatchingParent(node, $isLinkNode);
-
-        if (linkParent !== null) {
-          const link = editor.getElementByKey(linkParent.getKey());
-          if (link && isHTMLAnchorElement(link)) {
-            return dispatch({ type: 'selected', payload: link });
-          }
-        }
-
         const rawTextContent = selection.getTextContent().replace(/\n/g, '');
 
         if ((!selection.isCollapsed() && rawTextContent === '') || selection.getTextContent() === '') {
+          const node = getSelectedNode(selection);
+          const linkParent = $findMatchingParent(node, $isLinkNode);
+
+          if (linkParent !== null) {
+            const link = editor.getElementByKey(linkParent.getKey());
+            if (link && isHTMLAnchorElement(link)) {
+              return dispatch({ type: 'selected', payload: link });
+            }
+          }
+
           return dispatch({ type: 'deselected' });
         }
 

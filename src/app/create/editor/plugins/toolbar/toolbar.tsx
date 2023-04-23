@@ -90,12 +90,9 @@ export function FloatingToolbarPlugin() {
     function handlePointerDown() {
       dispatch({ type: 'pointer-down' });
     }
-    function handlePointerUp(e: PointerEvent) {
+    function handlePointerUp() {
       dispatch({ type: 'pointer-up' });
-
-      if (!refs.floating.current?.contains(e.target as HTMLElement)) {
-        updatePopup();
-      }
+      updatePopup();
     }
     /** Avoid applying opacity when pointer down is within the toolbar itself. */
     function handlePointerMove(e: PointerEvent) {
@@ -104,14 +101,15 @@ export function FloatingToolbarPlugin() {
         dispatch({ type: 'pointer-move' });
       }
     }
+    const editorElement = editor.getRootElement();
 
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('pointerup', handlePointerUp);
-    document.addEventListener('pointermove', handlePointerMove);
+    editorElement?.addEventListener('pointermove', handlePointerMove);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('pointerup', handlePointerUp);
-      document.removeEventListener('pointermove', handlePointerMove);
+      editorElement?.removeEventListener('pointermove', handlePointerMove);
     };
   }, [dispatch, editor, refs, stateRef, updatePopup]);
 

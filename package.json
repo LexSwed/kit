@@ -23,7 +23,7 @@
     "@lexical/selection": "^0.10.0",
     "@lexical/utils": "^0.10.0",
     "@radix-ui/react-presence": "^1.0.0",
-    "@types/node": "^18.15.13",
+    "@types/node": "^18.16.0",
     "@types/react": "^18.0.38",
     "@types/react-dom": "18.0.11",
     "autoprefixer": "10.4.14",
@@ -46,6 +46,8 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.8.8",
+    "prettier-plugin-tailwindcss": "^0.2.7",
     "typescript": "^5.0.4",
     "typescript-plugin-css-modules": "^5.0.0"
   }

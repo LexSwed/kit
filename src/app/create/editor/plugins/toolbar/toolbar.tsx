@@ -16,7 +16,6 @@ export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
 
   const [state, dispatch] = useFloatingToolbar();
-  const pointerUpRef = useLatest(state.pointerUp);
 
   const { x, y, strategy, refs, context } = useFloating({
     open: state.floatingToolbarOpen,
@@ -83,32 +82,50 @@ export function FloatingToolbarPlugin() {
     });
   }, [dispatch, editor, refs]);
 
+  /** store state in ref for events only that need access to "latest" value stored in state */
+  const stateRef = useLatest(state);
   useEffect(() => {
+    /** Should always listen to document pointer down and up in case selection
+     * went outside of the editor - it should still be valid */
     function handlePointerDown() {
       dispatch({ type: 'pointer-down' });
     }
     function handlePointerUp(e: PointerEvent) {
       dispatch({ type: 'pointer-up' });
+
       if (!refs.floating.current?.contains(e.target as HTMLElement)) {
         updatePopup();
+      }
+    }
+    /** Avoid applying opacity when pointer down is within the toolbar itself. */
+    function handlePointerMove(e: PointerEvent) {
+      if (!stateRef.current.floatingToolbarOpen || stateRef.current.pointerMove) return;
+      if (e.buttons === 1 || e.buttons === 3) {
+        dispatch({ type: 'pointer-move' });
       }
     }
 
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('pointerup', handlePointerUp);
-
+    document.addEventListener('pointermove', handlePointerMove);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [dispatch, refs, updatePopup]);
+  }, [dispatch, editor, refs, stateRef, updatePopup]);
 
   useEffect(() => {
-    document.addEventListener('selectionchange', updatePopup);
-    return () => {
-      document.removeEventListener('selectionchange', updatePopup);
+    const updatePopupWithKeyboardSelectionOnly = () => {
+      if (stateRef.current.pointerUp) {
+        updatePopup();
+      }
     };
-  }, [editor, pointerUpRef, updatePopup]);
+    document.addEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
+    return () => {
+      document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
+    };
+  }, [editor, stateRef, updatePopup]);
 
   return (
     <RdxPresence.Presence present={isOpen}>
@@ -123,6 +140,7 @@ export function FloatingToolbarPlugin() {
           left: x ?? 0,
           width: 'max-content',
         }}
+        className={state.pointerMove ? 'hover:!opacity-20 hover:transition-opacity hover:duration-200' : ''}
       >
         <TextFormatFloatingToolbar />
       </PopoverBox>
@@ -145,15 +163,19 @@ type Action =
       type: 'pointer-down';
     }
   | {
+      type: 'pointer-move';
+    }
+  | {
       type: 'deselected';
     };
 
 type State = {
   pointerUp: boolean;
+  pointerMove: boolean;
   floatingToolbarOpen: boolean;
 };
 
-const floatingInitialState = { pointerUp: true, floatingToolbarOpen: false, referenceElement: null } as const;
+const floatingInitialState = { pointerUp: true, pointerMove: false, floatingToolbarOpen: false } as const;
 function useFloatingToolbar() {
   return useReducer(floatingToolbarReducer, floatingInitialState);
 }
@@ -166,6 +188,7 @@ function floatingToolbarReducer(state: State, action: Action): State {
       };
     }
     case 'deselected': {
+      /** Keep showing toolbar when no selected text, but the pointer is down */
       if (!state.pointerUp && state.floatingToolbarOpen) {
         return state;
       }
@@ -184,6 +207,13 @@ function floatingToolbarReducer(state: State, action: Action): State {
       return {
         ...state,
         pointerUp: true,
+        pointerMove: false,
+      };
+    }
+    case 'pointer-move': {
+      return {
+        ...state,
+        pointerMove: true,
       };
     }
     default: {

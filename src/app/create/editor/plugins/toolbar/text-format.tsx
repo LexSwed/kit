@@ -1,7 +1,7 @@
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { mergeRegister } from '@lexical/utils';
-import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, TextFormatType } from 'lexical';
-import { MouseEvent, memo, useCallback, useEffect, useState } from 'react';
+import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
+import { type MouseEvent, memo, useCallback, useEffect, useState } from 'react';
 import { ToggleButton } from '@fxtrot/ui';
 import {
   BsTypeItalic,

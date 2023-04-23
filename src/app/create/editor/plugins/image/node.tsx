@@ -15,10 +15,7 @@ import { createEditor, DecoratorNode } from 'lexical';
 import * as React from 'react';
 import { Suspense } from 'react';
 
-const ImageComponent = React.lazy(
-  // @ts-ignore
-  () => import('./component')
-);
+const ImageComponent = React.lazy(() => import('./component'));
 
 export interface ImagePayload {
   altText: string;

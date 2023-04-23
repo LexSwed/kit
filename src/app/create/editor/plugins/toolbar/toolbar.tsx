@@ -6,7 +6,7 @@ import { $getSelection, $isRangeSelection } from 'lexical';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { PopoverBox, useLatest } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
-import { useFloating, offset, flip, shift, inline, Placement } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, inline, type Placement } from '@floating-ui/react';
 import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 import { isHTMLAnchorElement } from '@lexical/utils';

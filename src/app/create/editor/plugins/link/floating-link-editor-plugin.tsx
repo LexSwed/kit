@@ -7,16 +7,15 @@ import {
   COMMAND_PRIORITY_CRITICAL,
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
-  GridSelection,
+  type GridSelection,
   KEY_ESCAPE_COMMAND,
-  LexicalEditor,
-  NodeSelection,
-  RangeSelection,
+  type LexicalEditor,
+  type NodeSelection,
+  type RangeSelection,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
-import { Dispatch, useCallback, useEffect, useRef, useState } from 'react';
+import { type Dispatch, useCallback, useEffect, useRef, useState } from 'react';
 import * as React from 'react';
-import { createPortal } from 'react-dom';
 
 import { getSelectedNode } from '../../utils/getSelectedNode';
 import { sanitizeUrl } from './utils';
@@ -72,12 +71,12 @@ function FloatingLinkEditor({
       const domRect: DOMRect | undefined = nativeSelection.focusNode?.parentElement?.getBoundingClientRect();
       if (domRect) {
         domRect.y += 40;
-        setFloatingElemPositionForLinkEditor(domRect, editorElem, anchorElem);
+        // setFloatingElemPositionForLinkEditor(domRect, editorElem, anchorElem);
       }
       setLastSelection(selection);
     } else if (!activeElement || activeElement.className !== 'link-input') {
       if (rootElement !== null) {
-        setFloatingElemPositionForLinkEditor(null, editorElem, anchorElem);
+        // setFloatingElemPositionForLinkEditor(null, editorElem, anchorElem);
       }
       setLastSelection(null);
       setEditMode(false);
@@ -267,7 +266,7 @@ export default function FloatingLinkEditorPlugin() {
       }),
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
-        (_payload) => {
+        () => {
           updateToolbar();
           return false;
         },

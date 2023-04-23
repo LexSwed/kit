@@ -2,7 +2,7 @@ import { LinkPlugin as LexicalLinkPlugin } from '@lexical/react/LexicalLinkPlugi
 import { AutoLinkPlugin as LexicalAutoLinkPlugin } from '@lexical/react/LexicalAutoLinkPlugin';
 // import { useEffect } from 'react';
 // import { mergeRegister } from '@lexical/utils';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { MATCHERS, validateUrl } from './utils';
 
 export const LinkPlugin = () => {

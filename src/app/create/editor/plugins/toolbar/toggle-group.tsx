@@ -1,6 +1,6 @@
 import { type ComponentProps } from 'react';
 
-interface Props extends ComponentProps<'div'> {}
+type Props = ComponentProps<'div'>
 
 export const ToggleGroup = (props: Props) => {
   return (

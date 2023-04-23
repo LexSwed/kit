@@ -1,171 +1,97 @@
 import { $isCodeHighlightNode } from '@lexical/code';
-import { $isAutoLinkNode, $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $isLinkNode } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $findMatchingParent, mergeRegister } from '@lexical/utils';
-import {
-  $getSelection,
-  $getNodeByKey,
-  $isRangeSelection,
-  $isTextNode,
-  COMMAND_PRIORITY_CRITICAL,
-  FORMAT_TEXT_COMMAND,
-  LexicalEditor,
-  SELECTION_CHANGE_COMMAND,
-  TextFormatType,
-} from 'lexical';
-import { Dispatch, MouseEvent, ReactNode, useCallback, useEffect, useReducer, useState } from 'react';
-import { PopoverBox, ToggleButton, useLatest } from '@fxtrot/ui';
+import { $findMatchingParent } from '@lexical/utils';
+import { $getSelection, $isRangeSelection } from 'lexical';
+import { useCallback, useEffect, useReducer, useState } from 'react';
+import { PopoverBox, useLatest } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
-import { useFloating, offset, flip, shift, inline, Placement, VirtualElement } from '@floating-ui/react';
+import { useFloating, offset, flip, shift, inline, Placement } from '@floating-ui/react';
 import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
-import {
-  BsTypeItalic,
-  BsTypeUnderline,
-  BsTypeBold,
-  BsTypeStrikethrough,
-  BsSubscript,
-  BsSuperscript,
-  BsCodeSlash,
-  BsLink,
-} from 'react-icons/bs';
-import { ToggleGroup } from './toggle-group';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 import { isHTMLAnchorElement } from '@lexical/utils';
+import { TextFormatFloatingToolbar } from './text-format';
 
-function TextFormatFloatingToolbar({ editor }: { editor: LexicalEditor }): JSX.Element {
-  const [isLink, setIsLink] = useState(false);
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
-  const [isStrikethrough, setIsStrikethrough] = useState(false);
-  const [isSubscript, setIsSubscript] = useState(false);
-  const [isSuperscript, setIsSuperscript] = useState(false);
-  const [isCode, setIsCode] = useState(false);
+export function FloatingToolbarPlugin() {
+  const [editor] = useLexicalComposerContext();
 
-  const insertLink = useCallback(() => {
-    if (!isLink) {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, 'https://www.example.com');
-    } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    }
-  }, [editor, isLink]);
+  const [state, dispatch] = useFloatingToolbar();
+  const pointerUpRef = useLatest(state.pointerUp);
 
-  const updateFormat = useCallback(() => {
-    const selection = $getSelection();
-
-    if (!$isRangeSelection(selection)) {
-      return;
-    }
-    const node = getSelectedNode(selection);
-    const parent = node.getParent();
-    // console.log({ parent: $isLinkNode(parent), node: $isLinkNode(node) });
-    if ($isLinkNode(parent) || $isLinkNode(node)) {
-      setIsLink(true);
-    } else {
-      setIsLink(false);
-    }
-
-    // Update text format
-    setIsBold(selection.hasFormat('bold'));
-    setIsItalic(selection.hasFormat('italic'));
-    setIsUnderline(selection.hasFormat('underline'));
-    setIsStrikethrough(selection.hasFormat('strikethrough'));
-    setIsSubscript(selection.hasFormat('subscript'));
-    setIsSuperscript(selection.hasFormat('superscript'));
-    setIsCode(selection.hasFormat('code'));
-  }, []);
-
-  useEffect(() => {
-    // get initial values
-    editor.getEditorState().read(updateFormat);
-    return mergeRegister(
-      editor.registerUpdateListener(({ editorState }) => {
-        editorState.read(updateFormat);
-      })
-    );
-  }, [editor, updateFormat]);
-
-  const handleToggle = useCallback(
-    (e: MouseEvent<HTMLButtonElement>) => {
-      editor.dispatchCommand(FORMAT_TEXT_COMMAND, e.currentTarget.value as TextFormatType);
-    },
-    [editor]
-  );
-
-  return (
-    <ToggleGroup>
-      <ToggleButton
-        pressed={isBold}
-        onClick={handleToggle}
-        value="bold"
-        label="Format text as bold"
-        size="sm"
-        icon={BsTypeBold}
-      />
-      <ToggleButton pressed={isItalic} value="italic" size="sm" label="Format text as italics" icon={BsTypeItalic} />
-      <ToggleButton
-        pressed={isUnderline}
-        value="underline"
-        size="sm"
-        label="Format text to underlined"
-        icon={BsTypeUnderline}
-      />
-      <ToggleButton
-        pressed={isStrikethrough}
-        value="strikethrough"
-        size="sm"
-        label="Format text with a strikethrough"
-        icon={BsTypeStrikethrough}
-      />
-      <ToggleButton pressed={isSubscript} value="subscript" size="sm" label="Format Subscript" icon={BsSubscript} />
-      <ToggleButton
-        pressed={isSuperscript}
-        value="superscript"
-        size="sm"
-        label="Format Superscript"
-        icon={BsSuperscript}
-      />
-      <ToggleButton pressed={isCode} value="code" size="sm" label="Insert code block" icon={BsCodeSlash} />
-      <ToggleButton pressed={isLink} onPressedChange={insertLink} size="sm" label="Insert link" icon={BsLink} />
-    </ToggleGroup>
-  );
-}
-
-const FloatingPopup = ({
-  state,
-  dispatch,
-  children,
-}: {
-  editor: LexicalEditor;
-  state: State;
-  dispatch: Dispatch<Action>;
-  children: ReactNode;
-}) => {
   const { x, y, strategy, refs, context } = useFloating({
     open: state.floatingToolbarOpen,
-    placement: 'top',
-    middleware: [inline(), offset(8), flip(), shift()],
+    placement: 'top-start',
+    middleware: [
+      inline(),
+      offset(8),
+      flip({
+        crossAxis: false,
+      }),
+      shift(),
+    ],
   });
   const [side, align] = getSideAndAlignFromPlacement(context.placement);
+  const isOpen = useDelayed(state.floatingToolbarOpen, 200);
 
-  useEffect(() => {
-    if (state.pointerUp && state.referenceElement) {
-      /**
-       * Resetting position reference as we switch between range and real element
-       * Range will be assigned to position reference, so when switching to a real element
-       * floating will still use old position reference. setPositionReference only cannot be used 🤷‍♂️
-       */
-      refs.setPositionReference(null);
-      refs.setReference(state.referenceElement);
-    }
-  }, [refs, state.pointerUp, state.referenceElement]);
+  const updatePopup = useCallback(() => {
+    editor.getEditorState().read(() => {
+      // Should not to pop up the floating toolbar when using IME input
+      if (editor.isComposing()) {
+        return;
+      }
+      const selection = $getSelection();
+
+      if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
+        return dispatch({ type: 'deselected' });
+      }
+
+      const rawTextContent = selection.getTextContent().replace(/\n/g, '');
+
+      if ((!selection.isCollapsed() && rawTextContent === '') || selection.getTextContent() === '') {
+        const node = getSelectedNode(selection);
+        const linkParent = $findMatchingParent(node, $isLinkNode);
+
+        if (linkParent !== null) {
+          const link = editor.getElementByKey(linkParent.getKey());
+          if (link && isHTMLAnchorElement(link)) {
+            /**
+             * Resetting position reference as we switch between range and real element
+             * Range will be assigned to position reference, so when switching to a real element
+             * floating will still use old position reference. setPositionReference only cannot be used 🤷‍♂️
+             */
+            refs.setPositionReference(null);
+            refs.setReference(link);
+            return dispatch({ type: 'selected' });
+          }
+        }
+
+        return dispatch({ type: 'deselected' });
+      }
+
+      const nativeSelection = window.getSelection();
+      const rootElement = editor.getRootElement();
+      if (
+        nativeSelection !== null &&
+        !nativeSelection.isCollapsed &&
+        rootElement !== null &&
+        rootElement.contains(nativeSelection.anchorNode)
+      ) {
+        const element = getElementFromDomRange(nativeSelection, rootElement);
+        dispatch({ type: 'selected' });
+        refs.setReference(element);
+      }
+    });
+  }, [dispatch, editor, refs]);
 
   useEffect(() => {
     function handlePointerDown() {
       dispatch({ type: 'pointer-down' });
     }
-    function handlePointerUp() {
+    function handlePointerUp(e: PointerEvent) {
       dispatch({ type: 'pointer-up' });
+      if (!refs.floating.current?.contains(e.target as HTMLElement)) {
+        updatePopup();
+      }
     }
 
     document.addEventListener('pointerdown', handlePointerDown);
@@ -175,17 +101,22 @@ const FloatingPopup = ({
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [dispatch]);
+  }, [dispatch, refs, updatePopup]);
 
-  console.log({ ...context });
+  useEffect(() => {
+    document.addEventListener('selectionchange', updatePopup);
+    return () => {
+      document.removeEventListener('selectionchange', updatePopup);
+    };
+  }, [editor, pointerUpRef, updatePopup]);
 
   return (
-    <RdxPresence.Presence present={context.open}>
+    <RdxPresence.Presence present={isOpen}>
       <PopoverBox
         data-align={align}
         data-side={side}
         ref={refs.setFloating}
-        data-state={context.open ? 'open' : 'closed'}
+        data-state={isOpen ? 'open' : 'closed'}
         style={{
           position: strategy,
           top: y ?? 0,
@@ -193,71 +124,9 @@ const FloatingPopup = ({
           width: 'max-content',
         }}
       >
-        {children}
+        <TextFormatFloatingToolbar />
       </PopoverBox>
     </RdxPresence.Presence>
-  );
-};
-
-export function FloatingToolbarPlugin() {
-  const [editor] = useLexicalComposerContext();
-  const [state, dispatch] = useFloatingToolbar();
-
-  useEffect(() => {
-    const updateShouldRenderPopup = () => {
-      editor.getEditorState().read(() => {
-        // Should not to pop up the floating toolbar when using IME input
-        if (editor.isComposing()) {
-          return;
-        }
-        const selection = $getSelection();
-
-        if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
-          return dispatch({ type: 'deselected' });
-        }
-
-        const rawTextContent = selection.getTextContent().replace(/\n/g, '');
-
-        if ((!selection.isCollapsed() && rawTextContent === '') || selection.getTextContent() === '') {
-          const node = getSelectedNode(selection);
-          const linkParent = $findMatchingParent(node, $isLinkNode);
-
-          if (linkParent !== null) {
-            const link = editor.getElementByKey(linkParent.getKey());
-            if (link && isHTMLAnchorElement(link)) {
-              return dispatch({ type: 'selected', payload: link });
-            }
-          }
-
-          return dispatch({ type: 'deselected' });
-        }
-
-        const nativeSelection = window.getSelection();
-        const rootElement = editor.getRootElement();
-        if (
-          nativeSelection !== null &&
-          !nativeSelection.isCollapsed &&
-          rootElement !== null &&
-          rootElement.contains(nativeSelection.anchorNode)
-        ) {
-          const element = getElementFromDomRange(nativeSelection, rootElement);
-          dispatch({ type: 'selected', payload: element });
-        }
-      });
-    };
-
-    document.addEventListener('selectionchange', updateShouldRenderPopup);
-    return () => {
-      document.removeEventListener('selectionchange', updateShouldRenderPopup);
-    };
-  });
-
-  if (!editor.isEditable()) return null;
-
-  return (
-    <FloatingPopup editor={editor} state={state} dispatch={dispatch}>
-      <TextFormatFloatingToolbar editor={editor} />
-    </FloatingPopup>
   );
 }
 function getSideAndAlignFromPlacement(placement: Placement) {
@@ -268,7 +137,6 @@ function getSideAndAlignFromPlacement(placement: Placement) {
 type Action =
   | {
       type: 'selected';
-      payload: HTMLElement | VirtualElement;
     }
   | {
       type: 'pointer-up';
@@ -283,34 +151,27 @@ type Action =
 type State = {
   pointerUp: boolean;
   floatingToolbarOpen: boolean;
-  referenceElement: null | HTMLElement | VirtualElement;
 };
 
+const floatingInitialState = { pointerUp: true, floatingToolbarOpen: false, referenceElement: null } as const;
 function useFloatingToolbar() {
   return useReducer(floatingToolbarReducer, floatingInitialState);
 }
-
-const floatingInitialState = { pointerUp: true, floatingToolbarOpen: false, referenceElement: null } as const;
 function floatingToolbarReducer(state: State, action: Action): State {
   switch (action.type) {
     case 'selected': {
       return {
         ...state,
         floatingToolbarOpen: true,
-        referenceElement: action.payload,
       };
     }
     case 'deselected': {
       if (!state.pointerUp && state.floatingToolbarOpen) {
-        return {
-          ...state,
-          referenceElement: null,
-        };
+        return state;
       }
       return {
         ...state,
         floatingToolbarOpen: false,
-        referenceElement: null,
       };
     }
     case 'pointer-down': {
@@ -320,13 +181,6 @@ function floatingToolbarReducer(state: State, action: Action): State {
       };
     }
     case 'pointer-up': {
-      if (state.floatingToolbarOpen && !state.referenceElement) {
-        return {
-          floatingToolbarOpen: false,
-          referenceElement: null,
-          pointerUp: true,
-        };
-      }
       return {
         ...state,
         pointerUp: true,
@@ -336,4 +190,21 @@ function floatingToolbarReducer(state: State, action: Action): State {
       return state;
     }
   }
+}
+
+function useDelayed(open: boolean, milliseconds: number) {
+  const [isOpen, setOpen] = useState(open);
+  useEffect(() => {
+    if (!open) {
+      const id = setTimeout(() => {
+        setOpen(false);
+      }, milliseconds);
+
+      return () => clearTimeout(id);
+    } else {
+      setOpen(open);
+    }
+  }, [open, milliseconds]);
+
+  return isOpen;
 }

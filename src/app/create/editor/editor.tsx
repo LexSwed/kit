@@ -17,6 +17,7 @@ import { LinkPlugin } from './plugins/link';
 import CodeHighlightPlugin from './plugins/code';
 import { theme } from './theme';
 import { FloatingToolbarPlugin } from './plugins/toolbar';
+import { t } from '~/utils/translation';
 
 interface Props {
   initialEditorState: InitialEditorStateType;
@@ -56,7 +57,7 @@ export const Editor = ({ initialEditorState }: Props) => {
           }
           placeholder={
             <div className="p-6 absolute text-on-surface-variant top-0 start-0 pointer-events-none">
-              Enter some text...
+              {t('Enter some text...')}
             </div>
           }
           ErrorBoundary={LexicalErrorBoundary}

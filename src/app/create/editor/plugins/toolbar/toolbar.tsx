@@ -23,7 +23,7 @@ export function FloatingToolbarPlugin() {
     placement: 'top-start',
     middleware: [
       inline(),
-      offset(8),
+      offset({ mainAxis: 8, crossAxis: -32 }),
       flip({
         crossAxis: false,
       }),

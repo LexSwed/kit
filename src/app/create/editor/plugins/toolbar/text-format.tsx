@@ -1,4 +1,3 @@
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { mergeRegister } from '@lexical/utils';
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
 import { type MouseEvent, memo, useCallback, useEffect, useState } from 'react';
@@ -11,32 +10,21 @@ import {
   BsSubscript,
   BsSuperscript,
   BsCodeSlash,
-  BsLink,
 } from 'react-icons/bs';
 import { ToggleGroup } from './toggle-group';
-import { getSelectedNode } from '../../utils/getSelectedNode';
 import { t } from '~/utils/translation';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar() {
   const [editor] = useLexicalComposerContext();
 
-  const [isLink, setIsLink] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
-  const [isStrikethrough, setIsStrikethrough] = useState(false);
-  const [isSubscript, setIsSubscript] = useState(false);
-  const [isSuperscript, setIsSuperscript] = useState(false);
+  // const [isStrikethrough, setIsStrikethrough] = useState(false);
+  // const [isSubscript, setIsSubscript] = useState(false);
+  // const [isSuperscript, setIsSuperscript] = useState(false);
   const [isCode, setIsCode] = useState(false);
-
-  const insertLink = useCallback(() => {
-    if (!isLink) {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, 'https://www.example.com');
-    } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    }
-  }, [editor, isLink]);
 
   const updateFormat = useCallback(() => {
     const selection = $getSelection();
@@ -44,22 +32,14 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
     if (!$isRangeSelection(selection)) {
       return;
     }
-    const node = getSelectedNode(selection);
-    const parent = node.getParent();
-
-    if ($isLinkNode(node) || $isLinkNode(parent)) {
-      setIsLink(true);
-    } else {
-      setIsLink(false);
-    }
 
     // Update text format
     setIsBold(selection.hasFormat('bold'));
     setIsItalic(selection.hasFormat('italic'));
     setIsUnderline(selection.hasFormat('underline'));
-    setIsStrikethrough(selection.hasFormat('strikethrough'));
-    setIsSubscript(selection.hasFormat('subscript'));
-    setIsSuperscript(selection.hasFormat('superscript'));
+    // setIsStrikethrough(selection.hasFormat('strikethrough'));
+    // setIsSubscript(selection.hasFormat('subscript'));
+    // setIsSuperscript(selection.hasFormat('superscript'));
     setIsCode(selection.hasFormat('code'));
   }, []);
 
@@ -106,7 +86,7 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
         label={t('Format text to underlined')}
         icon={BsTypeUnderline}
       />
-      <ToggleButton
+      {/* <ToggleButton
         pressed={isStrikethrough}
         value="strikethrough"
         onClick={handleToggle}
@@ -129,9 +109,8 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
         size="sm"
         label={t('Format Superscript')}
         icon={BsSuperscript}
-      />
+      /> */}
       <ToggleButton pressed={isCode} value="code" size="sm" label={t('Insert code block')} icon={BsCodeSlash} />
-      <ToggleButton pressed={isLink} onPressedChange={insertLink} size="sm" label={t('Insert link')} icon={BsLink} />
     </ToggleGroup>
   );
 });

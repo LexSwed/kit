@@ -6,11 +6,13 @@ import { $getSelection, $isRangeSelection } from 'lexical';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { PopoverBox, useLatest } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
+import cx from 'clsx';
 import { useFloating, offset, flip, shift, inline, type Placement } from '@floating-ui/react';
 import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 import { isHTMLAnchorElement } from '@lexical/utils';
 import { TextFormatFloatingToolbar } from './text-format';
+import { LinkEdit } from './link-edit';
 
 export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -79,8 +81,9 @@ export function FloatingToolbarPlugin() {
         dispatch({ type: 'selected' });
         refs.setReference(element);
       }
+      context.update();
     });
-  }, [dispatch, editor, refs]);
+  }, [dispatch, editor, refs, context]);
 
   /** store state in ref for events only that need access to "latest" value stored in state */
   const stateRef = useLatest(state);
@@ -124,7 +127,7 @@ export function FloatingToolbarPlugin() {
       document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
     };
   }, [editor, stateRef, updatePopup]);
-
+  console.log(state, { x, y, context, ...refs });
   return (
     <RdxPresence.Presence present={isOpen}>
       <PopoverBox
@@ -138,9 +141,16 @@ export function FloatingToolbarPlugin() {
           left: x ?? 0,
           width: 'max-content',
         }}
-        className={state.pointerMove ? 'hover:!opacity-20 hover:transition-opacity hover:duration-200' : ''}
+        className={cx(
+          'isolate transition-[opacity,width,height] duration-300',
+          state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
+        )}
       >
-        <TextFormatFloatingToolbar />
+        <div className="grid grid-cols-[repeat(3,auto)] gap-1">
+          <TextFormatFloatingToolbar />
+          <div className="w-0.5 bg-outline/10" />
+          <LinkEdit onEditChange={updatePopup} />
+        </div>
       </PopoverBox>
     </RdxPresence.Presence>
   );

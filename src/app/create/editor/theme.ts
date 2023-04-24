@@ -1,4 +1,4 @@
-import { EditorThemeClasses } from "lexical";
+import { type EditorThemeClasses } from "lexical";
 
 // for Tailwind editor suggestions by css`` pattern
 const css = (classNames: string) => classNames;
@@ -25,7 +25,7 @@ export const theme: EditorThemeClasses = {
   paragraph: css('relative m-0'),
   quote: css('mb-3 p-4 bg-surface text-on-surface border-2 rounded-sm border-outline'),
   indent: css('pl-6'),
-  link: css('underline text-primary underline-offset-2 cursor-pointer hover:decoration-primary focus:decoration-primary'),
+  link: css('border-b-[1px] border-dotted pb-0.5 border-current cursor-pointer hover:border-solid'),
   list: {
     listitem: css('ml-6'),
     nested: {

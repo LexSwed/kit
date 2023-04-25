@@ -12,7 +12,7 @@ import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 import { isHTMLAnchorElement } from '@lexical/utils';
 import { TextFormatFloatingToolbar } from './text-format';
-import { LinkEdit } from './link-edit';
+import { LinkEdit, LinkEditPopup } from './link-edit';
 
 export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -33,6 +33,8 @@ export function FloatingToolbarPlugin() {
   });
   const [side, align] = getSideAndAlignFromPlacement(context.placement);
   const isOpen = useDelayed(state.floatingToolbarOpen, 200);
+
+  const [linkDetails, setLinkDetails] = useState<null | { text: string; link: string }>(null);
 
   const updatePopup = useCallback(() => {
     editor.getEditorState().read(() => {
@@ -62,10 +64,14 @@ export function FloatingToolbarPlugin() {
              */
             refs.setPositionReference(null);
             refs.setReference(link);
+            setLinkDetails({
+              link: linkParent.getURL(),
+              text: linkParent.getTextContent(),
+            });
             return dispatch({ type: 'selected' });
           }
         }
-
+        setLinkDetails(null);
         return dispatch({ type: 'deselected' });
       }
 
@@ -79,6 +85,7 @@ export function FloatingToolbarPlugin() {
       ) {
         const element = getElementFromDomRange(nativeSelection, rootElement);
         dispatch({ type: 'selected' });
+        setLinkDetails(null);
         refs.setReference(element);
       }
       context.update();
@@ -127,32 +134,70 @@ export function FloatingToolbarPlugin() {
       document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
     };
   }, [editor, stateRef, updatePopup]);
-  console.log(state, { x, y, context, ...refs });
+
+  const updateLink = () => {
+    editor.update(() => {
+      if (linkDetails) {
+        setLinkDetails(null);
+      }
+      const selection = $getSelection();
+
+      if (!$isRangeSelection(selection)) {
+        return;
+      }
+
+      const node = getSelectedNode(selection);
+      const parent = node.getParent();
+      const linkNode = $isLinkNode(node) ? node : $isLinkNode(parent) ? parent : null;
+
+      if (linkNode) {
+        const textNodes = linkNode.getAllTextNodes();
+
+        const firstTextNode = textNodes[0];
+        const lastTextNode = textNodes[textNodes.length - 1];
+
+        selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
+      } else {
+        setLinkDetails({
+          link: '',
+          text: selection.getTextContent(),
+        });
+      }
+    });
+  };
+
   return (
-    <RdxPresence.Presence present={isOpen}>
-      <PopoverBox
-        data-align={align}
-        data-side={side}
-        ref={refs.setFloating}
-        data-state={isOpen ? 'open' : 'closed'}
-        style={{
-          position: strategy,
-          top: y ?? 0,
-          left: x ?? 0,
-          width: 'max-content',
-        }}
-        className={cx(
-          'isolate transition-[opacity,width,height] duration-300',
-          state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
-        )}
-      >
-        <div className="grid grid-cols-[repeat(3,auto)] gap-1">
-          <TextFormatFloatingToolbar />
-          <div className="w-0.5 bg-outline/10" />
-          <LinkEdit onEditChange={updatePopup} />
-        </div>
-      </PopoverBox>
-    </RdxPresence.Presence>
+    <>
+      <RdxPresence.Presence present={isOpen}>
+        <PopoverBox
+          data-align={align}
+          data-side={side}
+          ref={refs.setFloating}
+          data-state={isOpen ? 'open' : 'closed'}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            width: 'max-content',
+          }}
+          className={cx(
+            'isolate transition-[opacity,width,height] duration-300',
+            state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
+          )}
+        >
+          <div className="flex gap-1">
+            <TextFormatFloatingToolbar />
+            <div className="w-0.5 bg-outline/10" />
+            <LinkEdit onEditLink={updateLink} />
+          </div>
+        </PopoverBox>
+      </RdxPresence.Presence>
+      <LinkEditPopup
+        open={state.floatingToolbarOpen && !!linkDetails}
+        onClose={() => setLinkDetails(null)}
+        initialValues={linkDetails}
+      />
+    </>
   );
 }
 function getSideAndAlignFromPlacement(placement: Placement) {

@@ -2,7 +2,7 @@ import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode } from '@lexical/link';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $findMatchingParent } from '@lexical/utils';
-import { $getSelection, $isRangeSelection } from 'lexical';
+import { $getSelection, $isRangeSelection, ElementNode, TextNode } from 'lexical';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { PopoverBox, useLatest } from '@fxtrot/ui';
 import * as RdxPresence from '@radix-ui/react-presence';
@@ -34,8 +34,6 @@ export function FloatingToolbarPlugin() {
   const [side, align] = getSideAndAlignFromPlacement(context.placement);
   const isOpen = useDelayed(state.floatingToolbarOpen, 200);
 
-  const [linkDetails, setLinkDetails] = useState<null | { text: string; link: string }>(null);
-
   const updatePopup = useCallback(() => {
     editor.getEditorState().read(() => {
       // Should not to pop up the floating toolbar when using IME input
@@ -49,9 +47,9 @@ export function FloatingToolbarPlugin() {
       }
 
       const rawTextContent = selection.getTextContent().replace(/\n/g, '');
+      const node = getSelectedNode(selection);
 
       if ((!selection.isCollapsed() && rawTextContent === '') || selection.getTextContent() === '') {
-        const node = getSelectedNode(selection);
         const linkParent = $findMatchingParent(node, $isLinkNode);
 
         if (linkParent !== null) {
@@ -64,14 +62,9 @@ export function FloatingToolbarPlugin() {
              */
             refs.setPositionReference(null);
             refs.setReference(link);
-            setLinkDetails({
-              link: linkParent.getURL(),
-              text: linkParent.getTextContent(),
-            });
-            return dispatch({ type: 'selected' });
+            return dispatch({ type: 'selected', selectedNode: node });
           }
         }
-        setLinkDetails(null);
         return dispatch({ type: 'deselected' });
       }
 
@@ -84,8 +77,7 @@ export function FloatingToolbarPlugin() {
         rootElement.contains(nativeSelection.anchorNode)
       ) {
         const element = getElementFromDomRange(nativeSelection, rootElement);
-        dispatch({ type: 'selected' });
-        setLinkDetails(null);
+        dispatch({ type: 'selected', selectedNode: node });
         refs.setReference(element);
       }
       context.update();
@@ -137,8 +129,8 @@ export function FloatingToolbarPlugin() {
 
   const updateLink = () => {
     editor.update(() => {
-      if (linkDetails) {
-        setLinkDetails(null);
+      if (state.linkEditOpen) {
+        return dispatch({ type: 'link-edit-closed' });
       }
       const selection = $getSelection();
 
@@ -157,13 +149,28 @@ export function FloatingToolbarPlugin() {
         const lastTextNode = textNodes[textNodes.length - 1];
 
         selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
+        const linkDetails = {
+          link: linkNode.getURL(),
+          text: linkNode.getTextContent(),
+        };
+        dispatch({
+          type: 'link-edit-open',
+          linkDetails,
+        });
       } else {
-        setLinkDetails({
-          link: '',
-          text: selection.getTextContent(),
+        dispatch({
+          type: 'link-edit-open',
+          linkDetails: {
+            link: '',
+            text: selection.getTextContent(),
+          },
         });
       }
     });
+  };
+
+  const onClose = () => {
+    dispatch({ type: 'link-edit-closed' });
   };
 
   return (
@@ -192,11 +199,9 @@ export function FloatingToolbarPlugin() {
           </div>
         </PopoverBox>
       </RdxPresence.Presence>
-      <LinkEditPopup
-        open={state.floatingToolbarOpen && !!linkDetails}
-        onClose={() => setLinkDetails(null)}
-        initialValues={linkDetails}
-      />
+      {state.linkEditOpen && (
+        <LinkEditPopup node={state.lastSelectedNode} onClose={onClose} initialValues={state.linkEditDetails} />
+      )}
     </>
   );
 }
@@ -208,6 +213,7 @@ function getSideAndAlignFromPlacement(placement: Placement) {
 type Action =
   | {
       type: 'selected';
+      selectedNode: TextNode | ElementNode;
     }
   | {
       type: 'pointer-up';
@@ -220,24 +226,63 @@ type Action =
     }
   | {
       type: 'deselected';
+    }
+  | {
+      type: 'link-edit-open';
+      linkDetails: {
+        text: string;
+        link: string;
+      };
+    }
+  | {
+      type: 'link-edit-closed';
     };
 
 type State = {
   pointerUp: boolean;
   pointerMove: boolean;
-  floatingToolbarOpen: boolean;
-};
+} & (
+  | {
+      floatingToolbarOpen: boolean;
+      linkEditOpen: false;
+      linkEditDetails: null;
+      lastSelectedNode: null | TextNode | ElementNode;
+    }
+  | {
+      floatingToolbarOpen: true;
+      linkEditOpen: true;
+      lastSelectedNode: TextNode | ElementNode;
+      linkEditDetails: {
+        text: string;
+        link: string;
+      };
+    }
+);
 
-const floatingInitialState = { pointerUp: true, pointerMove: false, floatingToolbarOpen: false } as const;
+const floatingInitialState = {
+  pointerUp: true,
+  pointerMove: false,
+  floatingToolbarOpen: false,
+  linkEditOpen: false,
+  linkEditDetails: null,
+  lastSelectedNode: null,
+} as const;
 function useFloatingToolbar() {
   return useReducer(floatingToolbarReducer, floatingInitialState);
 }
 function floatingToolbarReducer(state: State, action: Action): State {
+  console.log(action);
   switch (action.type) {
     case 'selected': {
+      if (action.selectedNode === state.lastSelectedNode) {
+        return state;
+      }
       return {
         ...state,
+        lastSelectedNode: action.selectedNode,
         floatingToolbarOpen: true,
+        linkEditOpen: false,
+        linkEditDetails: null,
       };
     }
     case 'deselected': {
@@ -247,7 +292,10 @@ function floatingToolbarReducer(state: State, action: Action): State {
       }
       return {
         ...state,
+        lastSelectedNode: null,
         floatingToolbarOpen: false,
+        linkEditOpen: false,
+        linkEditDetails: null,
       };
     }
     case 'pointer-down': {
@@ -267,6 +315,24 @@ function floatingToolbarReducer(state: State, action: Action): State {
       return {
         ...state,
         pointerMove: true,
+      };
+    }
+    case 'link-edit-closed': {
+      return {
+        ...state,
+        linkEditOpen: false,
+        linkEditDetails: null,
+      };
+    }
+    case 'link-edit-open': {
+      const { floatingToolbarOpen, lastSelectedNode } = state;
+      if (!floatingToolbarOpen || !lastSelectedNode) return state;
+      return {
+        ...state,
+        lastSelectedNode,
+        floatingToolbarOpen: true,
+        linkEditOpen: true,
+        linkEditDetails: action.linkDetails,
       };
     }
     default: {

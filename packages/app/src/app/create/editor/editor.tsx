@@ -17,7 +17,7 @@ import { LinkPlugin } from './plugins/link';
 import CodeHighlightPlugin from './plugins/code';
 import { theme } from './theme';
 import { FloatingToolbarPlugin } from './plugins/toolbar';
-import { t } from '~/utils/translation';
+import { t } from 'shared';
 
 interface Props {
   initialEditorState: InitialEditorStateType;
@@ -53,10 +53,10 @@ export const Editor = ({ initialEditorState }: Props) => {
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none min-h-[70vh] text-on-background font-sans shadow-2xl rounded-sm relative p-6" />
+            <ContentEditable className="relative min-h-[70vh] rounded-sm p-6 font-sans text-on-background shadow-2xl outline-none" />
           }
           placeholder={
-            <div className="p-6 absolute text-on-surface-variant top-0 start-0 pointer-events-none">
+            <div className="pointer-events-none absolute start-0 top-0 p-6 text-on-surface-variant">
               {t('Enter some text...')}
             </div>
           }

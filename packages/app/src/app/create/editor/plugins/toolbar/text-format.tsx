@@ -2,18 +2,10 @@ import { mergeRegister } from '@lexical/utils';
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
 import { type MouseEvent, memo, useCallback, useEffect, useState } from 'react';
 import { ToggleButton } from '@fxtrot/ui';
-import {
-  BsTypeItalic,
-  BsTypeUnderline,
-  BsTypeBold,
-  BsTypeStrikethrough,
-  BsSubscript,
-  BsSuperscript,
-  BsCodeSlash,
-} from 'react-icons/bs';
-import { ToggleGroup } from './toggle-group';
-import { t } from '~/utils/translation';
+import { BsTypeItalic, BsTypeUnderline, BsTypeBold, BsCodeSlash } from 'react-icons/bs';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ToggleGroup } from './toggle-group';
+import { t } from 'shared';
 
 export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar() {
   const [editor] = useLexicalComposerContext();
@@ -21,9 +13,6 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
-  // const [isStrikethrough, setIsStrikethrough] = useState(false);
-  // const [isSubscript, setIsSubscript] = useState(false);
-  // const [isSuperscript, setIsSuperscript] = useState(false);
   const [isCode, setIsCode] = useState(false);
 
   const updateFormat = useCallback(() => {
@@ -37,9 +26,6 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
     setIsBold(selection.hasFormat('bold'));
     setIsItalic(selection.hasFormat('italic'));
     setIsUnderline(selection.hasFormat('underline'));
-    // setIsStrikethrough(selection.hasFormat('strikethrough'));
-    // setIsSubscript(selection.hasFormat('subscript'));
-    // setIsSuperscript(selection.hasFormat('superscript'));
     setIsCode(selection.hasFormat('code'));
   }, []);
 
@@ -86,30 +72,6 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
         label={t('Format text to underlined')}
         icon={BsTypeUnderline}
       />
-      {/* <ToggleButton
-        pressed={isStrikethrough}
-        value="strikethrough"
-        onClick={handleToggle}
-        size="sm"
-        label={t('Format text with a strikethrough')}
-        icon={BsTypeStrikethrough}
-      />
-      <ToggleButton
-        pressed={isSubscript}
-        value="subscript"
-        onClick={handleToggle}
-        size="sm"
-        label={t('Format Subscript')}
-        icon={BsSubscript}
-      />
-      <ToggleButton
-        pressed={isSuperscript}
-        value="superscript"
-        onClick={handleToggle}
-        size="sm"
-        label={t('Format Superscript')}
-        icon={BsSuperscript}
-      /> */}
       <ToggleButton pressed={isCode} value="code" size="sm" label={t('Insert code block')} icon={BsCodeSlash} />
     </ToggleGroup>
   );

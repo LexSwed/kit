@@ -1,8 +1,8 @@
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import { onMount } from "solid-js";
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { onMount } from 'solid-js';
 
 type Props = {
-  defaultSelection?: "rootStart" | "rootEnd";
+  defaultSelection?: 'rootStart' | 'rootEnd';
 };
 
 export function AutoFocusPlugin(props: Props): null {
@@ -17,10 +17,7 @@ export function AutoFocusPlugin(props: Props): null {
         // of this plugin, which should preserve focus too.
         const activeElement = document.activeElement;
         const rootElement = editor.getRootElement() as HTMLDivElement;
-        if (
-          rootElement !== null &&
-          (activeElement === null || !rootElement.contains(activeElement))
-        ) {
+        if (rootElement !== null && (activeElement === null || !rootElement.contains(activeElement))) {
           // Note: preventScroll won't work in Webkit.
           rootElement.focus({ preventScroll: true });
         }

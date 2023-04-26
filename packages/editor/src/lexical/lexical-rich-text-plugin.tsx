@@ -1,9 +1,9 @@
-import { useLexicalComposerContext } from './LexicalComposerContext';
-import { useLexicalEditable } from './useLexicalEditable';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { useLexicalEditable } from './use-lexical-editable';
 import { useCanShowPlaceholder } from './shared/use-can-show-placeholder';
-import { ErrorBoundaryType, useDecorators } from './shared/use-decorators';
-import { useRichTextSetup } from './shared/useRichTextSetup';
-import { JSX, Show, createMemo } from 'solid-js';
+import { type ErrorBoundaryType, useDecorators } from './shared/use-decorators';
+import { useRichTextSetup } from './shared/use-rich-text-setup';
+import { type JSX, Show, createMemo } from 'solid-js';
 import { untrack } from 'solid-js';
 
 export function RichTextPlugin(props: {

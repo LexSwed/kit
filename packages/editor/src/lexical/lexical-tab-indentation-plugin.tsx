@@ -1,4 +1,4 @@
-import { useLexicalComposerContext } from "./LexicalComposerContext";
+import { useLexicalComposerContext } from './lexical-composer-context';
 import {
   $getSelection,
   $isRangeSelection,
@@ -6,8 +6,8 @@ import {
   INDENT_CONTENT_COMMAND,
   KEY_TAB_COMMAND,
   OUTDENT_CONTENT_COMMAND,
-} from "lexical";
-import { createEffect, onCleanup } from "solid-js";
+} from 'lexical';
+import { createEffect, onCleanup } from 'solid-js';
 
 /**
  * This plugin adds the ability to indent content using the tab key. Generally, we don't
@@ -30,10 +30,7 @@ export function TabIndentationPlugin(): null {
 
           event.preventDefault();
 
-          return editor.dispatchCommand(
-            event.shiftKey ? OUTDENT_CONTENT_COMMAND : INDENT_CONTENT_COMMAND,
-            undefined
-          );
+          return editor.dispatchCommand(event.shiftKey ? OUTDENT_CONTENT_COMMAND : INDENT_CONTENT_COMMAND, undefined);
         },
         COMMAND_PRIORITY_EDITOR
       )

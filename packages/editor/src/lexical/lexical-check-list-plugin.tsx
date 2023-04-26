@@ -1,10 +1,4 @@
-import {
-  ListItemNode,
-  $isListItemNode,
-  $isListNode,
-  INSERT_CHECK_LIST_COMMAND,
-  insertList,
-} from "@lexical/list";
+import { ListItemNode, $isListItemNode, $isListNode, INSERT_CHECK_LIST_COMMAND, insertList } from '@lexical/list';
 import {
   LexicalEditor,
   $getNearestNodeFromDOMNode,
@@ -17,14 +11,10 @@ import {
   KEY_ARROW_UP_COMMAND,
   KEY_ESCAPE_COMMAND,
   KEY_SPACE_COMMAND,
-} from "lexical";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import {
-  $findMatchingParent,
-  isHTMLElement,
-  mergeRegister,
-} from "@lexical/utils";
-import { createEffect, onCleanup } from "solid-js";
+} from 'lexical';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { $findMatchingParent, isHTMLElement, mergeRegister } from '@lexical/utils';
+import { createEffect, onCleanup } from 'solid-js';
 
 export function CheckListPlugin(): null {
   const [editor] = useLexicalComposerContext();
@@ -35,7 +25,7 @@ export function CheckListPlugin(): null {
         editor.registerCommand(
           INSERT_CHECK_LIST_COMMAND,
           () => {
-            insertList(editor, "check");
+            insertList(editor, 'check');
             return true;
           },
           COMMAND_PRIORITY_LOW
@@ -102,7 +92,7 @@ export function CheckListPlugin(): null {
 
               if ($isRangeSelection(selection) && selection.isCollapsed()) {
                 const { anchor } = selection;
-                const isElement = anchor.type === "element";
+                const isElement = anchor.type === 'element';
 
                 if (isElement || anchor.offset === 0) {
                   const anchorNode = anchor.getNode();
@@ -114,16 +104,12 @@ export function CheckListPlugin(): null {
                     const parent = elementNode.getParent();
                     if (
                       $isListNode(parent) &&
-                      parent.getListType() === "check" &&
-                      (isElement ||
-                        elementNode.getFirstDescendant() === anchorNode)
+                      parent.getListType() === 'check' &&
+                      (isElement || elementNode.getFirstDescendant() === anchorNode)
                     ) {
                       const domNode = editor.getElementByKey(elementNode.__key);
 
-                      if (
-                        domNode != null &&
-                        document.activeElement !== domNode
-                      ) {
+                      if (domNode != null && document.activeElement !== domNode) {
                         domNode.focus();
                         event.preventDefault();
                         return true;
@@ -150,14 +136,14 @@ let listenersCount = 0;
 
 function listenPointerDown() {
   if (listenersCount++ === 0) {
-    document.addEventListener("click", handleClick);
-    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener('click', handleClick);
+    document.addEventListener('pointerdown', handlePointerDown);
   }
 
   return () => {
     if (--listenersCount === 0) {
-      document.removeEventListener("click", handleClick);
-      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('pointerdown', handlePointerDown);
     }
   };
 }
@@ -172,18 +158,14 @@ function handleCheckItemEvent(event: PointerEvent, callback: () => void) {
   // Ignore clicks on LI that have nested lists
   const firstChild = target.firstChild;
 
-  if (
-    firstChild != null &&
-    isHTMLElement(firstChild) &&
-    (firstChild.tagName === "UL" || firstChild.tagName === "OL")
-  ) {
+  if (firstChild != null && isHTMLElement(firstChild) && (firstChild.tagName === 'UL' || firstChild.tagName === 'OL')) {
     return;
   }
 
   const parentNode = target.parentNode;
 
   // @ts-ignore internal field
-  if (!parentNode || parentNode.__lexicalListType !== "check") {
+  if (!parentNode || parentNode.__lexicalListType !== 'check') {
     return;
   }
 
@@ -191,9 +173,7 @@ function handleCheckItemEvent(event: PointerEvent, callback: () => void) {
   const rect = target.getBoundingClientRect();
 
   if (
-    target.dir === "rtl"
-      ? pageX < rect.right && pageX > rect.right - 20
-      : pageX > rect.left && pageX < rect.left + 20
+    target.dir === 'rtl' ? pageX < rect.right && pageX > rect.right - 20 : pageX > rect.left && pageX < rect.left + 20
   ) {
     callback();
   }
@@ -246,18 +226,15 @@ function getActiveCheckListItem(): HTMLElement | null {
   const activeElement = document.activeElement as HTMLElement;
 
   return activeElement != null &&
-    activeElement.tagName === "LI" &&
+    activeElement.tagName === 'LI' &&
     activeElement.parentNode != null &&
     // @ts-ignore internal field
-    activeElement.parentNode.__lexicalListType === "check"
+    activeElement.parentNode.__lexicalListType === 'check'
     ? activeElement
     : null;
 }
 
-function findCheckListItemSibling(
-  node: ListItemNode,
-  backward: boolean
-): ListItemNode | null {
+function findCheckListItemSibling(node: ListItemNode, backward: boolean): ListItemNode | null {
   let sibling = backward ? node.getPreviousSibling() : node.getNextSibling();
   let parent: ListItemNode | null = node;
 
@@ -267,17 +244,13 @@ function findCheckListItemSibling(
     parent = parent.getParentOrThrow().getParent();
 
     if (parent != null) {
-      sibling = backward
-        ? parent.getPreviousSibling()
-        : parent.getNextSibling();
+      sibling = backward ? parent.getPreviousSibling() : parent.getNextSibling();
     }
   }
 
   // Going down in a tree to get first non-nested list item
   while ($isListItemNode(sibling)) {
-    const firstChild = backward
-      ? sibling.getLastChild()
-      : sibling.getFirstChild();
+    const firstChild = backward ? sibling.getLastChild() : sibling.getFirstChild();
 
     if (!$isListNode(firstChild)) {
       return sibling;
@@ -289,11 +262,7 @@ function findCheckListItemSibling(
   return null;
 }
 
-function handleArrownUpOrDown(
-  event: KeyboardEvent,
-  editor: LexicalEditor,
-  backward: boolean
-) {
+function handleArrownUpOrDown(event: KeyboardEvent, editor: LexicalEditor, backward: boolean) {
   const activeItem = getActiveCheckListItem();
 
   if (activeItem != null) {

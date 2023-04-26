@@ -129,40 +129,38 @@ export const LinkEditPopup = ({ onClose, initialValues, node }: LinkEditPopupPro
         width: 'max-content',
       }}
     >
-      {initialValues && (
-        <form
-          className="col-span-full row-start-2 flex flex-col gap-2 p-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const form = new FormData(e.currentTarget);
-            const text = (form.get('text') as string) || '';
-            const link = (form.get('link') as string) || '';
-            saveLink(text, link);
-          }}
-        >
-          <TextField size="sm" placeholder="Text" name="text" label={t('Text')} defaultValue={initialValues?.text} />
-          <TextField
-            size="sm"
-            placeholder="https://example.com"
-            name="link"
-            type="url"
-            label={t('Link')}
-            defaultValue={initialValues?.link}
-          />
-          <div className="flex flex-row justify-end gap-2 pt-1">
-            <Button size="sm" intent="danger" onClick={removeLink} className="mr-4">
-              <Icon as={RxLinkBreak2} aria-hidden />
-              Remove
-            </Button>
-            <Button size="sm" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button size="sm" type="submit" variant="tonal">
-              Save
-            </Button>
-          </div>
-        </form>
-      )}
+      <form
+        className="col-span-full row-start-2 flex flex-col gap-2 p-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const form = new FormData(e.currentTarget);
+          const text = (form.get('text') as string) || '';
+          const link = (form.get('link') as string) || '';
+          saveLink(text, link);
+        }}
+      >
+        <TextField size="sm" placeholder="Text" name="text" label={t('Text')} defaultValue={initialValues?.text} />
+        <TextField
+          size="sm"
+          placeholder="https://example.com"
+          name="link"
+          type="url"
+          label={t('Link')}
+          defaultValue={initialValues?.link}
+        />
+        <div className="flex flex-row justify-end gap-2 pt-1">
+          <Button size="sm" intent="danger" onClick={removeLink} className="mr-4">
+            <Icon as={RxLinkBreak2} aria-hidden />
+            Remove
+          </Button>
+          <Button size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button size="sm" type="submit" variant="tonal">
+            Save
+          </Button>
+        </div>
+      </form>
     </PopoverBox>
   );
 };

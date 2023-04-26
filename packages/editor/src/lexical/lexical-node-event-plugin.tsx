@@ -1,20 +1,11 @@
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import {
-  type Klass,
-  type LexicalEditor,
-  type LexicalNode,
-  type NodeKey,
-} from "lexical";
-import { createEffect, on, onCleanup } from "solid-js";
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { type Klass, type LexicalEditor, type LexicalNode, type NodeKey } from 'lexical';
+import { createEffect, on, onCleanup } from 'solid-js';
 
 export function NodeEventPlugin(props: {
   nodeType: Klass<LexicalNode>;
   eventType: string;
-  eventListener: (
-    event: Event,
-    editor: LexicalEditor,
-    nodeKey: NodeKey
-  ) => void;
+  eventListener: (event: Event, editor: LexicalEditor, nodeKey: NodeKey) => void;
 }): null {
   const [editor] = useLexicalComposerContext();
   let listenerRef = props.eventListener;
@@ -34,7 +25,7 @@ export function NodeEventPlugin(props: {
                 if (
                   // Updated might be a move, so that might mean a new DOM element
                   // is created. In this case, we need to add and event listener too.
-                  (mutation === "created" || mutation === "updated") &&
+                  (mutation === 'created' || mutation === 'updated') &&
                   element !== null &&
                   !registedElements.has(element)
                 ) {

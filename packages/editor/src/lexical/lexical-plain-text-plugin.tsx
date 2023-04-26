@@ -1,23 +1,25 @@
-import { useLexicalComposerContext } from './LexicalComposerContext';
-import { useLexicalEditable } from './useLexicalEditable';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { useLexicalEditable } from './use-lexical-editable';
 import { useCanShowPlaceholder } from './shared/use-can-show-placeholder';
-import { ErrorBoundaryType, useDecorators } from './shared/use-decorators';
-import { usePlainTextSetup } from './shared/usePlainTextSetup';
-import { createMemo, JSX, Show, untrack } from 'solid-js';
+import { type ErrorBoundaryType, useDecorators } from './shared/use-decorators';
+import { usePlainTextSetup } from './shared/use-plain-text-setup';
+import { createMemo, type JSX, Show, untrack } from 'solid-js';
 
-export function PlainTextPlugin(params: {
+type Props = Readonly<{
   contentEditable: JSX.Element;
   placeholder: ((isEditable: boolean) => null | JSX.Element) | null | JSX.Element;
   errorBoundary: ErrorBoundaryType;
-}): JSX.Element {
+}>;
+
+export function PlainTextPlugin(props: Props) {
   const [editor] = useLexicalComposerContext();
-  const decorators = useDecorators(editor, params.errorBoundary);
+  const decorators = useDecorators(editor, props.errorBoundary);
   usePlainTextSetup(editor);
 
   return (
     <>
-      {params.contentEditable}
-      <Placeholder content={params.placeholder} />
+      {props.contentEditable}
+      <Placeholder content={props.placeholder} />
       {decorators}
     </>
   );

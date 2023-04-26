@@ -1,15 +1,8 @@
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import {
-  $createHorizontalRuleNode,
-  INSERT_HORIZONTAL_RULE_COMMAND,
-} from "./LexicalHorizontalRuleNode";
-import { $insertNodeToNearestRoot } from "@lexical/utils";
-import {
-  $getSelection,
-  $isRangeSelection,
-  COMMAND_PRIORITY_EDITOR,
-} from "lexical";
-import { onCleanup } from "solid-js";
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { $createHorizontalRuleNode, INSERT_HORIZONTAL_RULE_COMMAND } from './lexical-horizontal-rule-node';
+import { $insertNodeToNearestRoot } from '@lexical/utils';
+import { $getSelection, $isRangeSelection, COMMAND_PRIORITY_EDITOR } from 'lexical';
+import { onCleanup } from 'solid-js';
 
 export function HorizontalRulePlugin(): null {
   const [editor] = useLexicalComposerContext();
@@ -17,7 +10,7 @@ export function HorizontalRulePlugin(): null {
   onCleanup(
     editor.registerCommand(
       INSERT_HORIZONTAL_RULE_COMMAND,
-      (type) => {
+      () => {
         const selection = $getSelection();
 
         if (!$isRangeSelection(selection)) {

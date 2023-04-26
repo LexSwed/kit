@@ -1,28 +1,24 @@
 import {
-  LexicalComposerContextType,
+  type LexicalComposerContextType,
   createLexicalComposerContext,
   LexicalComposerContext,
-} from "./LexicalComposerContext";
+} from './lexical-composer-context';
 import {
   $createParagraphNode,
   $getRoot,
   $getSelection,
   createEditor,
-  EditorState,
-  EditorThemeClasses,
-  Klass,
-  LexicalEditor,
-  LexicalNode,
-} from "lexical";
-import { JSX, onMount } from "solid-js";
+  type EditorState,
+  type EditorThemeClasses,
+  type Klass,
+  type LexicalEditor,
+  type LexicalNode,
+} from 'lexical';
+import { type JSX, onMount } from 'solid-js';
 
-const HISTORY_MERGE_OPTIONS = { tag: "history-merge" };
+const HISTORY_MERGE_OPTIONS = { tag: 'history-merge' };
 
-export type InitialEditorStateType =
-  | null
-  | string
-  | EditorState
-  | ((editor: LexicalEditor) => void);
+export type InitialEditorStateType = null | string | EditorState | ((editor: LexicalEditor) => void);
 
 export type InitialConfigType = Readonly<{
   namespace: string;
@@ -31,9 +27,7 @@ export type InitialConfigType = Readonly<{
     | {
         replace: Klass<LexicalNode>;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        with: <T extends { new (...args: any): any }>(
-          node: InstanceType<T>
-        ) => LexicalNode;
+        with: <T extends { new (...args: any): any }>(node: InstanceType<T>) => LexicalNode;
       }
   >;
   onError: (error: Error, editor: LexicalEditor) => void;
@@ -48,18 +42,9 @@ type Props = {
 };
 
 export function LexicalComposer(props: Props): JSX.Element {
-  const {
-    theme,
-    namespace,
-    nodes,
-    onError,
-    editorState: initialEditorState,
-  } = props.initialConfig;
+  const { theme, namespace, nodes, onError, editorState: initialEditorState } = props.initialConfig;
 
-  const context: LexicalComposerContextType = createLexicalComposerContext(
-    null,
-    theme
-  );
+  const context: LexicalComposerContextType = createLexicalComposerContext(null, theme);
 
   const editor = createEditor({
     editable: false,
@@ -75,17 +60,10 @@ export function LexicalComposer(props: Props): JSX.Element {
     editor.setEditable(isEditable !== undefined ? isEditable : true);
   });
 
-  return (
-    <LexicalComposerContext.Provider value={[editor, context]}>
-      {props.children}
-    </LexicalComposerContext.Provider>
-  );
+  return <LexicalComposerContext.Provider value={[editor, context]}>{props.children}</LexicalComposerContext.Provider>;
 }
 
-function initializeEditor(
-  editor: LexicalEditor,
-  initialEditorState?: InitialEditorStateType
-): void {
+function initializeEditor(editor: LexicalEditor, initialEditorState?: InitialEditorStateType): void {
   if (initialEditorState === null) {
     return;
   } else if (initialEditorState === undefined) {
@@ -94,28 +72,24 @@ function initializeEditor(
       if (root.isEmpty()) {
         const paragraph = $createParagraphNode();
         root.append(paragraph);
-        const activeElement =
-          typeof window !== "undefined" ? document.activeElement : null;
-        if (
-          $getSelection() !== null ||
-          (activeElement !== null && activeElement === editor.getRootElement())
-        ) {
+        const activeElement = typeof window !== 'undefined' ? document.activeElement : null;
+        if ($getSelection() !== null || (activeElement !== null && activeElement === editor.getRootElement())) {
           paragraph.select();
         }
       }
     }, HISTORY_MERGE_OPTIONS);
   } else if (initialEditorState !== null) {
     switch (typeof initialEditorState) {
-      case "string": {
+      case 'string': {
         const parsedEditorState = editor.parseEditorState(initialEditorState);
         editor.setEditorState(parsedEditorState, HISTORY_MERGE_OPTIONS);
         break;
       }
-      case "object": {
+      case 'object': {
         editor.setEditorState(initialEditorState, HISTORY_MERGE_OPTIONS);
         break;
       }
-      case "function": {
+      case 'function': {
         editor.update(() => {
           const root = $getRoot();
           if (root.isEmpty()) {

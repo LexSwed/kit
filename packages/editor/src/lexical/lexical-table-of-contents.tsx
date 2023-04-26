@@ -1,25 +1,11 @@
-import type { LexicalEditor, NodeKey, NodeMutation } from "lexical";
+import type { LexicalEditor, NodeKey, NodeMutation } from 'lexical';
 
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import {
-  $isHeadingNode,
-  HeadingNode,
-  HeadingTagType,
-} from "@lexical/rich-text";
-import { $getNodeByKey, $getRoot, TextNode } from "lexical";
-import {
-  type JSX,
-  createSignal,
-  Accessor,
-  createEffect,
-  onCleanup,
-} from "solid-js";
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { $isHeadingNode, HeadingNode, type HeadingTagType } from '@lexical/rich-text';
+import { $getNodeByKey, $getRoot, TextNode } from 'lexical';
+import { type JSX, createSignal, type Accessor, createEffect, onCleanup } from 'solid-js';
 
-export type TableOfContentsEntry = [
-  key: NodeKey,
-  text: string,
-  tag: HeadingTagType
-];
+export type TableOfContentsEntry = [key: NodeKey, text: string, tag: HeadingTagType];
 
 function toEntry(heading: HeadingNode): TableOfContentsEntry {
   return [heading.getKey(), heading.getTextContent(), heading.getTag()];
@@ -106,18 +92,11 @@ function $updateHeadingPosition(
 }
 
 type Props = {
-  children: (
-    values: Accessor<Array<TableOfContentsEntry>>,
-    editor: LexicalEditor
-  ) => JSX.Element;
+  children: (values: Accessor<Array<TableOfContentsEntry>>, editor: LexicalEditor) => JSX.Element;
 };
 
-export function LexicalTableOfContentsPlugin({
-  children,
-}: Props): JSX.Element {
-  const [tableOfContents, setTableOfContents] = createSignal<
-    Array<TableOfContentsEntry>
-  >([]);
+export function LexicalTableOfContentsPlugin({ children }: Props): JSX.Element {
+  const [tableOfContents, setTableOfContents] = createSignal<Array<TableOfContentsEntry>>([]);
   const [editor] = useLexicalComposerContext();
   createEffect(() => {
     // Set table of contents initial state
@@ -127,11 +106,7 @@ export function LexicalTableOfContentsPlugin({
       const rootChildren = root.getChildren();
       for (const child of rootChildren) {
         if ($isHeadingNode(child)) {
-          currentTableOfContents.push([
-            child.getKey(),
-            child.getTextContent(),
-            child.getTag(),
-          ]);
+          currentTableOfContents.push([child.getKey(), child.getTextContent(), child.getTag()]);
         }
       }
       setTableOfContents(currentTableOfContents);
@@ -143,7 +118,7 @@ export function LexicalTableOfContentsPlugin({
       (mutatedNodes: Map<string, NodeMutation>) => {
         editor.getEditorState().read(() => {
           for (const [nodeKey, mutation] of mutatedNodes) {
-            if (mutation === "created") {
+            if (mutation === 'created') {
               const newHeading = $getNodeByKey<HeadingNode>(nodeKey);
               if (newHeading !== null) {
                 let prevHeading = newHeading.getPreviousSibling();
@@ -156,23 +131,16 @@ export function LexicalTableOfContentsPlugin({
                   currentTableOfContents
                 );
               }
-            } else if (mutation === "destroyed") {
-              currentTableOfContents = $deleteHeadingFromTableOfContents(
-                nodeKey,
-                currentTableOfContents
-              );
-            } else if (mutation === "updated") {
+            } else if (mutation === 'destroyed') {
+              currentTableOfContents = $deleteHeadingFromTableOfContents(nodeKey, currentTableOfContents);
+            } else if (mutation === 'updated') {
               const newHeading = $getNodeByKey<HeadingNode>(nodeKey);
               if (newHeading !== null) {
                 let prevHeading = newHeading.getPreviousSibling();
                 while (prevHeading !== null && !$isHeadingNode(prevHeading)) {
                   prevHeading = prevHeading.getPreviousSibling();
                 }
-                currentTableOfContents = $updateHeadingPosition(
-                  prevHeading,
-                  newHeading,
-                  currentTableOfContents
-                );
+                currentTableOfContents = $updateHeadingPosition(prevHeading, newHeading, currentTableOfContents);
               }
             }
           }
@@ -187,15 +155,12 @@ export function LexicalTableOfContentsPlugin({
       (mutatedNodes: Map<string, NodeMutation>) => {
         editor.getEditorState().read(() => {
           for (const [nodeKey, mutation] of mutatedNodes) {
-            if (mutation === "updated") {
+            if (mutation === 'updated') {
               const currNode = $getNodeByKey(nodeKey);
               if (currNode !== null) {
                 const parentNode = currNode.getParentOrThrow();
                 if ($isHeadingNode(parentNode)) {
-                  currentTableOfContents = $updateHeadingInTableOfContents(
-                    parentNode,
-                    currentTableOfContents
-                  );
+                  currentTableOfContents = $updateHeadingInTableOfContents(parentNode, currentTableOfContents);
                   setTableOfContents(currentTableOfContents);
                 }
               }

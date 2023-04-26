@@ -1,14 +1,8 @@
-import type { LexicalEditor, NodeKey } from "lexical";
+import type { LexicalEditor, NodeKey } from 'lexical';
 
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import {
-  $createNodeSelection,
-  $getNodeByKey,
-  $getSelection,
-  $isNodeSelection,
-  $setSelection,
-} from "lexical";
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { $createNodeSelection, $getNodeByKey, $getSelection, $isNodeSelection, $setSelection } from 'lexical';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 
 function isNodeSelected(editor: LexicalEditor, key: NodeKey): boolean {
   return editor.getEditorState().read(() => {
@@ -20,9 +14,7 @@ function isNodeSelected(editor: LexicalEditor, key: NodeKey): boolean {
   });
 }
 
-export function useLexicalNodeSelection(
-  key: NodeKey
-): [() => boolean, (arg: boolean) => void, () => void] {
+export function useLexicalNodeSelection(key: NodeKey): [() => boolean, (arg: boolean) => void, () => void] {
   const [editor] = useLexicalComposerContext();
   const [isSelected, setIsSelected] = createSignal(isNodeSelected(editor, key));
 

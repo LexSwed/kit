@@ -1,7 +1,7 @@
-import type { ElementFormatType, LexicalNode, NodeKey, SerializedLexicalNode, Spread } from "lexical";
-import type { JSX } from "solid-js";
+import type { ElementFormatType, LexicalNode, NodeKey, SerializedLexicalNode, Spread } from 'lexical';
+import { type JSX } from 'solid-js';
 
-import { DecoratorNode } from "lexical";
+import { DecoratorNode } from 'lexical';
 
 export type SerializedDecoratorBlockNode = Spread<
   {
@@ -13,9 +13,8 @@ export type SerializedDecoratorBlockNode = Spread<
 export class DecoratorBlockNode extends DecoratorNode<JSX.Element> {
   __format: ElementFormatType;
 
-  constructor(format?: ElementFormatType, key?: NodeKey) {
+  constructor(format: ElementFormatType, key?: NodeKey) {
     super(key);
-    //@ts-ignore
     this.__format = format;
   }
 
@@ -28,7 +27,7 @@ export class DecoratorBlockNode extends DecoratorNode<JSX.Element> {
   }
 
   createDOM(): HTMLElement {
-    return document.createElement("div");
+    return document.createElement('div');
   }
 
   updateDOM(): false {
@@ -37,7 +36,6 @@ export class DecoratorBlockNode extends DecoratorNode<JSX.Element> {
 
   setFormat(format: ElementFormatType): void {
     const self = this.getWritable();
-    //@ts-ignore
     self.__format = format;
   }
 }

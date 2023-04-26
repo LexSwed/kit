@@ -10,8 +10,8 @@ import {
   TextNode,
 } from 'lexical';
 import { $isLinkNode, AutoLinkNode, LinkNode } from '@lexical/link';
-import { useLexicalComposerContext } from './LexicalComposerContext';
-import { LexicalNodeMenuPlugin, type MenuRenderFn, TypeaheadOption } from './LexicalTypeaheadMenuPlugin';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { LexicalNodeMenuPlugin, type MenuRenderFn, TypeaheadOption } from './lexical-typeahead-menu-plugin';
 import { mergeRegister } from '@lexical/utils';
 import { createEffect, createMemo, createSignal, type JSX, Show, onCleanup } from 'solid-js';
 

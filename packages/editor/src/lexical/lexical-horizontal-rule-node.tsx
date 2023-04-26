@@ -5,43 +5,41 @@ import {
   $isNodeSelection,
   CLICK_COMMAND,
   COMMAND_PRIORITY_LOW,
-  DOMConversionMap,
-  DOMConversionOutput,
-  DOMExportOutput,
+  type DOMConversionMap,
+  type DOMConversionOutput,
+  type DOMExportOutput,
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
-  LexicalCommand,
-  LexicalNode,
-  NodeKey,
-  SerializedLexicalNode,
-} from "lexical";
+  type LexicalCommand,
+  type LexicalNode,
+  type NodeKey,
+  type SerializedLexicalNode,
+} from 'lexical';
 
-import { createEffect, JSX, onCleanup } from "solid-js";
+import { createEffect, type JSX, onCleanup } from 'solid-js';
 
-import { createCommand, DecoratorNode } from "lexical";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import { useLexicalNodeSelection } from "./useLexicalNodeSelection";
-import { mergeRegister } from "@lexical/utils";
+import { createCommand, DecoratorNode } from 'lexical';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { useLexicalNodeSelection } from './use-lexical-node-selection';
+import { mergeRegister } from '@lexical/utils';
 
 export type SerializedHorizontalRuleNode = SerializedLexicalNode & {
-  type: "horizontalrule";
+  type: 'horizontalrule';
   version: 1;
 };
 
-export const INSERT_HORIZONTAL_RULE_COMMAND: LexicalCommand<void> =
-  createCommand("INSERT_HORIZONTAL_RULE_COMMAND");
+export const INSERT_HORIZONTAL_RULE_COMMAND: LexicalCommand<void> = createCommand('INSERT_HORIZONTAL_RULE_COMMAND');
 
 function HorizontalRuleComponent(props: { nodeKey: NodeKey }) {
   const [editor] = useLexicalComposerContext();
-  const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(
-    props.nodeKey
-  );
+  const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(props.nodeKey);
 
   const onDelete = (payload: KeyboardEvent) => {
+    if (!props.nodeKey) return false;
     if (isSelected() && $isNodeSelection($getSelection())) {
       const event: KeyboardEvent = payload;
       event.preventDefault();
-      const node = $getNodeByKey(props.nodeKey)!;
+      const node = $getNodeByKey(props.nodeKey);
       if ($isHorizontalRuleNode(node)) {
         node.remove();
       }
@@ -70,16 +68,8 @@ function HorizontalRuleComponent(props: { nodeKey: NodeKey }) {
           },
           COMMAND_PRIORITY_LOW
         ),
-        editor.registerCommand(
-          KEY_DELETE_COMMAND,
-          onDelete,
-          COMMAND_PRIORITY_LOW
-        ),
-        editor.registerCommand(
-          KEY_BACKSPACE_COMMAND,
-          onDelete,
-          COMMAND_PRIORITY_LOW
-        )
+        editor.registerCommand(KEY_DELETE_COMMAND, onDelete, COMMAND_PRIORITY_LOW),
+        editor.registerCommand(KEY_BACKSPACE_COMMAND, onDelete, COMMAND_PRIORITY_LOW)
       )
     );
   });
@@ -87,7 +77,7 @@ function HorizontalRuleComponent(props: { nodeKey: NodeKey }) {
   createEffect(() => {
     const hrElem = editor.getElementByKey(props.nodeKey);
     if (hrElem !== null) {
-      hrElem.className = isSelected() ? "selected" : "";
+      hrElem.className = isSelected() ? 'selected' : '';
     }
   });
 
@@ -96,16 +86,14 @@ function HorizontalRuleComponent(props: { nodeKey: NodeKey }) {
 
 export class HorizontalRuleNode extends DecoratorNode<JSX.Element> {
   static getType(): string {
-    return "horizontalrule";
+    return 'horizontalrule';
   }
 
   static clone(node: HorizontalRuleNode): HorizontalRuleNode {
     return new HorizontalRuleNode(node.__key);
   }
 
-  static importJSON(
-    serializedNode: SerializedHorizontalRuleNode
-  ): HorizontalRuleNode {
+  static importJSON(serializedNode: SerializedHorizontalRuleNode): HorizontalRuleNode {
     return $createHorizontalRuleNode();
   }
 
@@ -120,21 +108,21 @@ export class HorizontalRuleNode extends DecoratorNode<JSX.Element> {
 
   exportJSON(): SerializedLexicalNode {
     return {
-      type: "horizontalrule",
+      type: 'horizontalrule',
       version: 1,
     };
   }
 
   exportDOM(): DOMExportOutput {
-    return { element: document.createElement("hr") };
+    return { element: document.createElement('hr') };
   }
 
   createDOM(): HTMLElement {
-    return document.createElement("hr");
+    return document.createElement('hr');
   }
 
   getTextContent(): string {
-    return "\n";
+    return '\n';
   }
 
   isInline(): false {
@@ -158,8 +146,6 @@ export function $createHorizontalRuleNode(): HorizontalRuleNode {
   return $applyNodeReplacement(new HorizontalRuleNode());
 }
 
-export function $isHorizontalRuleNode(
-  node: LexicalNode | undefined | null
-): boolean {
+export function $isHorizontalRuleNode(node: LexicalNode | undefined | null): node is LexicalNode {
   return node instanceof HorizontalRuleNode;
 }

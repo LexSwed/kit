@@ -1,6 +1,6 @@
 import {
-  HTMLTableElementWithWithTableSelectionState,
-  InsertTableCommandPayload,
+  type HTMLTableElementWithWithTableSelectionState,
+  type InsertTableCommandPayload,
   TableSelection,
   $createTableNodeWithDimensions,
   $isTableNode,
@@ -9,8 +9,8 @@ import {
   TableCellNode,
   TableNode,
   TableRowNode,
-} from "@lexical/table";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
+} from '@lexical/table';
+import { useLexicalComposerContext } from './lexical-composer-context';
 import {
   $createParagraphNode,
   $getNodeByKey,
@@ -20,18 +20,16 @@ import {
   $nodesOfType,
   COMMAND_PRIORITY_EDITOR,
   ElementNode,
-  NodeKey,
-} from "lexical";
-import { onCleanup, onMount, JSX } from "solid-js";
+  type NodeKey,
+} from 'lexical';
+import { onCleanup, onMount } from 'solid-js';
 
-export function TablePlugin(): JSX.Element | null {
+export function TablePlugin() {
   const [editor] = useLexicalComposerContext();
 
   onMount(() => {
     if (!editor.hasNodes([TableNode, TableCellNode, TableRowNode])) {
-      throw Error(
-        "TablePlugin: TableNode, TableCellNode or TableRowNode not registered on editor"
-      );
+      throw Error('TablePlugin: TableNode, TableCellNode or TableRowNode not registered on editor');
     }
 
     onCleanup(
@@ -48,11 +46,7 @@ export function TablePlugin(): JSX.Element | null {
           const focusNode = focus.getNode();
 
           if (focusNode !== null) {
-            const tableNode = $createTableNodeWithDimensions(
-              Number(rows),
-              Number(columns),
-              includeHeaders
-            );
+            const tableNode = $createTableNodeWithDimensions(Number(rows), Number(columns), includeHeaders);
 
             if ($isRootOrShadowRoot(focusNode)) {
               const target = focusNode.getChildAtIndex(focus.offset);
@@ -70,9 +64,7 @@ export function TablePlugin(): JSX.Element | null {
             }
 
             tableNode.insertAfter($createParagraphNode());
-            const firstCell = tableNode
-              .getFirstChildOrThrow<ElementNode>()
-              .getFirstChildOrThrow<ElementNode>();
+            const firstCell = tableNode.getFirstChildOrThrow<ElementNode>().getFirstChildOrThrow<ElementNode>();
             firstCell.select();
           }
 
@@ -88,15 +80,9 @@ export function TablePlugin(): JSX.Element | null {
 
     const initializeTableNode = (tableNode: TableNode) => {
       const nodeKey = tableNode.getKey();
-      const tableElement = editor.getElementByKey(
-        nodeKey
-      ) as HTMLTableElementWithWithTableSelectionState;
+      const tableElement = editor.getElementByKey(nodeKey) as HTMLTableElementWithWithTableSelectionState;
       if (tableElement && !tableSelections.has(nodeKey)) {
-        const tableSelection = applyTableHandlers(
-          tableNode,
-          tableElement,
-          editor
-        );
+        const tableSelection = applyTableHandlers(tableNode, tableElement, editor);
         tableSelections.set(nodeKey, tableSelection);
       }
     };
@@ -112,28 +98,25 @@ export function TablePlugin(): JSX.Element | null {
       }
     });
 
-    const unregisterMutationListener = editor.registerMutationListener(
-      TableNode,
-      (nodeMutations) => {
-        for (const [nodeKey, mutation] of nodeMutations) {
-          if (mutation === "created") {
-            editor.getEditorState().read(() => {
-              const tableNode = $getNodeByKey<TableNode>(nodeKey);
-              if ($isTableNode(tableNode)) {
-                initializeTableNode(tableNode);
-              }
-            });
-          } else if (mutation === "destroyed") {
-            const tableSelection = tableSelections.get(nodeKey);
-
-            if (tableSelection !== undefined) {
-              tableSelection.removeListeners();
-              tableSelections.delete(nodeKey);
+    const unregisterMutationListener = editor.registerMutationListener(TableNode, (nodeMutations) => {
+      for (const [nodeKey, mutation] of nodeMutations) {
+        if (mutation === 'created') {
+          editor.getEditorState().read(() => {
+            const tableNode = $getNodeByKey<TableNode>(nodeKey);
+            if ($isTableNode(tableNode)) {
+              initializeTableNode(tableNode);
             }
+          });
+        } else if (mutation === 'destroyed') {
+          const tableSelection = tableSelections.get(nodeKey);
+
+          if (tableSelection !== undefined) {
+            tableSelection.removeListeners();
+            tableSelections.delete(nodeKey);
           }
         }
       }
-    );
+    });
 
     onCleanup(() => {
       unregisterMutationListener();

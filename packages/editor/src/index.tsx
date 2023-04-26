@@ -1,5 +1,8 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
+import { Editor } from './editor';
+
+import './style.css';
 
 const root = document.getElementById('root');
 
@@ -10,7 +13,11 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 }
 
 const App = () => {
-  return <div>Hello world!</div>;
+  return (
+    <div class="max-w-2xl mt-40 mx-auto">
+      <Editor />
+    </div>
+  );
 };
 
 render(() => <App />, root!);

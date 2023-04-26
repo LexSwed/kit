@@ -1,20 +1,20 @@
 import {
-  LexicalComposerContextType,
+  type LexicalComposerContextType,
   createLexicalComposerContext,
   LexicalComposerContext,
-} from './LexicalComposerContext';
-import { useCollaborationContext } from './lexical-collaboration-context';
-import { EditorThemeClasses, Klass, LexicalEditor, LexicalNode } from 'lexical';
-import { createEffect, JSX, onCleanup, useContext } from 'solid-js';
+} from './lexical-composer-context';
+import { type EditorThemeClasses, type Klass, type LexicalEditor, type LexicalNode } from 'lexical';
+import { createEffect, type JSX, onCleanup, useContext } from 'solid-js';
 
-export function LexicalNestedComposer(props: {
+type Props = Readonly<{
   children: JSX.Element;
   initialEditor: LexicalEditor;
   initialTheme?: EditorThemeClasses;
   initialNodes?: ReadonlyArray<Klass<LexicalNode>>;
   skipCollabChecks?: true;
-}): JSX.Element {
-  let wasCollabPreviouslyReadyRef = false;
+}>;
+
+export function LexicalNestedComposer(props: Props) {
   const parentContext = useContext(LexicalComposerContext);
 
   if (parentContext == null) {
@@ -57,18 +57,6 @@ export function LexicalNestedComposer(props: {
   props.initialEditor._config.namespace = parentEditor._config.namespace;
   props.initialEditor._editable = parentEditor._editable;
 
-  // If collaboration is enabled, make sure we don't render the children until the collaboration subdocument is ready.
-  const { isCollabActive, yjsDocMap } = useCollaborationContext();
-
-  const isCollabReady = () =>
-    props.skipCollabChecks || wasCollabPreviouslyReadyRef || yjsDocMap.has(props.initialEditor.getKey());
-
-  createEffect(() => {
-    if (isCollabReady()) {
-      wasCollabPreviouslyReadyRef = true;
-    }
-  });
-
   // Update `isEditable` state of nested editor in response to the same change on parent editor.
   createEffect(() => {
     onCleanup(
@@ -80,7 +68,7 @@ export function LexicalNestedComposer(props: {
 
   return (
     <LexicalComposerContext.Provider value={[props.initialEditor, context]}>
-      {!isCollabActive || isCollabReady() ? props.children : null}
+      {props.children}
     </LexicalComposerContext.Provider>
   );
 }

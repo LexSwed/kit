@@ -1,14 +1,8 @@
-import { LinkNode, TOGGLE_LINK_COMMAND, toggleLink } from "@lexical/link";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import { mergeRegister } from "@lexical/utils";
-import {
-  $getSelection,
-  $isElementNode,
-  $isRangeSelection,
-  COMMAND_PRIORITY_LOW,
-  PASTE_COMMAND,
-} from "lexical";
-import { createEffect, on, onCleanup } from "solid-js";
+import { LinkNode, TOGGLE_LINK_COMMAND, toggleLink } from '@lexical/link';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { mergeRegister } from '@lexical/utils';
+import { $getSelection, $isElementNode, $isRangeSelection, COMMAND_PRIORITY_LOW, PASTE_COMMAND } from 'lexical';
+import { createEffect, on, onCleanup } from 'solid-js';
 
 type Props = {
   validateUrl?: (url: string) => boolean;
@@ -22,7 +16,7 @@ export function LinkPlugin(props: Props): null {
       () => [editor, props.validateUrl],
       () => {
         if (!editor.hasNodes([LinkNode])) {
-          throw new Error("LinkPlugin: LinkNode not registered on editor");
+          throw new Error('LinkPlugin: LinkNode not registered on editor');
         }
         const validateUrl = props.validateUrl;
         onCleanup(
@@ -33,7 +27,7 @@ export function LinkPlugin(props: Props): null {
                 if (payload === null) {
                   toggleLink(payload);
                   return true;
-                } else if (typeof payload === "string") {
+                } else if (typeof payload === 'string') {
                   if (validateUrl === undefined || validateUrl(payload)) {
                     toggleLink(payload);
                     return true;
@@ -60,18 +54,13 @@ export function LinkPlugin(props: Props): null {
                     ) {
                       return false;
                     }
-                    const clipboardText = event.clipboardData.getData("text");
+                    const clipboardText = event.clipboardData.getData('text');
                     if (!validateUrl(clipboardText)) {
                       return false;
                     }
                     // If we select nodes that are elements then avoid applying the link.
-                    if (
-                      !selection.getNodes().some((node) => $isElementNode(node))
-                    ) {
-                      editor.dispatchCommand(
-                        TOGGLE_LINK_COMMAND,
-                        clipboardText
-                      );
+                    if (!selection.getNodes().some((node) => $isElementNode(node))) {
+                      editor.dispatchCommand(TOGGLE_LINK_COMMAND, clipboardText);
                       event.preventDefault();
                       return true;
                     }

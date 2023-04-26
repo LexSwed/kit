@@ -12,16 +12,13 @@ import {
   FORMAT_ELEMENT_COMMAND,
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
-} from "lexical";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import { $isDecoratorBlockNode } from "./LexicalDecoratorBlockNode";
-import { useLexicalNodeSelection } from "./useLexicalNodeSelection";
-import {
-  $getNearestBlockElementAncestorOrThrow,
-  mergeRegister,
-} from "@lexical/utils";
-import { JSX } from "solid-js/jsx-runtime";
-import { createEffect, onCleanup } from "solid-js";
+} from 'lexical';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { $isDecoratorBlockNode } from './lexical-decorator-block-node';
+import { useLexicalNodeSelection } from './use-lexical-node-selection';
+import { $getNearestBlockElementAncestorOrThrow, mergeRegister } from '@lexical/utils';
+import { JSX } from 'solid-js/jsx-runtime';
+import { createEffect, onCleanup } from 'solid-js';
 
 type Props = Readonly<{
   children: JSX.Element;
@@ -36,9 +33,7 @@ type Props = Readonly<{
 export function BlockWithAlignableContents(props: Props): JSX.Element {
   const [editor] = useLexicalComposerContext();
 
-  const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(
-    props.nodeKey
-  );
+  const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(props.nodeKey);
   let ref: HTMLDivElement | undefined;
 
   const onDelete = (event: KeyboardEvent) => {
@@ -82,8 +77,7 @@ export function BlockWithAlignableContents(props: Props): JSX.Element {
                   if ($isDecoratorBlockNode(node)) {
                     node.setFormat(formatType);
                   } else {
-                    const element =
-                      $getNearestBlockElementAncestorOrThrow(node);
+                    const element = $getNearestBlockElementAncestorOrThrow(node);
                     element.setFormat(formatType);
                   }
                 }
@@ -113,16 +107,8 @@ export function BlockWithAlignableContents(props: Props): JSX.Element {
           },
           COMMAND_PRIORITY_LOW
         ),
-        editor.registerCommand(
-          KEY_DELETE_COMMAND,
-          onDelete,
-          COMMAND_PRIORITY_LOW
-        ),
-        editor.registerCommand(
-          KEY_BACKSPACE_COMMAND,
-          onDelete,
-          COMMAND_PRIORITY_LOW
-        )
+        editor.registerCommand(KEY_DELETE_COMMAND, onDelete, COMMAND_PRIORITY_LOW),
+        editor.registerCommand(KEY_BACKSPACE_COMMAND, onDelete, COMMAND_PRIORITY_LOW)
       )
     );
   });
@@ -135,7 +121,7 @@ export function BlockWithAlignableContents(props: Props): JSX.Element {
       }}
       ref={ref}
       style={{
-        "text-align": props.format ? props.format : undefined,
+        'text-align': props.format ? props.format : undefined,
       }}
     >
       {props.children}

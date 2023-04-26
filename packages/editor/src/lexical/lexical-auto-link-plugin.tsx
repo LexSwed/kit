@@ -1,10 +1,4 @@
-import {
-  LinkAttributes,
-  $createAutoLinkNode,
-  $isAutoLinkNode,
-  $isLinkNode,
-  AutoLinkNode,
-} from "@lexical/link";
+import { LinkAttributes, $createAutoLinkNode, $isAutoLinkNode, $isLinkNode, AutoLinkNode } from '@lexical/link';
 import {
   ElementNode,
   LexicalEditor,
@@ -14,10 +8,10 @@ import {
   $isLineBreakNode,
   $isTextNode,
   TextNode,
-} from "lexical";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import { mergeRegister } from "@lexical/utils";
-import { Accessor, createEffect, JSX, on, onCleanup } from "solid-js";
+} from 'lexical';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { mergeRegister } from '@lexical/utils';
+import { Accessor, createEffect, JSX, on, onCleanup } from 'solid-js';
 
 type ChangeHandler = (url: string | null, prevUrl: string | null) => void;
 
@@ -31,10 +25,7 @@ type LinkMatcherResult = {
 
 export type LinkMatcher = (text: string) => LinkMatcherResult | null;
 
-export function createLinkMatcherWithRegExp(
-  regExp: RegExp,
-  urlTransformer: (text: string) => string = (text) => text
-) {
+export function createLinkMatcherWithRegExp(regExp: RegExp, urlTransformer: (text: string) => string = (text) => text) {
   return (text: string) => {
     const match = regExp.exec(text);
     if (match === null) return null;
@@ -47,10 +38,7 @@ export function createLinkMatcherWithRegExp(
   };
 }
 
-function findFirstMatch(
-  text: string,
-  matchers: Array<LinkMatcher>
-): LinkMatcherResult | null {
+function findFirstMatch(text: string, matchers: Array<LinkMatcher>): LinkMatcherResult | null {
   for (let i = 0; i < matchers.length; i++) {
     const match = matchers[i](text);
 
@@ -84,8 +72,7 @@ function isPreviousNodeValid(node: LexicalNode): boolean {
   return (
     previousNode === null ||
     $isLineBreakNode(previousNode) ||
-    ($isTextNode(previousNode) &&
-      endsWithSeparator(previousNode.getTextContent()))
+    ($isTextNode(previousNode) && endsWithSeparator(previousNode.getTextContent()))
   );
 }
 
@@ -101,32 +88,17 @@ function isNextNodeValid(node: LexicalNode): boolean {
   );
 }
 
-function isContentAroundIsValid(
-  matchStart: number,
-  matchEnd: number,
-  text: string,
-  node: TextNode
-): boolean {
-  const contentBeforeIsValid =
-    matchStart > 0
-      ? isSeparator(text[matchStart - 1])
-      : isPreviousNodeValid(node);
+function isContentAroundIsValid(matchStart: number, matchEnd: number, text: string, node: TextNode): boolean {
+  const contentBeforeIsValid = matchStart > 0 ? isSeparator(text[matchStart - 1]) : isPreviousNodeValid(node);
   if (!contentBeforeIsValid) {
     return false;
   }
 
-  const contentAfterIsValid =
-    matchEnd < text.length
-      ? isSeparator(text[matchEnd])
-      : isNextNodeValid(node);
+  const contentAfterIsValid = matchEnd < text.length ? isSeparator(text[matchEnd]) : isNextNodeValid(node);
   return contentAfterIsValid;
 }
 
-function handleLinkCreation(
-  node: TextNode,
-  matchers: Array<LinkMatcher>,
-  onChange: ChangeHandler
-): void {
+function handleLinkCreation(node: TextNode, matchers: Array<LinkMatcher>, onChange: ChangeHandler): void {
   const nodeText = node.getTextContent();
   let text = nodeText;
   let invalidMatchEnd = 0;
@@ -137,19 +109,12 @@ function handleLinkCreation(
     const matchStart = match.index;
     const matchLength = match.length;
     const matchEnd = matchStart + matchLength;
-    const isValid = isContentAroundIsValid(
-      invalidMatchEnd + matchStart,
-      invalidMatchEnd + matchEnd,
-      nodeText,
-      node
-    );
+    const isValid = isContentAroundIsValid(invalidMatchEnd + matchStart, invalidMatchEnd + matchEnd, nodeText, node);
 
     if (isValid) {
       let linkTextNode;
       if (invalidMatchEnd + matchStart === 0) {
-        [linkTextNode, remainingTextNode] = remainingTextNode.splitText(
-          invalidMatchEnd + matchLength
-        );
+        [linkTextNode, remainingTextNode] = remainingTextNode.splitText(invalidMatchEnd + matchLength);
       } else {
         [, linkTextNode, remainingTextNode] = remainingTextNode.splitText(
           invalidMatchEnd + matchStart,
@@ -172,11 +137,7 @@ function handleLinkCreation(
   }
 }
 
-function handleLinkEdit(
-  linkNode: AutoLinkNode,
-  matchers: Array<LinkMatcher>,
-  onChange: ChangeHandler
-): void {
+function handleLinkEdit(linkNode: AutoLinkNode, matchers: Array<LinkMatcher>, onChange: ChangeHandler): void {
   // Check children are simple text
   const children = linkNode.getChildren();
   const childrenLength = children.length;
@@ -228,11 +189,7 @@ function handleLinkEdit(
 
 // Bad neighbours are edits in neighbor nodes that make AutoLinks incompatible.
 // Given the creation preconditions, these can only be simple text nodes.
-function handleBadNeighbors(
-  textNode: TextNode,
-  matchers: Array<LinkMatcher>,
-  onChange: ChangeHandler
-): void {
+function handleBadNeighbors(textNode: TextNode, matchers: Array<LinkMatcher>, onChange: ChangeHandler): void {
   const previousSibling = textNode.getPreviousSibling();
   const nextSibling = textNode.getNextSibling();
   const text = textNode.getTextContent();
@@ -271,9 +228,7 @@ function useAutoLink(
     const onChange = onChangeAccessor();
     const matchers = matchersAccessor();
     if (!editor.hasNodes([AutoLinkNode])) {
-      throw new Error(
-        "LexicalAutoLinkPlugin: AutoLinkNode not registered on editor"
-      );
+      throw new Error('LexicalAutoLinkPlugin: AutoLinkNode not registered on editor');
     }
 
     const onChangeWrapped = (url: string | null, prevUrl: string | null) => {
@@ -292,8 +247,7 @@ function useAutoLink(
           } else if (!$isLinkNode(parent)) {
             if (
               textNode.isSimpleText() &&
-              (startsWithSeparator(textNode.getTextContent()) ||
-                !$isAutoLinkNode(previous))
+              (startsWithSeparator(textNode.getTextContent()) || !$isAutoLinkNode(previous))
             ) {
               handleLinkCreation(textNode, matchers, onChangeWrapped);
             }
@@ -306,10 +260,7 @@ function useAutoLink(
   });
 }
 
-export function AutoLinkPlugin(props: {
-  matchers: Array<LinkMatcher>;
-  onChange?: ChangeHandler;
-}): JSX.Element | null {
+export function AutoLinkPlugin(props: { matchers: Array<LinkMatcher>; onChange?: ChangeHandler }): JSX.Element | null {
   const [editor] = useLexicalComposerContext();
 
   useAutoLink(

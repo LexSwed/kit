@@ -1,12 +1,6 @@
-import { LexicalEditor } from "lexical";
-import { useLexicalComposerContext } from "./LexicalComposerContext";
-import {
-  Accessor,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-} from "solid-js";
+import { type LexicalEditor } from 'lexical';
+import { useLexicalComposerContext } from './lexical-composer-context';
+import { type Accessor, createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
 
 export type LexicalSubscription<T> = {
   initialValueFn: () => T;

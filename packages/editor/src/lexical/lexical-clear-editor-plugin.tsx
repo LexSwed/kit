@@ -1,4 +1,4 @@
-import { useLexicalComposerContext } from './LexicalComposerContext';
+import { useLexicalComposerContext } from './lexical-composer-context';
 import { $createParagraphNode, $getRoot, $getSelection, CLEAR_EDITOR_COMMAND, COMMAND_PRIORITY_EDITOR } from 'lexical';
 import { type JSX, onCleanup } from 'solid-js';
 

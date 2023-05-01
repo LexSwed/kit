@@ -1,26 +1,26 @@
+import { Show, batch, createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
+
+import { $getSelection, $isRangeSelection, ElementNode, TextNode, type RangeSelection } from 'lexical';
+
+import { createFloating } from '../../lib/floating';
+import { useReducer } from '../../lib/use-reducer';
+import { Popover } from '../../lib/popover';
+import { type Placement, inline, offset, flip, shift, type ReferenceElement } from '@floating-ui/dom';
+import { $findMatchingParent, isHTMLAnchorElement } from '@lexical/utils';
+import { useLexicalComposerContext } from '../../lexical';
 import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode } from '@lexical/link';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $findMatchingParent } from '@lexical/utils';
-import { $getSelection, $isRangeSelection, ElementNode, TextNode } from 'lexical';
-import { useCallback, useEffect, useReducer, useState } from 'react';
-import { PopoverBox, useLatest } from '@fxtrot/ui';
-import * as RdxPresence from '@radix-ui/react-presence';
-import cx from 'clsx';
-import { useFloating, offset, flip, shift, inline, type Placement } from '@floating-ui/react';
-import { getElementFromDomRange } from '../../utils/getElementFromDomRange';
-import { getSelectedNode } from '../../utils/getSelectedNode';
-import { isHTMLAnchorElement } from '@lexical/utils';
-import { TextFormatFloatingToolbar } from './text-format';
-import { LinkEdit, LinkEditPopup } from './link-edit';
+import { getElementFromDomRange, getSelectedNode } from '../utils';
 
-export function FloatingToolbarPlugin() {
+export const FloatingToolbarPlugin = () => {
   const [editor] = useLexicalComposerContext();
-
+  const [reference, setReference] = createSignal<ReferenceElement | null>(null);
+  const [floating, setFloating] = createSignal<HTMLElement | null>(null);
   const [state, dispatch] = useFloatingToolbar();
 
-  const { x, y, strategy, refs, context } = useFloating({
-    open: state.floatingToolbarOpen,
+  // `position` is a reactive object.
+  const position = createFloating(reference, floating, {
+    open: () => state.floatingToolbarOpen,
     placement: 'top-start',
     middleware: [
       inline(),
@@ -31,10 +31,13 @@ export function FloatingToolbarPlugin() {
       shift(),
     ],
   });
-  const [side, align] = getSideAndAlignFromPlacement(context.placement);
-  const isOpen = useDelayed(state.floatingToolbarOpen, 200);
+  const split = createMemo(() => getSideAndAlignFromPlacement(position.placement));
 
-  const updatePopup = useCallback(() => {
+  createEffect(() => {
+    console.log({ ...state });
+  });
+
+  const updatePopup = () => {
     editor.getEditorState().read(() => {
       // Should not to pop up the floating toolbar when using IME input
       if (editor.isComposing()) {
@@ -55,17 +58,15 @@ export function FloatingToolbarPlugin() {
         if (linkParent !== null) {
           const link = editor.getElementByKey(linkParent.getKey());
           if (link && isHTMLAnchorElement(link)) {
-            /**
-             * Resetting position reference as we switch between range and real element
-             * Range will be assigned to position reference, so when switching to a real element
-             * floating will still use old position reference. setPositionReference only cannot be used 🤷‍♂️
-             */
-            refs.setPositionReference(null);
-            refs.setReference(link);
-            return dispatch({ type: 'selected', selectedNode: node });
+            batch(() => {
+              setReference(link);
+              dispatch({ type: 'selected', selectedNode: node });
+            });
+            return;
           }
         }
-        return dispatch({ type: 'deselected' });
+        dispatch({ type: 'deselected' });
+        return;
       }
 
       const nativeSelection = window.getSelection();
@@ -77,55 +78,60 @@ export function FloatingToolbarPlugin() {
         rootElement.contains(nativeSelection.anchorNode)
       ) {
         const element = getElementFromDomRange(nativeSelection, rootElement);
-        dispatch({ type: 'selected', selectedNode: node });
-        refs.setReference(element);
+        batch(() => {
+          dispatch({ type: 'selected', selectedNode: node });
+          setReference(element);
+        });
       }
-      context.update();
+      // position.update();
     });
-  }, [dispatch, editor, refs, context]);
+  };
 
-  /** store state in ref for events only that need access to "latest" value stored in state */
-  const stateRef = useLatest(state);
-  useEffect(() => {
-    /** Should always listen to document pointer down and up in case selection
-     * went outside of the editor - it should still be valid */
-    function handlePointerDown() {
-      dispatch({ type: 'pointer-down' });
-    }
-    function handlePointerUp() {
-      dispatch({ type: 'pointer-up' });
-      updatePopup();
-    }
-    /** Avoid applying opacity when pointer down is within the toolbar itself. */
-    function handlePointerMove(e: PointerEvent) {
-      if (!stateRef.current.floatingToolbarOpen || stateRef.current.pointerMove) return;
-      if (e.buttons === 1 || e.buttons === 3) {
-        dispatch({ type: 'pointer-move' });
+  createEffect(
+    on([], () => {
+      /** Should always listen to document pointer down and up in case selection
+       * went outside of the editor - it should still be valid */
+      function handlePointerDown() {
+        dispatch({ type: 'pointer-down' });
       }
-    }
-    const editorElement = editor.getRootElement();
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('pointerup', handlePointerUp);
-    editorElement?.addEventListener('pointermove', handlePointerMove);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('pointerup', handlePointerUp);
-      editorElement?.removeEventListener('pointermove', handlePointerMove);
-    };
-  }, [dispatch, editor, refs, stateRef, updatePopup]);
-
-  useEffect(() => {
-    const updatePopupWithKeyboardSelectionOnly = () => {
-      if (stateRef.current.pointerUp) {
+      function handlePointerUp() {
+        dispatch({ type: 'pointer-up' });
         updatePopup();
       }
-    };
-    document.addEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
-    return () => {
-      document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
-    };
-  }, [editor, stateRef, updatePopup]);
+      /** Avoid applying opacity when pointer down is within the toolbar itself. */
+      function handlePointerMove(e: PointerEvent) {
+        if (!state.floatingToolbarOpen || state.pointerMove) return;
+        if (e.buttons === 1 || e.buttons === 3) {
+          dispatch({ type: 'pointer-move' });
+        }
+      }
+      const editorElement = editor.getRootElement();
+
+      document.addEventListener('pointerdown', handlePointerDown);
+      document.addEventListener('pointerup', handlePointerUp);
+      editorElement?.addEventListener('pointermove', handlePointerMove);
+
+      onCleanup(() => {
+        document.removeEventListener('pointerdown', handlePointerDown);
+        document.removeEventListener('pointerup', handlePointerUp);
+        editorElement?.removeEventListener('pointermove', handlePointerMove);
+      });
+    })
+  );
+
+  createEffect(
+    on([], () => {
+      const updatePopupWithKeyboardSelectionOnly = () => {
+        if (state.pointerUp) {
+          updatePopup();
+        }
+      };
+      document.addEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
+      onCleanup(() => {
+        document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
+      });
+    })
+  );
 
   const updateLink = () => {
     editor.update(() => {
@@ -169,45 +175,30 @@ export function FloatingToolbarPlugin() {
     });
   };
 
-  const onClose = () => {
-    dispatch({ type: 'link-edit-closed' });
-  };
-
   return (
-    <>
-      <RdxPresence.Presence present={isOpen}>
-        <PopoverBox
-          data-align={align}
-          data-side={side}
-          ref={refs.setFloating}
-          data-state={isOpen ? 'open' : 'closed'}
-          style={{
-            position: strategy,
-            top: y ?? 0,
-            left: x ?? 0,
-            width: 'max-content',
-          }}
-          className={cx(
-            'isolate transition-[opacity,width,height] duration-300',
-            state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
-          )}
-        >
-          <div className="flex gap-1">
-            <TextFormatFloatingToolbar />
-            <div className="w-0.5 bg-outline/10" />
-            <LinkEdit onEditLink={updateLink} />
-          </div>
-        </PopoverBox>
-      </RdxPresence.Presence>
-      {state.linkEditOpen && (
-        <LinkEditPopup node={state.lastSelectedNode} onClose={onClose} initialValues={state.linkEditDetails} />
-      )}
-    </>
+    <Show when={state.floatingToolbarOpen}>
+      <Popover
+        ref={setFloating}
+        data-align={split().align}
+        data-side={split().side}
+        data-state={state.floatingToolbarOpen ? 'open' : 'closed'}
+        class={'isolate transition-[opacity,width,height] duration-300'}
+        style={{
+          position: position.strategy,
+          top: `${position.y ?? 0}px`,
+          left: `${position.x ?? 0}px`,
+          width: 'max-content',
+        }}
+      >
+        Tooltip
+      </Popover>
+    </Show>
   );
-}
+};
+
 function getSideAndAlignFromPlacement(placement: Placement) {
   const [side, align = 'center'] = placement.split('-');
-  return [side, align] as const;
+  return { side, align };
 }
 
 type Action =
@@ -338,21 +329,4 @@ function floatingToolbarReducer(state: State, action: Action): State {
       return state;
     }
   }
-}
-
-function useDelayed(open: boolean, milliseconds: number) {
-  const [isOpen, setOpen] = useState(open);
-  useEffect(() => {
-    if (!open) {
-      const id = setTimeout(() => {
-        setOpen(false);
-      }, milliseconds);
-
-      return () => clearTimeout(id);
-    } else {
-      setOpen(open);
-    }
-  }, [open, milliseconds]);
-
-  return isOpen;
 }

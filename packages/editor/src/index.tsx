@@ -1,23 +1,31 @@
 /* @refresh reload */
+import './style.css';
+import { createElement, useRef, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { render } from 'solid-js/web';
 import { Editor } from './editor';
+import { ThemeProvider } from '@fxtrot/ui';
+import { createContext } from 'solid-js';
 
-import './style.css';
+const AppContext = createContext({ root: null as HTMLElement | null });
 
-const root = document.getElementById('root');
-
-if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
-  throw new Error(
-    'Root element not found. Did you forget to add it to your index.html? Or maybe the id attribute got mispelled?'
-  );
-}
-
-const App = () => {
+const App = (props: { root: HTMLElement }) => {
   return (
-    <div class="max-w-2xl mt-40 mx-auto">
-      <Editor />
-    </div>
+    <AppContext.Provider value={{ root: props.root }}>
+      <div class="max-w-2xl mt-40 mx-auto">
+        <Editor />
+      </div>
+    </AppContext.Provider>
   );
 };
 
-render(() => <App />, root!);
+const ReactApp = () => {
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    render(() => <App root={ref.current!} />, ref.current!);
+  }, []);
+  return createElement(ThemeProvider, { children: createElement('div', { ref }) });
+};
+
+createRoot(document.getElementById('root') as HTMLDivElement).render(createElement(ReactApp));

@@ -3,6 +3,6 @@ import { type Config } from 'tailwindcss';
 import fxtrotPreset from '@fxtrot/ui/tailwind.preset';
 
 export default {
-  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   presets: [fxtrotPreset],
 } satisfies Config;

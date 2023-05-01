@@ -2,7 +2,6 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
-import { TRANSFORMERS } from '@lexical/markdown';
 
 import {
   HistoryPlugin,
@@ -20,6 +19,7 @@ import {
 } from './lexical';
 import { theme } from './theme';
 import { t } from 'shared';
+import { FloatingToolbarPlugin } from './lexical/floating-toolbar-plugin';
 
 interface Props {
   initialEditorState?: InitialEditorStateType;
@@ -69,6 +69,7 @@ export const Editor = (props: Props) => {
         <ListPlugin />
         <LinkPlugin />
         <TabIndentationPlugin />
+        <FloatingToolbarPlugin />
       </LexicalComposer>
     </div>
   );

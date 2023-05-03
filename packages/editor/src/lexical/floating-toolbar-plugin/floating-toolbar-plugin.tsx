@@ -1,16 +1,18 @@
 import { Show, batch, createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
 
 import { $getSelection, $isRangeSelection, ElementNode, TextNode, type RangeSelection } from 'lexical';
+import { RiEditorBold } from 'solid-icons/ri';
 
 import { createFloating } from '../../lib/floating';
 import { useReducer } from '../../lib/use-reducer';
-import { Popover } from '../../lib/popover';
 import { type Placement, inline, offset, flip, shift, type ReferenceElement } from '@floating-ui/dom';
 import { $findMatchingParent, isHTMLAnchorElement } from '@lexical/utils';
 import { useLexicalComposerContext } from '../../lexical';
 import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode } from '@lexical/link';
 import { getElementFromDomRange, getSelectedNode } from '../utils';
+import { Popover, ToggleButton } from '../../ui';
+import { TextFormatting } from './text-formating';
 
 export const FloatingToolbarPlugin = () => {
   const [editor] = useLexicalComposerContext();
@@ -32,10 +34,6 @@ export const FloatingToolbarPlugin = () => {
     ],
   });
   const split = createMemo(() => getSideAndAlignFromPlacement(position.placement));
-
-  createEffect(() => {
-    console.log({ ...state });
-  });
 
   const updatePopup = () => {
     editor.getEditorState().read(() => {
@@ -83,7 +81,7 @@ export const FloatingToolbarPlugin = () => {
           setReference(element);
         });
       }
-      // position.update();
+      position.update();
     });
   };
 
@@ -190,7 +188,7 @@ export const FloatingToolbarPlugin = () => {
           width: 'max-content',
         }}
       >
-        Tooltip
+        <TextFormatting />
       </Popover>
     </Show>
   );

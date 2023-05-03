@@ -31,7 +31,7 @@ export const Editor = ({ initialEditorState }: Props) => {
     console.error(error);
   }
   const initialConfig: InitialConfigType = {
-    namespace: 'MyEditor',
+    namespace: 'FxtrotEditor',
     onError,
     editorState: initialEditorState,
     theme,

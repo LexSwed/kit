@@ -13,14 +13,19 @@ import { getSelectedNode } from '../../utils/getSelectedNode';
 import { isHTMLAnchorElement } from '@lexical/utils';
 import { TextFormatFloatingToolbar } from './text-format';
 import { LinkEdit, LinkEditPopup } from './link-edit';
+import { useToolbarActor } from './state';
+import { useSelector } from '@xstate/react';
 
 export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
 
-  const [state, dispatch] = useFloatingToolbar();
+  const actor = useToolbarActor();
+  const isShown = useSelector(actor, (state) => state.matches('shown'));
+  const selectedNode = useSelector(actor, (state) => state.context.selection);
+  const isLinkEditingShown = useSelector(actor, (state) => state.matches('linkEditShown')) && selectedNode;
 
   const { x, y, strategy, refs, context } = useFloating({
-    open: state.floatingToolbarOpen,
+    open: isShown,
     placement: 'top-start',
     middleware: [
       inline(),
@@ -32,7 +37,7 @@ export function FloatingToolbarPlugin() {
     ],
   });
   const [side, align] = getSideAndAlignFromPlacement(context.placement);
-  const isOpen = useDelayed(state.floatingToolbarOpen, 200);
+  // const isOpen = useDelayed(state.floatingToolbarOpen, 200);
 
   const updatePopup = useCallback(() => {
     editor.getEditorState().read(() => {
@@ -43,7 +48,7 @@ export function FloatingToolbarPlugin() {
       const selection = $getSelection();
 
       if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
-        return dispatch({ type: 'deselected' });
+        return actor.send({ type: 'selection change', selection: null });
       }
 
       const rawTextContent = selection.getTextContent().replace(/\n/g, '');
@@ -62,10 +67,10 @@ export function FloatingToolbarPlugin() {
              */
             refs.setPositionReference(null);
             refs.setReference(link);
-            return dispatch({ type: 'selected', selectedNode: node });
+            return actor.send({ type: 'selection change', selection: node });
           }
         }
-        return dispatch({ type: 'deselected' });
+        return actor.send({ type: 'selection change', selection: null });
       }
 
       const nativeSelection = window.getSelection();
@@ -77,58 +82,59 @@ export function FloatingToolbarPlugin() {
         rootElement.contains(nativeSelection.anchorNode)
       ) {
         const element = getElementFromDomRange(nativeSelection, rootElement);
-        dispatch({ type: 'selected', selectedNode: node });
+        actor.send({ type: 'selection change', selection: node });
         refs.setReference(element);
       }
       context.update();
     });
-  }, [dispatch, editor, refs, context]);
+  }, [actor, editor, refs, context]);
 
   /** store state in ref for events only that need access to "latest" value stored in state */
-  const stateRef = useLatest(state);
+  // const stateRef = useLatest(state);
+
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
      * went outside of the editor - it should still be valid */
     function handlePointerDown() {
-      dispatch({ type: 'pointer-down' });
+      actor.send({ type: 'pointer down' });
     }
     function handlePointerUp() {
-      dispatch({ type: 'pointer-up' });
+      actor.send({ type: 'pointer up' });
       updatePopup();
     }
     /** Avoid applying opacity when pointer down is within the toolbar itself. */
-    function handlePointerMove(e: PointerEvent) {
-      if (!stateRef.current.floatingToolbarOpen || stateRef.current.pointerMove) return;
-      if (e.buttons === 1 || e.buttons === 3) {
-        dispatch({ type: 'pointer-move' });
-      }
-    }
+    // function handlePointerMove(e: PointerEvent) {
+    //   if (!stateRef.current.floatingToolbarOpen || stateRef.current.pointerMove) return;
+    //   if (e.buttons === 1 || e.buttons === 3) {
+    //     dispatch({ type: 'pointer-move' });
+    //   }
+    // }
     const editorElement = editor.getRootElement();
 
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('pointerup', handlePointerUp);
-    editorElement?.addEventListener('pointermove', handlePointerMove);
+    // editorElement?.addEventListener('pointermove', handlePointerMove);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('pointerup', handlePointerUp);
-      editorElement?.removeEventListener('pointermove', handlePointerMove);
+      // editorElement?.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [dispatch, editor, refs, stateRef, updatePopup]);
+  }, [actor, editor, refs, updatePopup]);
 
-  useEffect(() => {
-    const updatePopupWithKeyboardSelectionOnly = () => {
-      if (stateRef.current.pointerUp) {
-        updatePopup();
-      }
-    };
-    document.addEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
-    return () => {
-      document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
-    };
-  }, [editor, stateRef, updatePopup]);
+  // useEffect(() => {
+  //   const updatePopupWithKeyboardSelectionOnly = () => {
+  //     if (stateRef.current.pointerUp) {
+  //       updatePopup();
+  //     }
+  //   };
+  //   document.addEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
+  //   return () => {
+  //     document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
+  //   };
+  // }, [editor, updatePopup]);
 
   const updateLink = () => {
-    editor.update(() => {
+    /*  editor.update(() => {
       if (state.linkEditOpen) {
         return dispatch({ type: 'link-edit-closed' });
       }
@@ -153,12 +159,12 @@ export function FloatingToolbarPlugin() {
           link: linkNode.getURL(),
           text: linkNode.getTextContent(),
         };
-        dispatch({
+        actor.send({
           type: 'link-edit-open',
           linkDetails,
         });
       } else {
-        dispatch({
+        actor.send({
           type: 'link-edit-open',
           linkDetails: {
             link: '',
@@ -166,21 +172,23 @@ export function FloatingToolbarPlugin() {
           },
         });
       }
-    });
+    }); */
   };
 
   const onClose = () => {
-    dispatch({ type: 'link-edit-closed' });
+    actor.send({ type: 'cancel link edit' });
   };
+
+  console.log(actor.getSnapshot());
 
   return (
     <>
-      <RdxPresence.Presence present={isOpen}>
+      <RdxPresence.Presence present={isShown}>
         <PopoverBox
           data-align={align}
           data-side={side}
           ref={refs.setFloating}
-          data-state={isOpen ? 'open' : 'closed'}
+          data-state={isShown ? 'open' : 'closed'}
           style={{
             position: strategy,
             top: y ?? 0,
@@ -188,8 +196,8 @@ export function FloatingToolbarPlugin() {
             width: 'max-content',
           }}
           className={cx(
-            'isolate transition-[opacity,width,height] duration-300',
-            state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
+            'isolate transition-[opacity,width,height] duration-300'
+            // state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
           )}
         >
           <div className="flex gap-1">
@@ -199,8 +207,12 @@ export function FloatingToolbarPlugin() {
           </div>
         </PopoverBox>
       </RdxPresence.Presence>
-      {state.linkEditOpen && (
-        <LinkEditPopup node={state.lastSelectedNode} onClose={onClose} initialValues={state.linkEditDetails} />
+      {isLinkEditingShown && (
+        <LinkEditPopup
+          node={selectedNode}
+          onClose={onClose}
+          //initialValues={state.linkEditDetails}
+        />
       )}
     </>
   );

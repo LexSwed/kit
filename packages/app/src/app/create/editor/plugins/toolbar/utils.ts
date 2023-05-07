@@ -1,6 +1,8 @@
 import { $isCodeHighlightNode } from '@lexical/code';
-import { $isLinkNode, LinkNode } from '@lexical/link';
+import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { $getSelection, $isRangeSelection, type LexicalEditor } from 'lexical';
+import node from 'postcss/lib/node';
+import { getSelectedNode } from '../../utils/getSelectedNode';
 
 export async function getSelection(editor: LexicalEditor) {
   // Should not to pop up the floating toolbar when using IME input
@@ -66,6 +68,34 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
         });
       }
     });
+  });
+}
+
+export function updateSelectedLink(editor: LexicalEditor, { text, link }: { text: string; link: string }) {
+  editor.update(() => {
+    const node = $isSelectionOnLinkNodeOnly();
+    if (!node) return;
+
+    node.setTextContent(text);
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
+
+    // update selection to new text:
+    const selection = $getSelection();
+
+    if (!$isRangeSelection(selection)) {
+      return;
+    }
+
+    const updatedNode = getSelectedNode(selection).getParent();
+
+    if ($isLinkNode(updatedNode)) {
+      const textNodes = updatedNode.getAllTextNodes();
+
+      const firstTextNode = textNodes[0];
+      const lastTextNode = textNodes[textNodes.length - 1];
+
+      selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
+    }
   });
 }
 

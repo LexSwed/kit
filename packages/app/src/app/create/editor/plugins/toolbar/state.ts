@@ -1,10 +1,16 @@
+import type { VirtualElement } from '@floating-ui/dom';
 import { createActorContext } from '@xstate/react';
 import { assign, createMachine, raise } from 'xstate';
 
 import { choose } from 'xstate/lib/actions';
 
 interface Context {
+  /** Currently selected range, with keyboard or pointer */
   selection: null | Range;
+  /**
+   * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
+   */
+  reference: null | VirtualElement;
 }
 
 type Event =
@@ -17,6 +23,27 @@ type Event =
   | { type: 'close' }
   | { type: 'cancel link edit' };
 
+const selectionReadyActions = choose<Context, Event>([
+  {
+    cond: (context) => Boolean(context.selection),
+    actions: [
+      assign({
+        reference: (context) => context.selection,
+      }),
+      raise('selected'),
+    ],
+  },
+  {
+    cond: (context) => !context.selection,
+    actions: [
+      assign({
+        reference: null,
+      }),
+      raise('deselected'),
+    ],
+  },
+]);
+
 const toolbarMachine = createMachine<Context, Event>(
   {
     id: 'toolbarMachine',
@@ -25,29 +52,28 @@ const toolbarMachine = createMachine<Context, Event>(
       events: {} as Event,
     },
     context: {
+      reference: null,
       selection: null,
     },
-    on: {
-      'selection change': {
-        actions: [
-          assign({
-            selection: (context, event) => event.selection,
-          }),
-          choose([
-            {
-              cond: (context, event) => Boolean(event.selection),
-              actions: raise('selected'),
-            },
-            {
-              cond: (context, event) => !event.selection,
-              actions: raise('deselected'),
-            },
-          ]),
-        ],
-      },
-    },
+    on: {},
     type: 'parallel',
     states: {
+      /** This state only exists to override context selection, because `selection change` event should be handled regardless the state, but other states should be able to react on it */
+      selection: {
+        id: 'selection',
+        initial: 'initial',
+        states: {
+          initial: {
+            on: {
+              'selection change': {
+                actions: assign({
+                  selection: (context, event) => event.selection,
+                }),
+              },
+            },
+          },
+        },
+      },
       pointer: {
         id: 'pointer',
         initial: 'up',
@@ -55,28 +81,19 @@ const toolbarMachine = createMachine<Context, Event>(
           up: {
             on: {
               'pointer down': 'down',
-              /* 'selection change': {
-                actions: [
-                  choose([
-                    {
-                      cond: (context, event) => Boolean(event.selection),
-                      actions: raise('selected'),
-                    },
-                    {
-                      cond: (context, event) => !event.selection,
-                      actions: raise('deselected'),
-                    },
-                  ]),
-                  assign({
-                    selection: (context, event) => event.selection,
-                  }),
-                ],
-              }, */
+              /** keyboard-only selection with pointer up */
+              'selection change': {
+                actions: selectionReadyActions,
+              },
             },
           },
           down: {
             on: {
-              'pointer up': 'up',
+              /** Now that the pointer is up we can check if selection was made, saving popup reference */
+              'pointer up': {
+                target: 'up',
+                actions: selectionReadyActions,
+              },
             },
           },
         },
@@ -93,20 +110,8 @@ const toolbarMachine = createMachine<Context, Event>(
                 on: {
                   selected: {
                     cond: (context) => Boolean(context.selection),
-                    target: 'hasSelection',
-                  },
-                },
-              },
-              hasSelection: {
-                on: {
-                  'pointer up': {
                     target: '#shown',
                   },
-                  'selected': {
-                    cond: 'hasNonCollapsedRangeSelection',
-                    target: '#shown',
-                  },
-                  'deselected': 'initial',
                 },
               },
             },
@@ -133,12 +138,12 @@ const toolbarMachine = createMachine<Context, Event>(
                 after: {
                   10: [
                     {
-                      target: 'closing',
                       cond: 'hasNoSelectionAndPointerUp',
+                      target: 'closing',
                     },
                     {
-                      target: 'linkEditShown',
                       cond: 'hasSelectionAndPointerUp',
+                      target: 'linkEditShown',
                     },
                   ],
                 },
@@ -170,19 +175,13 @@ const toolbarMachine = createMachine<Context, Event>(
     predictableActionArguments: true,
   },
   {
-    actions: {},
     guards: {
       hasNoSelectionAndPointerUp(context, event, meta) {
         return meta.state.matches({ pointer: 'up' }) && !context.selection;
       },
       hasSelectionAndPointerUp(context, event, meta) {
+        console.log(event);
         return meta.state.matches({ pointer: 'up' }) && !!context.selection;
-      },
-      hasNonCollapsedRangeSelection(context) {
-        if (context.selection) {
-          return !context.selection.collapsed;
-        }
-        return false;
       },
     },
   }
@@ -193,11 +192,19 @@ const {
   useActor,
   useActorRef,
   useSelector,
-  // useSelector: useToolbarStateSelector,
-} = createActorContext(toolbarMachine);
-
-// export function useSelector<T>(selector: Parameters<typeof useToolbarStateSelector<T>>[0], shallow?: boolean) {
-//   return useToolbarStateSelector<T>(selector, shallow ? shallowEqual : undefined);
-// }
+} = createActorContext(
+  toolbarMachine,
+  undefined,
+  process.env.NODE_ENV === 'development'
+    ? (state) => {
+        const { event, value, context } = state;
+        console.log({ event, value, context });
+      }
+    : undefined
+);
 
 export { ToolbarStateProvider, useActor, useActorRef, useSelector };
+
+export function useReferenceNode() {
+  return useSelector((state) => state.context.reference);
+}

@@ -2,12 +2,11 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useEffect } from 'react';
 import { TextFormatFloatingToolbar } from './text-format';
 import { LinkEdit } from './link-edit';
-import { ToolbarStateProvider, useActorRef, useSelector } from './state';
+import { ToolbarStateProvider, useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
 import { getSelection, isSelectionCollapsed } from './utils';
 import { COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, KEY_ESCAPE_COMMAND, SELECTION_CHANGE_COMMAND } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
-import { StateSubscriptionPlugin } from './state-subscription-plugin';
 
 export function FloatingToolbarPlugin() {
   return (
@@ -23,7 +22,7 @@ function FloatingToolbar() {
   const actor = useActorRef();
 
   const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
-  const selectedNode = useSelector((state) => state.context.selection);
+  const selectedNode = useReferenceNode();
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -99,7 +98,6 @@ function FloatingToolbar() {
           <LinkEdit />
         </div>
       </EditorPopover>
-      <StateSubscriptionPlugin />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ToggleGroup } from './toggle-group';
 import { Button, Icon, TextField, ToggleButton } from '@fxtrot/ui';
 import { TOGGLE_LINK_COMMAND } from '@lexical/link';
@@ -8,9 +8,9 @@ import { RxLink2, RxLinkBreak2 } from 'react-icons/rx';
 import { mergeRegister } from '@lexical/utils';
 
 import { t } from 'shared';
-import { useActorRef, useSelector } from './state';
+import { useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
-import { $isSelectionOnLinkNodeOnly, selectLinkAndGetTheDetails } from './utils';
+import { $isSelectionOnLinkNodeOnly, selectLinkAndGetTheDetails, updateSelectedLink } from './utils';
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();
@@ -68,50 +68,31 @@ interface LinkEditPopupProps {
 
 export const LinkEditPopup = ({ initialValues }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
-  const selectedNode = useSelector((state) => state.context.selection);
   const actor = useActorRef();
+  const selectedNode = useReferenceNode();
 
-  const removeLink = () => {
-    // text changed -> so toolbar position will be recalculated
-    editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    actor.send('cancel link edit');
-  };
-
-  const saveLink = (text: string, link: string) => {
-    /* editor.update(() => {
-      node.setTextContent(text);
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
-
-      const selection = $getSelection();
-
-      if (!$isRangeSelection(selection)) {
-        return;
-      }
-
-      const updatedNode = getSelectedNode(selection).getParent();
-
-      if ($isLinkNode(updatedNode)) {
-        const textNodes = updatedNode.getAllTextNodes();
-
-        const firstTextNode = textNodes[0];
-        const lastTextNode = textNodes[textNodes.length - 1];
-
-        selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
-      }
-
-      onClose();
-    }); */
-  };
   const close = useCallback(() => {
     actor.send('cancel link edit');
   }, [actor]);
+  const removeLink = () => {
+    // text changed -> so toolbar position will be recalculated
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+    close();
+  };
+
+  const saveLink = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const text = (form.get('text') as string) || '';
+    const link = (form.get('link') as string) || '';
+    updateSelectedLink(editor, { text, link });
+  };
 
   useEffect(() => {
     return mergeRegister(
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,
         () => {
-          console.log('close link edit');
           close();
           return true;
         },
@@ -122,16 +103,7 @@ export const LinkEditPopup = ({ initialValues }: LinkEditPopupProps) => {
 
   return (
     <EditorPopover isOpen={!!initialValues} placement="bottom-start" reference={selectedNode}>
-      <form
-        className="col-span-full row-start-2 flex flex-col gap-2 p-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const form = new FormData(e.currentTarget);
-          const text = (form.get('text') as string) || '';
-          const link = (form.get('link') as string) || '';
-          saveLink(text, link);
-        }}
-      >
+      <form className="col-span-full row-start-2 flex flex-col gap-2 p-2" onSubmit={saveLink}>
         <TextField size="sm" placeholder="Text" name="text" label={t('Text')} defaultValue={initialValues?.text} />
         <TextField
           size="sm"

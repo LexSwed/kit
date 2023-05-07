@@ -1,7 +1,7 @@
 import { createActorContext } from '@xstate/react';
 import { assign, createMachine, raise } from 'xstate';
 
-import { choose, log, sendParent, sendTo } from 'xstate/lib/actions';
+import { choose } from 'xstate/lib/actions';
 
 interface Context {
   selection: null | Range;
@@ -30,6 +30,9 @@ const toolbarMachine = createMachine<Context, Event>(
     on: {
       'selection change': {
         actions: [
+          assign({
+            selection: (context, event) => event.selection,
+          }),
           choose([
             {
               cond: (context, event) => Boolean(event.selection),
@@ -40,9 +43,6 @@ const toolbarMachine = createMachine<Context, Event>(
               actions: raise('deselected'),
             },
           ]),
-          assign({
-            selection: (context, event) => event.selection,
-          }),
         ],
       },
     },
@@ -92,25 +92,18 @@ const toolbarMachine = createMachine<Context, Event>(
               initial: {
                 on: {
                   selected: {
-                    cond: (context) => console.log(context) || Boolean(context.selection),
+                    cond: (context) => Boolean(context.selection),
                     target: 'hasSelection',
                   },
                 },
               },
               hasSelection: {
-                always: [
-                  {
-                    cond: 'hasSelectionAndPointerUp',
-                    target: '#shown',
-                  },
-                  {
-                    cond: 'hasNoSelectionAndPointerUp',
-                    target: 'initial',
-                  },
-                ],
                 on: {
                   'pointer up': {
-                    cond: 'hasSelectionAndPointerUp',
+                    target: '#shown',
+                  },
+                  'selected': {
+                    cond: 'hasNonCollapsedRangeSelection',
                     target: '#shown',
                   },
                   'deselected': 'initial',
@@ -185,8 +178,11 @@ const toolbarMachine = createMachine<Context, Event>(
       hasSelectionAndPointerUp(context, event, meta) {
         return meta.state.matches({ pointer: 'up' }) && !!context.selection;
       },
-      pointerUp(context, event, meta) {
-        return meta.state.matches({ pointer: 'up' });
+      hasNonCollapsedRangeSelection(context) {
+        if (context.selection) {
+          return !context.selection.collapsed;
+        }
+        return false;
       },
     },
   }

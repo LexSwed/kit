@@ -41,11 +41,6 @@ export const LinkEdit = () => {
 
     editor.getEditorState().read(() => {
       const linkNode = $isSelectionOnLinkNodeOnly();
-      // const node = getSelectedNode($selection);
-      // const node = $getNearestNodeFromDOMNode(selectedElement as HTMLElement, editorState);
-      // const parent = node.getParent();
-      // console.log($selection.getNodes(), node);
-      // const linkNode = $isLinkNode(node) ? node : $isLinkNode(parent) ? parent : null;
       setIsLink(linkNode ? true : false);
     });
   }, [editor, selection]);

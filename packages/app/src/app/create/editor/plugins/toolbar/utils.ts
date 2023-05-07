@@ -8,37 +8,23 @@ export async function getSelection(editor: LexicalEditor) {
     return null;
   }
   return new Promise<null | Range>((resolve) => {
-    editor.getEditorState().read(() => {
+    editor.update(() => {
       const selection = $getSelection();
 
       if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
         return resolve(null);
       }
 
-      const rawTextContent = selection.getTextContent().replaceAll(/\n/g, '');
-      if (selection.isCollapsed() || rawTextContent === '') {
-        const linkNode = $isSelectionOnLinkNodeOnly();
-        if (linkNode) {
-          const link = editor.getElementByKey(linkNode.getKey());
-          if (link) {
-            const range = new Range();
-            range.setStartBefore(link);
-            range.setEndAfter(link);
-            return resolve(range);
-          }
-        } else {
-          return resolve(null);
-        }
-      }
-
       const nativeSelection = window.getSelection();
       const rootElement = editor.getRootElement();
-      if (
-        nativeSelection !== null &&
-        !nativeSelection.isCollapsed &&
-        rootElement !== null &&
-        rootElement.contains(nativeSelection.anchorNode)
-      ) {
+
+      if (nativeSelection === null || rootElement === null || !rootElement.contains(nativeSelection.anchorNode)) {
+        return resolve(null);
+      }
+
+      const linkNode = $isSelectionOnLinkNodeOnly();
+
+      if (!nativeSelection.isCollapsed || linkNode) {
         const selection = nativeSelection.getRangeAt(0);
         return resolve(selection);
       }
@@ -51,7 +37,6 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
   return new Promise<{ link: string; text: string }>((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
-
       if (!$isRangeSelection(selection)) {
         return resolve({
           link: '',

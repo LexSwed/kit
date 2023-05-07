@@ -1,12 +1,13 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { TextFormatFloatingToolbar } from './text-format';
 import { LinkEdit } from './link-edit';
 import { ToolbarStateProvider, useActorRef, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
-import { getSelection, isSelectionCollapsed, isRange } from './utils';
+import { getSelection, isSelectionCollapsed } from './utils';
 import { COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, KEY_ESCAPE_COMMAND, SELECTION_CHANGE_COMMAND } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
+import { StateSubscriptionPlugin } from './state-subscription-plugin';
 
 export function FloatingToolbarPlugin() {
   return (
@@ -20,13 +21,6 @@ function FloatingToolbar() {
   const [editor] = useLexicalComposerContext();
 
   const actor = useActorRef();
-
-  useEffect(() => {
-    const { unsubscribe } = actor.subscribe((state) => {
-      console.log(state.event, state.value);
-    });
-    return unsubscribe;
-  }, [actor]);
 
   const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
   const selectedNode = useSelector((state) => state.context.selection);
@@ -64,9 +58,8 @@ function FloatingToolbar() {
     return mergeRegister(
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
-        () => {
+        (payload, editor) => {
           getSelection(editor).then((selection) => {
-            console.log(selection);
             actor.send({ selection, type: 'selection change' });
           });
           return false;
@@ -106,6 +99,7 @@ function FloatingToolbar() {
           <LinkEdit />
         </div>
       </EditorPopover>
+      <StateSubscriptionPlugin />
     </>
   );
 }

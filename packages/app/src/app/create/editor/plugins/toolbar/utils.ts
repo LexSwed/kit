@@ -1,7 +1,6 @@
 import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { $getSelection, $isRangeSelection, type LexicalEditor } from 'lexical';
-import node from 'postcss/lib/node';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 
 export async function getSelection(editor: LexicalEditor) {
@@ -24,13 +23,23 @@ export async function getSelection(editor: LexicalEditor) {
         return resolve(null);
       }
 
-      const linkNode = $isSelectionOnLinkNodeOnly();
-
-      if (!nativeSelection.isCollapsed || linkNode) {
-        const selection = nativeSelection.getRangeAt(0);
-        return resolve(selection);
+      if (nativeSelection.isCollapsed) {
+        const linkNode = $isSelectionOnLinkNodeOnly();
+        if (linkNode) {
+          const link = editor.getElementByKey(linkNode.getKey());
+          if (link) {
+            const range = new Range();
+            range.setStartBefore(link);
+            range.setEndAfter(link);
+            return resolve(range);
+          }
+        } else {
+          return resolve(null);
+        }
       }
-      return resolve(null);
+
+      const range = nativeSelection.getRangeAt(0);
+      return resolve(range);
     });
   });
 }

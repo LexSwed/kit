@@ -7,6 +7,7 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin';
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
@@ -18,6 +19,9 @@ import CodeHighlightPlugin from './plugins/code';
 import { theme } from './theme';
 import { FloatingToolbarPlugin } from './plugins/toolbar';
 import { t } from 'shared';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { useCallback, useEffect, useRef } from 'react';
+import type { EditorState } from 'lexical';
 
 interface Props {
   initialEditorState: InitialEditorStateType;
@@ -69,8 +73,33 @@ export const Editor = ({ initialEditorState }: Props) => {
         <ImagesPlugin />
         <CodeHighlightPlugin />
         <TabIndentationPlugin />
+        <SaveToLocalStoragePlugin />
         <FloatingToolbarPlugin />
       </LexicalComposer>
     </div>
   );
+};
+
+const LOCAL_STORAGE_KEY = 'fxtrot-editor-state';
+const SaveToLocalStoragePlugin = () => {
+  const [editor] = useLexicalComposerContext();
+
+  const firstRenderRef = useRef(true);
+
+  useEffect(() => {
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false;
+      const serializedEditorState = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (serializedEditorState) {
+        const initialEditorState = editor.parseEditorState(serializedEditorState);
+        editor.setEditorState(initialEditorState);
+      }
+    }
+  }, [editor]);
+
+  const onChange = useCallback((editorState: EditorState) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(editorState.toJSON()));
+  }, []);
+
+  return <OnChangePlugin onChange={onChange} />;
 };

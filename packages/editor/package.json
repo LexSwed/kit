@@ -41,6 +41,7 @@
     "solid-icons": "^1.0.4",
     "solid-js": "^1.7.4",
     "tailwind": "^4.0.0",
-    "tailwind-variants": "^0.1.5"
+    "tailwind-variants": "^0.1.5",
+    "xstate": "^5.0.0-beta.8"
   }
 }

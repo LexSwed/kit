@@ -7,7 +7,11 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { ToggleGroup } from './toggle-group';
 import { t } from 'shared';
 
-export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar() {
+interface Props {
+  disabled?: boolean;
+}
+
+export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
   const [editor] = useLexicalComposerContext();
 
   const [isBold, setIsBold] = useState(false);
@@ -30,6 +34,7 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
   }, []);
 
   useEffect(() => {
+    if (disabled) return;
     // get initial values
     editor.getEditorState().read(updateFormat);
     return mergeRegister(
@@ -37,7 +42,7 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
         editorState.read(updateFormat);
       })
     );
-  }, [editor, updateFormat]);
+  }, [editor, disabled, updateFormat]);
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -52,27 +57,42 @@ export const TextFormatFloatingToolbar = memo(function TextFormatFloatingToolbar
         pressed={isBold}
         onClick={handleToggle}
         value="bold"
+        disabled={disabled}
         label={t('Format text as bold')}
         size="sm"
         icon={BsTypeBold}
+        className={disabled ? 'bg-surface opacity-80' : undefined}
       />
       <ToggleButton
         pressed={isItalic}
         value="italic"
+        disabled={disabled}
         onClick={handleToggle}
         size="sm"
         label={t('Format text as italics')}
         icon={BsTypeItalic}
+        className={disabled ? 'bg-surface opacity-80' : undefined}
       />
       <ToggleButton
         pressed={isUnderline}
         value="underline"
+        disabled={disabled}
         onClick={handleToggle}
         size="sm"
         label={t('Format text to underlined')}
         icon={BsTypeUnderline}
+        className={disabled ? 'bg-surface opacity-80' : undefined}
       />
-      <ToggleButton pressed={isCode} value="code" size="sm" label={t('Insert code block')} icon={BsCodeSlash} />
+      <ToggleButton
+        pressed={isCode}
+        value="code"
+        disabled={disabled}
+        onClick={handleToggle}
+        size="sm"
+        label={t('Insert code block')}
+        icon={BsCodeSlash}
+        className={disabled ? 'bg-surface opacity-80' : undefined}
+      />
     </ToggleGroup>
   );
-});
+};

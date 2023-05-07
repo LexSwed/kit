@@ -1,75 +1,174 @@
-import { useInterpret, useMachine, useSelector } from '@xstate/react';
-import { TextNode, ElementNode } from 'lexical';
-import { assign, createMachine, raise, send } from 'xstate';
+import { createActorContext } from '@xstate/react';
+import { assign, createMachine, raise } from 'xstate';
 
-type SelectionChangeEvent = { type: 'selection change'; selection: null | TextNode | ElementNode };
+import { choose, log, sendParent, sendTo } from 'xstate/lib/actions';
 
-const toolbarMachine = createMachine(
+interface Context {
+  selection: null | Range;
+}
+
+type Event =
+  | { type: 'pointer down' }
+  | { type: 'pointer up' }
+  | { type: 'selection change'; selection: Range | null }
+  | { type: 'selected' }
+  | { type: 'deselected' }
+  | { type: 'edit link' }
+  | { type: 'close' }
+  | { type: 'cancel link edit' };
+
+const toolbarMachine = createMachine<Context, Event>(
   {
-    id: 'toolbar',
-    initial: 'hidden',
+    id: 'toolbarMachine',
     schema: {
-      context: {} as { value: string; pointerUp: boolean; selection: null | TextNode | ElementNode },
-      events: {} as
-        | { type: 'pointer down' }
-        | SelectionChangeEvent
-        | { type: 'pointer up' }
-        | { type: 'edit link' }
-        | { type: 'close' }
-        | { type: 'cancel link edit' },
+      context: {} as Context,
+      events: {} as Event,
     },
     context: {
-      pointerUp: true,
       selection: null,
-      value: '',
     },
     on: {
-      'pointer up': { actions: 'pointerUp' },
-      'pointer down': { actions: 'pointerDown' },
+      'selection change': {
+        actions: [
+          choose([
+            {
+              cond: (context, event) => Boolean(event.selection),
+              actions: raise('selected'),
+            },
+            {
+              cond: (context, event) => !event.selection,
+              actions: raise('deselected'),
+            },
+          ]),
+          assign({
+            selection: (context, event) => event.selection,
+          }),
+        ],
+      },
     },
+    type: 'parallel',
     states: {
-      hidden: {
-        id: 'hidden',
-        initial: 'initial',
+      pointer: {
+        id: 'pointer',
+        initial: 'up',
         states: {
-          initial: {
+          up: {
             on: {
-              'selection change': {
-                cond: 'hasSelection',
-                target: '#shown',
-                actions: 'updateSelection',
-              },
+              'pointer down': 'down',
+              /* 'selection change': {
+                actions: [
+                  choose([
+                    {
+                      cond: (context, event) => Boolean(event.selection),
+                      actions: raise('selected'),
+                    },
+                    {
+                      cond: (context, event) => !event.selection,
+                      actions: raise('deselected'),
+                    },
+                  ]),
+                  assign({
+                    selection: (context, event) => event.selection,
+                  }),
+                ],
+              }, */
+            },
+          },
+          down: {
+            on: {
+              'pointer up': 'up',
             },
           },
         },
       },
-      shown: {
-        id: 'shown',
-        initial: 'initial',
-        on: {
-          'selection change': {
-            actions: ['updateSelection', raise({ type: 'close' })],
-          },
-        },
+      toolbar: {
+        id: 'toolbar',
+        initial: 'hidden',
         states: {
-          initial: {
-            on: {
-              'edit link': 'linkEditShown',
-              'close': 'closing',
-            },
-          },
-          linkEditShown: {
-            on: {
-              'cancel link edit': 'initial',
-              'close': {
-                target: 'closing',
+          hidden: {
+            id: 'hidden',
+            initial: 'initial',
+            states: {
+              initial: {
+                on: {
+                  selected: {
+                    cond: (context) => console.log(context) || Boolean(context.selection),
+                    target: 'hasSelection',
+                  },
+                },
+              },
+              hasSelection: {
+                always: [
+                  {
+                    cond: 'hasSelectionAndPointerUp',
+                    target: '#shown',
+                  },
+                  {
+                    cond: 'hasNoSelectionAndPointerUp',
+                    target: 'initial',
+                  },
+                ],
+                on: {
+                  'pointer up': {
+                    cond: 'hasSelectionAndPointerUp',
+                    target: '#shown',
+                  },
+                  'deselected': 'initial',
+                },
               },
             },
           },
-          closing: {
-            entry: 'updateSelection',
-            after: {
-              250: '#hidden.initial',
+          shown: {
+            id: 'shown',
+            initial: 'initial',
+            on: {
+              close: {
+                target: '#shown.closing',
+              },
+              deselected: {
+                target: '#shown.closing',
+              },
+            },
+            states: {
+              initial: {
+                on: {
+                  'edit link': 'openingLinkEdit',
+                },
+              },
+              // add artificial delay for when whole link is selected and then open the popup
+              openingLinkEdit: {
+                after: {
+                  10: [
+                    {
+                      target: 'closing',
+                      cond: 'hasNoSelectionAndPointerUp',
+                    },
+                    {
+                      target: 'linkEditShown',
+                      cond: 'hasSelectionAndPointerUp',
+                    },
+                  ],
+                },
+              },
+              linkEditShown: {
+                on: {
+                  'cancel link edit': 'initial',
+                  'selected': 'initial',
+                },
+              },
+              closing: {
+                after: {
+                  200: [
+                    {
+                      target: '#hidden.initial',
+                      cond: 'hasNoSelectionAndPointerUp',
+                    },
+                    {
+                      target: '#shown.initial',
+                    },
+                  ],
+                },
+              },
             },
           },
         },
@@ -78,38 +177,31 @@ const toolbarMachine = createMachine(
     predictableActionArguments: true,
   },
   {
-    actions: {
-      pointerUp: assign({
-        pointerUp: true,
-      }),
-      pointerDown: assign({
-        pointerUp: false,
-      }),
-      updateSelection: assign({
-        selection: (context, event) => {
-          console.log('update', event);
-          if (event.type === 'selection change') {
-            return event.selection || null;
-          }
-          return context.selection;
-        },
-      }),
-    },
+    actions: {},
     guards: {
-      hasNoSelectionAndPointerUp(context) {
-        console.log(context);
-        return context.pointerUp && !context.selection;
+      hasNoSelectionAndPointerUp(context, event, meta) {
+        return meta.state.matches({ pointer: 'up' }) && !context.selection;
       },
-      hasSelection(context, event) {
-        if (event.type === 'selection change') {
-          return context.pointerUp && event.selection !== null;
-        }
-        return false;
+      hasSelectionAndPointerUp(context, event, meta) {
+        return meta.state.matches({ pointer: 'up' }) && !!context.selection;
+      },
+      pointerUp(context, event, meta) {
+        return meta.state.matches({ pointer: 'up' });
       },
     },
   }
 );
 
-export function useToolbarActor() {
-  return useInterpret(toolbarMachine);
-}
+const {
+  Provider: ToolbarStateProvider,
+  useActor,
+  useActorRef,
+  useSelector,
+  // useSelector: useToolbarStateSelector,
+} = createActorContext(toolbarMachine);
+
+// export function useSelector<T>(selector: Parameters<typeof useToolbarStateSelector<T>>[0], shallow?: boolean) {
+//   return useToolbarStateSelector<T>(selector, shallow ? shallowEqual : undefined);
+// }
+
+export { ToolbarStateProvider, useActor, useActorRef, useSelector };

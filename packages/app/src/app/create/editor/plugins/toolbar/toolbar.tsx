@@ -4,7 +4,7 @@ import { TextFormatFloatingToolbar } from './text-format';
 import { LinkEdit } from './link-edit';
 import { ToolbarStateProvider, useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
-import { getSelection, isSelectionCollapsed } from './utils';
+import { getSelection } from './utils';
 import { COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, KEY_ESCAPE_COMMAND, SELECTION_CHANGE_COMMAND } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
 
@@ -22,6 +22,9 @@ function FloatingToolbar() {
   const actor = useActorRef();
 
   const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
+  const linkSelected = useSelector(
+    (state) => state.matches({ pointer: 'up' }) && state.matches({ selection: 'collapsedLink' })
+  );
   const selectedNode = useReferenceNode();
 
   useEffect(() => {
@@ -58,8 +61,8 @@ function FloatingToolbar() {
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         (payload, editor) => {
-          getSelection(editor).then((selection) => {
-            actor.send({ selection, type: 'selection change' });
+          getSelection(editor).then((params) => {
+            actor.send({ type: 'selection change', ...params });
           });
           return false;
         },
@@ -93,7 +96,7 @@ function FloatingToolbar() {
         // }
       >
         <div className="flex gap-1">
-          <TextFormatFloatingToolbar disabled={!selectedNode || isSelectionCollapsed()} />
+          <TextFormatFloatingToolbar disabled={!selectedNode || linkSelected} />
           <div className="w-0.5 bg-outline/10" />
           <LinkEdit />
         </div>

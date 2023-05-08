@@ -6,21 +6,21 @@ import { getSelectedNode } from '../../utils/getSelectedNode';
 export async function getSelection(editor: LexicalEditor) {
   // Should not to pop up the floating toolbar when using IME input
   if (editor.isComposing()) {
-    return null;
+    return { selection: null };
   }
-  return new Promise<null | Range>((resolve) => {
+  return new Promise<{ selection: null } | { selection: Range; collapsed: boolean }>((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
 
       if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
-        return resolve(null);
+        return resolve({ selection: null });
       }
 
       const nativeSelection = window.getSelection();
       const rootElement = editor.getRootElement();
 
       if (nativeSelection === null || rootElement === null || !rootElement.contains(nativeSelection.anchorNode)) {
-        return resolve(null);
+        return resolve({ selection: null });
       }
 
       if (nativeSelection.isCollapsed) {
@@ -31,15 +31,15 @@ export async function getSelection(editor: LexicalEditor) {
             const range = new Range();
             range.setStartBefore(link);
             range.setEndAfter(link);
-            return resolve(range);
+            return resolve({ selection: range, collapsed: true });
           }
         } else {
-          return resolve(null);
+          return resolve({ selection: null });
         }
       }
 
       const range = nativeSelection.getRangeAt(0);
-      return resolve(range);
+      return resolve({ selection: range, collapsed: false });
     });
   });
 }

@@ -6,7 +6,10 @@ import { choose } from 'xstate/lib/actions';
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
-  selection: null | Range;
+  selection: null | {
+    range: Range;
+    isCollapsedLink: boolean;
+  };
   /**
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
@@ -16,33 +19,13 @@ interface Context {
 type Event =
   | { type: 'pointer down' }
   | { type: 'pointer up' }
-  | { type: 'selection change'; selection: Range | null }
+  | { type: 'selection change'; selection: Range; collapsed: boolean }
+  | { type: 'selection change'; selection: null }
   | { type: 'selected' }
   | { type: 'deselected' }
   | { type: 'edit link' }
   | { type: 'close' }
   | { type: 'cancel link edit' };
-
-const selectionReadyActions = choose<Context, Event>([
-  {
-    cond: (context) => Boolean(context.selection),
-    actions: [
-      assign({
-        reference: (context) => context.selection,
-      }),
-      raise('selected'),
-    ],
-  },
-  {
-    cond: (context) => !context.selection,
-    actions: [
-      assign({
-        reference: null,
-      }),
-      raise('deselected'),
-    ],
-  },
-]);
 
 const toolbarMachine = createMachine<Context, Event>(
   {
@@ -55,21 +38,127 @@ const toolbarMachine = createMachine<Context, Event>(
       reference: null,
       selection: null,
     },
-    on: {},
     type: 'parallel',
+    // on: {
+    //   'selection change': [
+    //     {
+    //       cond: (context, event) => !event.selection,
+    //       target: '#selection.none',
+    //       /** Should assign always as pointer UP is emitted AFTER selection */
+    //       actions: ['assignSelection', 'clearReference'],
+    //     },
+    //     {
+    //       cond: (context, event) => !!event.selection && event.collapsed,
+    //       target: '#selection.collapsedLink',
+    //       /** Should assign always as pointer UP is emitted AFTER selection */
+    //       actions: 'assignSelection',
+    //     },
+    //     {
+    //       cond: (context, event) => !!event.selection,
+    //       target: '#selection.range',
+    //       /** Should assign always as pointer UP is emitted AFTER selection */
+    //       actions: 'assignSelection',
+    //     },
+    //   ],
+    // },
     states: {
-      /** This state only exists to override context selection, because `selection change` event should be handled regardless the state, but other states should be able to react on it */
       selection: {
         id: 'selection',
-        initial: 'initial',
+        initial: 'none',
         states: {
-          initial: {
+          none: {
             on: {
-              'selection change': {
-                actions: assign({
-                  selection: (context, event) => event.selection,
-                }),
-              },
+              'selection change': [
+                {
+                  cond: 'rangeSelectionMouseUp',
+                  actions: ['assignSelection'],
+                  target: 'range',
+                },
+                {
+                  actions: 'assignSelection',
+                },
+              ],
+              'pointer up': [
+                {
+                  cond: 'collapsedLinkSelected',
+                  target: 'collapsedLink',
+                },
+                {
+                  cond: 'hasSelection',
+                  target: 'range',
+                },
+              ],
+            },
+          },
+          collapsedLink: {
+            entry: ['assignReference', 'raiseSelected'],
+            exit: ['clearReference', 'raiseDeselected'],
+            on: {
+              'selection change': [
+                {
+                  cond: 'hasSelection',
+                  actions: ['assignSelection'],
+                  target: 'range',
+                },
+                {
+                  cond: 'noSelectionMouseUp',
+                  actions: ['clearSelection'],
+                  target: 'none',
+                },
+                {
+                  actions: 'assignSelection',
+                },
+              ],
+              'pointer up': [
+                {
+                  cond: 'hasSelection',
+                  actions: ['assignSelection', 'assignReference', 'raiseSelected'],
+                },
+                {
+                  cond: 'hasNoSelection',
+                  target: 'none',
+                },
+              ],
+            },
+          },
+          range: {
+            entry: ['assignReference', 'raiseSelected'],
+            exit: ['clearReference', 'raiseDeselected'],
+            on: {
+              'selection change': [
+                {
+                  cond: 'rangeSelectionMouseUp',
+                  actions: ['assignSelection', 'assignReference', 'raiseSelected'],
+                },
+                {
+                  cond: 'noSelectionMouseUp',
+                  actions: ['clearSelection'],
+                  target: 'none',
+                },
+                {
+                  cond: 'hasNoSelection',
+                  actions: ['clearSelection'],
+                  target: 'none',
+                },
+                {
+                  actions: 'assignSelection',
+                },
+              ],
+              'pointer up': [
+                {
+                  cond: 'hasNoSelection',
+                  target: 'none',
+                },
+                {
+                  cond: 'hasSelection',
+                  actions: ['assignSelection', 'assignReference', 'raiseSelected'],
+                },
+                {
+                  cond: 'collapsedLinkSelected',
+                  target: 'collapsedLink',
+                  actions: ['assignSelection', 'assignReference', 'raiseSelected'],
+                },
+              ],
             },
           },
         },
@@ -81,18 +170,12 @@ const toolbarMachine = createMachine<Context, Event>(
           up: {
             on: {
               'pointer down': 'down',
-              /** keyboard-only selection with pointer up */
-              'selection change': {
-                actions: selectionReadyActions,
-              },
             },
           },
           down: {
             on: {
-              /** Now that the pointer is up we can check if selection was made, saving popup reference */
               'pointer up': {
                 target: 'up',
-                actions: selectionReadyActions,
               },
             },
           },
@@ -109,7 +192,6 @@ const toolbarMachine = createMachine<Context, Event>(
               initial: {
                 on: {
                   selected: {
-                    cond: (context) => Boolean(context.selection),
                     target: '#shown',
                   },
                 },
@@ -175,13 +257,65 @@ const toolbarMachine = createMachine<Context, Event>(
     predictableActionArguments: true,
   },
   {
+    actions: {
+      assignSelection: assign({
+        selection: (context, event) => {
+          if (event.type === 'selection change') {
+            return event.selection
+              ? {
+                  range: event.selection,
+                  isCollapsedLink: event.collapsed,
+                }
+              : null;
+          }
+          return context.selection;
+        },
+      }),
+      clearSelection: assign({
+        selection: null,
+      }),
+      assignReference: assign({
+        reference: (context) => context.selection?.range || null,
+      }),
+      clearReference: assign({
+        reference: null,
+      }),
+      raiseSelected: raise({ type: 'selected' }),
+      raiseDeselected: raise({ type: 'deselected' }),
+    },
     guards: {
+      pointerUp(context, event, meta) {
+        return meta.state.matches({ pointer: 'up' });
+      },
       hasNoSelectionAndPointerUp(context, event, meta) {
         return meta.state.matches({ pointer: 'up' }) && !context.selection;
       },
       hasSelectionAndPointerUp(context, event, meta) {
-        console.log(event);
         return meta.state.matches({ pointer: 'up' }) && !!context.selection;
+      },
+      hasNoSelection(context, event) {
+        if (event.type === 'selection change') {
+          return !event.selection;
+        }
+        return !context.selection;
+      },
+      hasSelection(context) {
+        return !!context.selection;
+      },
+      rangeSelectionMouseUp(context, event, meta) {
+        if (event.type === 'selection change' && event.selection) {
+          return !event.collapsed && meta.state.matches({ pointer: 'up' });
+        }
+        return false;
+      },
+      noSelectionMouseUp(context, event, meta) {
+        if (event.type === 'selection change') {
+          return !event.selection && meta.state.matches({ pointer: 'up' });
+        }
+        return false;
+      },
+      collapsedLinkSelected(context) {
+        return context.selection ? context.selection.isCollapsedLink : false;
       },
     },
   }

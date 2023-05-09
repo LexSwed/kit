@@ -96,9 +96,8 @@ const toolbarMachine = createMachine<Context, Event>(
             on: {
               'selection change': [
                 {
-                  cond: 'hasSelection',
-                  actions: ['assignSelection'],
-                  target: 'range',
+                  cond: 'rangeSelectionMouseUp',
+                  actions: ['assignSelection', 'assignReference', 'raiseSelected'],
                 },
                 {
                   cond: 'noSelectionMouseUp',
@@ -106,17 +105,29 @@ const toolbarMachine = createMachine<Context, Event>(
                   target: 'none',
                 },
                 {
+                  cond: 'hasNoSelection',
+                  actions: ['clearSelection'],
+                  target: 'none',
+                },
+                {
+                  cond: (ctx, event) => console.log(event) || true,
                   actions: 'assignSelection',
                 },
               ],
               'pointer up': [
                 {
+                  cond: 'hasNoSelection',
+                  target: 'none',
+                },
+                {
                   cond: 'hasSelection',
+                  target: 'range',
                   actions: ['assignSelection', 'assignReference', 'raiseSelected'],
                 },
                 {
-                  cond: 'hasNoSelection',
-                  target: 'none',
+                  cond: 'collapsedLinkSelected',
+                  target: 'collapsedLink',
+                  actions: ['assignSelection', 'assignReference', 'raiseSelected'],
                 },
               ],
             },
@@ -151,6 +162,7 @@ const toolbarMachine = createMachine<Context, Event>(
                 },
                 {
                   cond: 'hasSelection',
+                  target: 'range',
                   actions: ['assignSelection', 'assignReference', 'raiseSelected'],
                 },
                 {

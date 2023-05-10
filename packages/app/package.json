@@ -23,7 +23,7 @@
     "@lexical/selection": "^0.10.0",
     "@lexical/utils": "^0.10.0",
     "@radix-ui/react-presence": "^1.0.0",
-    "@types/node": "^20.1.0",
+    "@types/node": "^20.1.1",
     "@types/react": "^18.2.6",
     "@types/react-dom": "^18.2.4",
     "@xstate/react": "^3.2.2",

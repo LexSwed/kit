@@ -19,7 +19,7 @@ export const LinkEdit = () => {
   const selection = useSelector((state) => state.context.selection);
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
-      toolbar: { shown: 'linkEditShown' },
+      toolbar: { openState: 'linkEditShown' },
     })
   );
   const actor = useActorRef();

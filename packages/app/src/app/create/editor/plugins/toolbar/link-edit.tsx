@@ -19,7 +19,7 @@ export const LinkEdit = () => {
   const selection = useSelector((state) => state.context.selection);
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
-      toolbar: { openState: 'linkEditShown' },
+      toolbar: { shown: 'linkEditShown' },
     })
   );
   const actor = useActorRef();
@@ -48,7 +48,7 @@ export const LinkEdit = () => {
   return (
     <>
       <ToggleGroup>
-        <ToggleButton pressed={isLink} onClick={updateLink} size="sm">
+        <ToggleButton pressed={isLink || isLinkEditOpen} onClick={updateLink} size="sm">
           <Icon size="sm" as={RxLink2} />
           {t('Link')}
         </ToggleButton>

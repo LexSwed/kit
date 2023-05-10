@@ -21,7 +21,7 @@ function FloatingToolbar() {
 
   const actor = useActorRef();
 
-  const isShown = useSelector((state) => state.matches({ toolbar: 'openState' }));
+  const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
   const linkSelected = useSelector((state) =>
     state.context.selection ? state.context.selection.isCollapsedLink : false
   );

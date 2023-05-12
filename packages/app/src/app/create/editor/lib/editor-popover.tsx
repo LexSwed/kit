@@ -1,4 +1,4 @@
-import React, { forwardRef, type ComponentProps, useCallback } from 'react';
+import React, { forwardRef, type ComponentProps, useCallback, useEffect } from 'react';
 import {
   useFloating,
   offset,
@@ -12,6 +12,7 @@ import {
 import * as RdxPresence from '@radix-ui/react-presence';
 import { PopoverBox, Portal } from '@fxtrot/ui';
 import cx from 'clsx';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 interface Props extends ComponentProps<typeof PopoverBox> {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPo
   { isOpen, reference, className, placement = 'top-start', children, ...props },
   propRef
 ) {
+  const [editor] = useLexicalComposerContext();
   const { x, y, strategy, refs, context } = useFloating({
     open: isOpen,
     placement,
@@ -45,8 +47,16 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPo
 
   const ref = useMergeRefs([propRef, refs.setFloating]);
 
+  useEffect(() => {
+    return () => {
+      editor.getRootElement()?.focus();
+    };
+  }, [editor]);
+
   return (
     <RdxPresence.Presence present={isOpen}>
+      {/* using the portal the buttons inside the popovers being able to open own popovers 
+      that are portaled to the root, instead of rendered next to the button itself */}
       <Portal>
         <PopoverBox
           data-align={align}

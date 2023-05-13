@@ -7,6 +7,7 @@ import {
   inline,
   type Placement,
   type ReferenceType,
+  type OffsetOptions,
   useMergeRefs,
 } from '@floating-ui/react';
 import * as RdxPresence from '@radix-ui/react-presence';
@@ -18,10 +19,19 @@ interface Props extends ComponentProps<typeof PopoverBox> {
   isOpen: boolean;
   reference: ReferenceType | null | undefined;
   placement?: Placement;
+  offset?: OffsetOptions;
 }
 
 export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPopoverWithRef(
-  { isOpen, reference, className, placement = 'top-start', children, ...props },
+  {
+    isOpen,
+    reference,
+    className,
+    placement = 'top-start',
+    offset: offsetOptions = { mainAxis: 8, crossAxis: -32 },
+    children,
+    ...props
+  },
   propRef
 ) {
   const [editor] = useLexicalComposerContext();
@@ -36,7 +46,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPo
       : undefined,
     middleware: [
       inline(),
-      offset({ mainAxis: 8, crossAxis: -32 }),
+      offset(offsetOptions),
       flip({
         crossAxis: false,
       }),

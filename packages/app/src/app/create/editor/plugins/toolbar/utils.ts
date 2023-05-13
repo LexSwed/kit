@@ -1,6 +1,14 @@
 import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
-import { $getSelection, $isRangeSelection, type LexicalEditor } from 'lexical';
+import {
+  $getSelection,
+  $isRangeSelection,
+  ElementNode,
+  type GridSelection,
+  type LexicalEditor,
+  type NodeSelection,
+  type RangeSelection,
+} from 'lexical';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 
 export async function getSelection(editor: LexicalEditor) {
@@ -18,13 +26,12 @@ export async function getSelection(editor: LexicalEditor) {
 
       const nativeSelection = window.getSelection();
       const rootElement = editor.getRootElement();
-
       if (nativeSelection === null || rootElement === null || !rootElement.contains(nativeSelection.anchorNode)) {
         return resolve({ selection: null });
       }
 
       if (nativeSelection.isCollapsed) {
-        const linkNode = $isSelectionOnLinkNodeOnly();
+        const linkNode = $getLinkSelection();
         if (linkNode) {
           const link = editor.getElementByKey(linkNode.getKey());
           if (link) {
@@ -54,16 +61,10 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
           text: '',
         });
       }
-      const linkNode = $isSelectionOnLinkNodeOnly();
+      const linkNode = $getLinkSelection();
 
       if (linkNode) {
-        const textNodes = linkNode.getAllTextNodes();
-        const firstTextNode = textNodes.at(0);
-        const lastTextNode = textNodes.at(-1);
-
-        if (firstTextNode && lastTextNode) {
-          selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
-        }
+        $selectRange(selection, linkNode);
 
         const linkDetails = {
           link: linkNode.getURL(),
@@ -80,42 +81,56 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
   });
 }
 
+export function $selectRange(selection: RangeSelection, node: ElementNode | null) {
+  console.log(node);
+  if (!node) {
+    return null;
+  }
+
+  const textNodes = node.getAllTextNodes();
+
+  const firstTextNode = textNodes.at(0);
+  const lastTextNode = textNodes.at(-1);
+
+  if (firstTextNode && lastTextNode) {
+    selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
+  }
+}
+
+export function returnEditorSelection(editor: LexicalEditor) {
+  editor.update(() => {
+    const selection = $getSelection();
+    if (!$isRangeSelection(selection)) return;
+    const node = selection.getNodes().at(0)?.getParent();
+    if (node) {
+      $selectRange(selection, node);
+    }
+  });
+}
+
 export function updateSelectedLink(editor: LexicalEditor, { text, link }: { text: string; link: string }) {
   editor.update(() => {
-    const node = $isSelectionOnLinkNodeOnly();
+    const node = $getLinkSelection();
+
     if (!node) return;
 
     node.setTextContent(text);
     editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
 
-    // update selection to new text:
     const selection = $getSelection();
-
-    if (!$isRangeSelection(selection)) {
-      return;
-    }
-
-    const updatedNode = getSelectedNode(selection).getParent();
-
-    if ($isLinkNode(updatedNode)) {
-      const textNodes = updatedNode.getAllTextNodes();
-
-      const firstTextNode = textNodes[0];
-      const lastTextNode = textNodes[textNodes.length - 1];
-
-      selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
-    }
+    if (!$isRangeSelection(selection)) return null;
+    const selectedNode = getSelectedNode(selection).getParent();
+    $selectRange(selection, selectedNode);
   });
 }
 
-export function $isSelectionOnLinkNodeOnly() {
+export function $getLinkSelection(): LinkNode | null {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) {
-    return false;
+    return null;
   }
   const nodes = selection.getNodes();
-  const linkNode =
-    nodes.length === 1 ? [nodes[0], nodes[0].getParent()].find((node): node is LinkNode => $isLinkNode(node)) : null;
+  const linkNode = [nodes[0], nodes[0].getParent()].find((node): node is LinkNode => $isLinkNode(node));
 
   return linkNode ? linkNode : null;
 }

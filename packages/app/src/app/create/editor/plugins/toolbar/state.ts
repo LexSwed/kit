@@ -1,6 +1,5 @@
-import type { VirtualElement } from '@floating-ui/dom';
 import { createActorContext } from '@xstate/react';
-import { assign, createMachine, type GuardMeta } from 'xstate';
+import { assign, createMachine } from 'xstate';
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
@@ -11,7 +10,7 @@ interface Context {
   /**
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
-  reference: null | VirtualElement;
+  reference: null | Range;
 }
 
 type Event =
@@ -36,6 +35,11 @@ const toolbarMachine = createMachine<Context, Event>(
       reference: null,
       selection: null,
     },
+    on: {
+      'selection change': {
+        actions: ['assignSelection'],
+      },
+    },
     type: 'parallel',
     states: {
       pointer: {
@@ -44,7 +48,9 @@ const toolbarMachine = createMachine<Context, Event>(
         states: {
           up: {
             on: {
-              'pointer down': 'down',
+              'pointer down': {
+                target: 'down',
+              },
             },
           },
           down: {
@@ -65,42 +71,42 @@ const toolbarMachine = createMachine<Context, Event>(
             initial: 'initial',
             states: {
               initial: {
-                on: {},
+                on: {
+                  'selection change': [
+                    {
+                      /**
+                       * This prevents the toolbar to open on links when navigating with keyboard.
+                       * This has a "bug" for a click within selected link to not open the toolbar.
+                       */
+                      cond: 'rangeSelectionMouseUp',
+                      target: '#toolbar.shown',
+                      actions: ['assignSelection', 'assignReference'],
+                    },
+                    {
+                      cond: 'noSelectionMouseUp',
+                      target: '#toolbar.hidden',
+                      actions: ['clearSelection', 'clearReference'],
+                    },
+                  ],
+                  'pointer up': [
+                    {
+                      cond: 'hasNoSelection',
+                      target: '#toolbar.hidden',
+                      actions: ['clearReference'],
+                    },
+                    {
+                      cond: 'hasRangeSelection',
+                      target: '#toolbar.shown',
+                      actions: ['assignReference'],
+                    },
+                    {
+                      cond: 'hasCollapsedLinkSelection',
+                      target: '#toolbar.shown',
+                      actions: ['assignReference'],
+                    },
+                  ],
+                },
               },
-            },
-            on: {
-              'selection change': [
-                {
-                  cond: 'rangeSelectionMouseUp',
-                  target: '#toolbar.shown',
-                  actions: ['assignSelection', 'assignReference'],
-                },
-                {
-                  cond: 'noSelectionMouseUp',
-                  target: '#toolbar.hidden',
-                  actions: ['clearSelection', 'clearReference'],
-                },
-                {
-                  actions: ['assignSelection'],
-                },
-              ],
-              'pointer up': [
-                {
-                  cond: 'hasNoSelection',
-                  target: '#toolbar.hidden',
-                  actions: ['clearReference'],
-                },
-                {
-                  cond: 'hasRangeSelection',
-                  target: '#toolbar.shown',
-                  actions: ['assignReference'],
-                },
-                {
-                  cond: 'hasCollapsedLinkSelection',
-                  target: '#toolbar.shown',
-                  actions: ['assignReference'],
-                },
-              ],
             },
           },
           shown: {

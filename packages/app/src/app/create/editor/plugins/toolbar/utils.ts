@@ -1,7 +1,18 @@
 import { $isCodeHighlightNode } from '@lexical/code';
-import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
-import { $getSelection, $isRangeSelection, ElementNode, type LexicalEditor, type RangeSelection } from 'lexical';
+import { $isAutoLinkNode, $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import {
+  $getSelection,
+  $isRangeSelection,
+  COMMAND_PRIORITY_CRITICAL,
+  SELECTION_CHANGE_COMMAND,
+  type LexicalEditor,
+  type RangeSelection,
+  type ElementNode,
+} from 'lexical';
 import { getSelectedNode } from '../../utils/getSelectedNode';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { mergeRegister, $findMatchingParent } from '@lexical/utils';
+import { useState, useEffect } from 'react';
 
 export async function getSelection(editor: LexicalEditor) {
   // Should not to pop up the floating toolbar when using IME input
@@ -56,7 +67,7 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
       const linkNode = $getLinkSelection();
 
       if (linkNode) {
-        $selectRange(selection, linkNode);
+        $selectLink(selection, linkNode);
 
         const linkDetails = {
           link: linkNode.getURL(),
@@ -73,7 +84,7 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
   });
 }
 
-export function $selectRange(selection: RangeSelection, node: ElementNode | null) {
+export function $selectLink(selection: RangeSelection, node: ElementNode | null) {
   if (!node) {
     return null;
   }
@@ -88,17 +99,6 @@ export function $selectRange(selection: RangeSelection, node: ElementNode | null
   }
 }
 
-export function returnEditorSelection(editor: LexicalEditor) {
-  editor.update(() => {
-    const selection = $getSelection();
-    if (!$isRangeSelection(selection)) return;
-    const node = selection.getNodes().at(0)?.getParent();
-    if (node) {
-      $selectRange(selection, node);
-    }
-  });
-}
-
 export function updateSelectedLink(editor: LexicalEditor, { text, link }: { text: string; link: string }) {
   editor.update(() => {
     const node = $getLinkSelection();
@@ -111,7 +111,7 @@ export function updateSelectedLink(editor: LexicalEditor, { text, link }: { text
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return null;
     const selectedNode = getSelectedNode(selection).getParent();
-    $selectRange(selection, selectedNode);
+    $selectLink(selection, selectedNode);
   });
 }
 
@@ -138,4 +138,41 @@ export function isSelectionCollapsed() {
   const nativeSelection = window.getSelection();
   if (!nativeSelection) return false;
   return nativeSelection.isCollapsed;
+}
+
+export function useIsLinkSelected() {
+  const [isLink, setIsLink] = useState(false);
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    const update = () => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const node = getSelectedNode(selection);
+        const linkParent = $findMatchingParent(node, $isLinkNode);
+        const autoLinkParent = $findMatchingParent(node, $isAutoLinkNode);
+
+        // We don't want this menu to open for auto links.
+        if (linkParent != null && autoLinkParent == null) {
+          setIsLink(true);
+        } else {
+          setIsLink(false);
+        }
+      }
+    };
+    editor.getEditorState().read(update);
+
+    return mergeRegister(
+      editor.registerCommand(
+        SELECTION_CHANGE_COMMAND,
+        () => {
+          update();
+          return false;
+        },
+        COMMAND_PRIORITY_CRITICAL
+      )
+    );
+  }, [editor]);
+
+  return isLink;
 }

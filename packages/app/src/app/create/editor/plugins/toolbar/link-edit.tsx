@@ -1,4 +1,4 @@
-import { useCallback, useState, type FormEvent, useMemo } from 'react';
+import { useState, type FormEvent, useMemo } from 'react';
 import { ToggleGroup } from './toggle-group';
 import {
   Button,
@@ -22,7 +22,7 @@ import {
 import { t } from 'shared';
 import { useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
-import { selectLinkAndGetTheDetails, updateSelectedLink } from './utils';
+import { selectLinkAndGetTheDetails, updateSelectedLink, useIsLinkSelected } from './utils';
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();
@@ -33,22 +33,19 @@ export const LinkEdit = () => {
     })
   );
   const actor = useActorRef();
+  const isLink = useIsLinkSelected();
   const [initialValues, setInitialValues] = useState<{ text: string; link: string } | null>();
 
   const { close, toggle } = useMemo(() => {
     const close = () => {
       setInitialValues(null);
-      selectLinkAndGetTheDetails(editor);
+      actor.send({ type: 'cancel link edit' });
     };
     const open = async () => {
       actor.send({ type: 'edit link' });
       const details = await selectLinkAndGetTheDetails(editor);
       setInitialValues(details);
     };
-    /** Select link in both cases
-     *   - closing to restore selection;
-     *   - opening to get the details;
-     */
     const toggle = async () => {
       const state = actor.getSnapshot();
       if (state?.matches({ toolbar: { shown: 'linkEditShown' } })) {
@@ -64,19 +61,14 @@ export const LinkEdit = () => {
   return (
     <>
       <ToggleGroup>
-        <ToggleButton pressed={isLinkEditOpen} onClick={toggle} size="sm">
+        <ToggleButton pressed={isLink || isLinkEditOpen} onClick={toggle} size="sm">
           <Icon size="sm" as={RxLink2} />
           {t('Link')}
         </ToggleButton>
       </ToggleGroup>
 
       {isLinkEditOpen && initialValues && (
-        <LinkEditPopup
-          initialValues={initialValues}
-          // FIXME: determine if already link is selected or is about to be made a link
-          isLink={true}
-          onClose={close}
-        />
+        <LinkEditPopup initialValues={initialValues} isLink={isLink} onClose={close} />
       )}
     </>
   );

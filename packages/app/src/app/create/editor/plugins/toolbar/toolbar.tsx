@@ -29,8 +29,8 @@ function FloatingToolbar() {
   const actor = useActorRef();
 
   const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
-  const linkSelected = useSelector((state) => state.matches({ editor: { selection: 'collapsed' } }));
   const selectedNode = useReferenceNode();
+  const isCollapsed = useSelector((state) => state.matches({ editor: { selection: 'collapsed' } }));
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -117,7 +117,7 @@ function FloatingToolbar() {
         // }
       >
         <div className="flex gap-1">
-          <TextFormatFloatingToolbar disabled={!selectedNode || linkSelected} />
+          <TextFormatFloatingToolbar disabled={isCollapsed} />
           <div className="w-0.5 bg-outline/10" />
           <LinkEdit />
         </div>

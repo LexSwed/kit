@@ -47,7 +47,7 @@ const toolbarMachine = createMachine<Context, Event>(
               },
               out: {
                 on: {
-                  focus: 'in',
+                  focus: { target: 'in' },
                 },
               },
             },
@@ -234,7 +234,7 @@ const toolbarMachine = createMachine<Context, Event>(
         return !context.selection;
       },
       rangeSelection({ event }) {
-        return event.type === 'selection change' && !!event.selection && !event.collapsed;
+        return event.type === 'selection change' && !!event.selection;
       },
       collapsedSelection({ event }) {
         return event.type === 'selection change' && !!event.selection && event.collapsed;

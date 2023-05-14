@@ -58,10 +58,13 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPo
   const ref = useMergeRefs([propRef, refs.setFloating]);
 
   useEffect(() => {
-    return () => {
-      editor.getRootElement()?.focus();
-    };
-  }, [editor]);
+    if (isOpen) {
+      return () => {
+        editor.focus();
+        // editor.getRootElement()?.focus();
+      };
+    }
+  }, [editor, isOpen]);
 
   return (
     <RdxPresence.Presence present={isOpen}>

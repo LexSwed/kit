@@ -1,4 +1,4 @@
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent, useMemo } from 'react';
 import { ToggleGroup } from './toggle-group';
 import {
   Button,
@@ -22,12 +22,11 @@ import {
 import { t } from 'shared';
 import { useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
-import { returnEditorSelection, selectLinkAndGetTheDetails, updateSelectedLink } from './utils';
+import { selectLinkAndGetTheDetails, updateSelectedLink } from './utils';
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();
 
-  const [isLink, setIsLink] = useState(false);
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
       toolbar: { shown: 'linkEditShown' },
@@ -36,31 +35,49 @@ export const LinkEdit = () => {
   const actor = useActorRef();
   const [initialValues, setInitialValues] = useState<{ text: string; link: string } | null>();
 
-  const updateLink = async () => {
+  const { close, toggle } = useMemo(() => {
+    const close = () => {
+      setInitialValues(null);
+      selectLinkAndGetTheDetails(editor);
+    };
+    const open = async () => {
+      actor.send({ type: 'edit link' });
+      const details = await selectLinkAndGetTheDetails(editor);
+      setInitialValues(details);
+    };
     /** Select link in both cases
      *   - closing to restore selection;
      *   - opening to get the details;
      */
-    const details = await selectLinkAndGetTheDetails(editor);
-    if (isLinkEditOpen) {
-      setInitialValues(null);
-      return actor.send('cancel link edit');
-    } else {
-      actor.send('edit link');
-      setInitialValues(details);
-    }
-  };
+    const toggle = async () => {
+      const state = actor.getSnapshot();
+      if (state?.matches({ toolbar: { shown: 'linkEditShown' } })) {
+        close();
+      } else {
+        open();
+      }
+    };
+
+    return { open, close, toggle };
+  }, [actor, editor]);
 
   return (
     <>
       <ToggleGroup>
-        <ToggleButton pressed={isLink || isLinkEditOpen} onClick={updateLink} size="sm">
+        <ToggleButton pressed={isLinkEditOpen} onClick={toggle} size="sm">
           <Icon size="sm" as={RxLink2} />
           {t('Link')}
         </ToggleButton>
       </ToggleGroup>
 
-      {isLinkEditOpen && initialValues && <LinkEditPopup initialValues={initialValues} isLink={isLink} />}
+      {isLinkEditOpen && initialValues && (
+        <LinkEditPopup
+          initialValues={initialValues}
+          // FIXME: determine if already link is selected or is about to be made a link
+          isLink={true}
+          onClose={close}
+        />
+      )}
     </>
   );
 };
@@ -71,19 +88,14 @@ interface LinkEditPopupProps {
     text: string;
     link: string;
   };
+  onClose: () => void;
 }
 
-export const LinkEditPopup = ({ initialValues, isLink }: LinkEditPopupProps) => {
+export const LinkEditPopup = ({ initialValues, isLink, onClose }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
-  const actor = useActorRef();
   const selectedNode = useReferenceNode();
 
-  const close = useCallback(() => {
-    returnEditorSelection(editor);
-    actor.send('cancel link edit');
-  }, [actor, editor]);
   const removeLink = () => {
-    // text changed -> so toolbar position will be recalculated
     editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     close();
   };
@@ -96,21 +108,8 @@ export const LinkEditPopup = ({ initialValues, isLink }: LinkEditPopupProps) => 
     updateSelectedLink(editor, { text, link });
   };
 
-  // useEffect(() => {
-  //   return mergeRegister(
-  //     editor.registerCommand(
-  //       KEY_ESCAPE_COMMAND,
-  //       () => {
-  //         close();
-  //         return true;
-  //       },
-  //       COMMAND_PRIORITY_CRITICAL
-  //     )
-  //   );
-  // }, [close, editor]);
-
   const onKeyDown = useKeyboardHandles({
-    Escape: close,
+    Escape: onClose,
   });
 
   return (
@@ -150,7 +149,7 @@ export const LinkEditPopup = ({ initialValues, isLink }: LinkEditPopupProps) => 
           defaultValue={initialValues.link}
         />
         <div className="flex flex-row justify-end gap-2 pt-1">
-          <Button size="sm" onClick={close}>
+          <Button size="sm" onClick={onClose}>
             {t('Cancel')}
           </Button>
           <Button size="sm" type="submit" variant="tonal">

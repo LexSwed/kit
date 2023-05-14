@@ -53,30 +53,32 @@ export const Editor = ({ initialEditorState }: Props) => {
   };
 
   return (
-    <div className="relative">
-      <LexicalComposer initialConfig={initialConfig}>
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable className="relative min-h-[70vh] rounded-sm p-6 font-sans text-on-background shadow-2xl outline-none" />
-          }
-          placeholder={
-            <div className="pointer-events-none absolute start-0 top-0 p-6 text-on-surface-variant">
-              {t('Enter some text...')}
-            </div>
-          }
-          ErrorBoundary={LexicalErrorBoundary}
-        />
-        <HistoryPlugin />
-        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-        <ListPlugin />
-        <LinkPlugin />
-        <ImagesPlugin />
-        <CodeHighlightPlugin />
-        <TabIndentationPlugin />
-        <SaveToLocalStoragePlugin />
-        <FloatingToolbarPlugin />
-      </LexicalComposer>
-    </div>
+    <>
+      <div className="relative">
+        <LexicalComposer initialConfig={initialConfig}>
+          <RichTextPlugin
+            contentEditable={
+              <ContentEditable className="relative min-h-[70vh] rounded-sm p-6 font-sans text-on-background shadow-2xl outline-none" />
+            }
+            placeholder={
+              <div className="pointer-events-none absolute start-0 top-0 p-6 text-on-surface-variant">
+                {t('Enter some text...')}
+              </div>
+            }
+            ErrorBoundary={LexicalErrorBoundary}
+          />
+          <HistoryPlugin />
+          <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+          <ListPlugin />
+          <LinkPlugin />
+          <ImagesPlugin />
+          <CodeHighlightPlugin />
+          <TabIndentationPlugin />
+          <SaveToLocalStoragePlugin />
+          <FloatingToolbarPlugin />
+        </LexicalComposer>
+      </div>
+    </>
   );
 };
 

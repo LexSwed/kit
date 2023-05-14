@@ -5,7 +5,14 @@ import { LinkEdit } from './link-edit';
 import { ToolbarStateProvider, useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
 import { getSelection } from './utils';
-import { COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, KEY_ESCAPE_COMMAND, SELECTION_CHANGE_COMMAND } from 'lexical';
+import {
+  BLUR_COMMAND,
+  COMMAND_PRIORITY_HIGH,
+  COMMAND_PRIORITY_LOW,
+  FOCUS_COMMAND,
+  KEY_ESCAPE_COMMAND,
+  SELECTION_CHANGE_COMMAND,
+} from 'lexical';
 import { mergeRegister } from '@lexical/utils';
 
 export function FloatingToolbarPlugin() {
@@ -22,19 +29,17 @@ function FloatingToolbar() {
   const actor = useActorRef();
 
   const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
-  const linkSelected = useSelector((state) =>
-    state.context.selection ? state.context.selection.isCollapsedLink : false
-  );
+  const linkSelected = useSelector((state) => state.matches({ editor: { selection: 'collapsed' } }));
   const selectedNode = useReferenceNode();
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
      * went outside of the editor - it should still be valid */
     function handlePointerDown() {
-      actor.send('pointer down');
+      actor.send({ type: 'pointer down' });
     }
-    async function handlePointerUp() {
-      actor.send('pointer up');
+    function handlePointerUp() {
+      actor.send({ type: 'pointer up' });
     }
 
     /** Apply to editorElement to void applying opacity when pointer down is within the toolbar itself. */
@@ -59,6 +64,22 @@ function FloatingToolbar() {
   useEffect(() => {
     return mergeRegister(
       editor.registerCommand(
+        FOCUS_COMMAND,
+        () => {
+          actor.send({ type: 'focus' });
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        BLUR_COMMAND,
+        () => {
+          actor.send({ type: 'blur' });
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         (payload, editor) => {
           getSelection(editor).then((params) => {
@@ -76,7 +97,7 @@ function FloatingToolbar() {
               type: 'selection change',
               selection: null,
             });
-            actor.send('close');
+            actor.send({ type: 'close' });
             return true;
           }
           return false;

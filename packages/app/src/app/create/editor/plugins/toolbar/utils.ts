@@ -1,14 +1,6 @@
 import { $isCodeHighlightNode } from '@lexical/code';
 import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
-import {
-  $getSelection,
-  $isRangeSelection,
-  ElementNode,
-  type GridSelection,
-  type LexicalEditor,
-  type NodeSelection,
-  type RangeSelection,
-} from 'lexical';
+import { $getSelection, $isRangeSelection, ElementNode, type LexicalEditor, type RangeSelection } from 'lexical';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 
 export async function getSelection(editor: LexicalEditor) {
@@ -82,7 +74,6 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
 }
 
 export function $selectRange(selection: RangeSelection, node: ElementNode | null) {
-  console.log(node);
   if (!node) {
     return null;
   }

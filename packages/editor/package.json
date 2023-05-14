@@ -23,7 +23,7 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.2.7",
+    "@floating-ui/dom": "^1.2.8",
     "@fxtrot/ui": "^1.4.27",
     "@kobalte/core": "^0.9.6",
     "@kobalte/utils": "^0.7.2",

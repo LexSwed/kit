@@ -9,7 +9,8 @@
     "dev": "npm run dev --workspace app",
     "build:app": "npm run build --workspace app",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "postinstall": "patch-package"
   },
   "author": "Lex Swed",
   "license": "MIT",

@@ -1,12 +1,9 @@
 import { createActorContext } from '@xstate/react';
-import { assign, createMachine } from 'xstate';
+import { and, assign, createMachine, stateIn, raise } from 'xstate';
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
-  selection: null | {
-    range: Range;
-    isCollapsedLink: boolean;
-  };
+  selection: null | Range;
   /**
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
@@ -16,6 +13,8 @@ interface Context {
 type Event =
   | { type: 'pointer down' }
   | { type: 'pointer up' }
+  | { type: 'focus' }
+  | { type: 'blur' }
   | { type: 'selection change'; selection: Range; collapsed: boolean }
   | { type: 'selection change'; selection: null }
   | { type: 'selected' }
@@ -27,21 +26,110 @@ type Event =
 const toolbarMachine = createMachine<Context, Event>(
   {
     id: 'toolbarMachine',
-    schema: {
-      context: {} as Context,
-      events: {} as Event,
-    },
     context: {
       reference: null,
       selection: null,
     },
-    on: {
-      'selection change': {
-        actions: ['assignSelection'],
-      },
-    },
     type: 'parallel',
     states: {
+      editor: {
+        id: 'editor',
+        type: 'parallel',
+        states: {
+          focus: {
+            initial: 'out',
+            id: 'focus',
+            states: {
+              in: {
+                on: {
+                  blur: 'out',
+                },
+              },
+              out: {
+                on: {
+                  focus: 'in',
+                },
+              },
+            },
+          },
+          selection: {
+            id: 'selection',
+            initial: 'none',
+            on: {
+              'selected': {
+                actions: ['assignReference'],
+              },
+              'deselected': {
+                actions: ['clearSelection', 'clearReference'],
+              },
+              'selection change': [
+                /**
+                 * Keyboard selection
+                 * (or weird cases when "pointer up" is emitted before "selection change")
+                 */
+                {
+                  guard: and(['rangeSelection', stateIn({ pointer: 'up', editor: { focus: 'in' } })]),
+                  actions: ['assignSelection', 'raiseSelected'],
+                  target: ['#selection.range'],
+                },
+                /**
+                 * Commented out is to avoid toolbar opening on collapsed (link) navigating with keyboard only
+                 */
+                // {
+                //   in: {
+                //     pointer: 'up',
+                //     editor: {
+                //       focus: 'in',
+                //     },
+                //   },
+                //   cond: 'collapsedSelection',
+                //   actions: ['assignSelection', 'assignReference', 'raiseSelected'],
+                //   target: ['#selection.collapsed'],
+                // },
+                {
+                  guard: and(['noSelection', stateIn({ pointer: 'up', editor: { focus: 'in' } })]),
+                  actions: ['raiseDeselected'],
+                  target: ['#selection.none'],
+                },
+                {
+                  guard: 'collapsedSelection',
+                  actions: ['assignSelection'],
+                  target: ['#selection.collapsed'],
+                },
+                {
+                  guard: 'rangeSelection',
+                  actions: ['assignSelection'],
+                  target: ['#selection.range'],
+                },
+                {
+                  guard: 'noSelection',
+                  actions: ['clearSelection'],
+                  target: ['#selection.none'],
+                },
+                {
+                  actions: ['assignSelection'],
+                },
+              ],
+              'pointer up': [
+                {
+                  guard: and(['hasNoSelection', stateIn({ editor: { focus: 'in' } })]),
+                  actions: ['raiseDeselected'],
+                  target: ['.none'],
+                },
+                {
+                  guard: and(['hasSelection', stateIn({ editor: { focus: 'in' } })]),
+                  actions: ['raiseSelected'],
+                },
+              ],
+            },
+            states: {
+              none: {},
+              collapsed: {},
+              range: {},
+            },
+          },
+        },
+      },
       pointer: {
         id: 'pointer',
         initial: 'up',
@@ -67,178 +155,59 @@ const toolbarMachine = createMachine<Context, Event>(
         initial: 'hidden',
         states: {
           hidden: {
-            id: 'hidden',
-            initial: 'initial',
-            states: {
-              initial: {
-                on: {
-                  'selection change': [
-                    {
-                      /**
-                       * This prevents the toolbar to open on links when navigating with keyboard.
-                       * This has a "bug" for a click within selected link to not open the toolbar.
-                       */
-                      cond: 'rangeSelectionMouseUp',
-                      target: '#toolbar.shown',
-                      actions: ['assignSelection', 'assignReference'],
-                    },
-                    {
-                      cond: 'noSelectionMouseUp',
-                      target: '#toolbar.hidden',
-                      actions: ['clearSelection', 'clearReference'],
-                    },
-                  ],
-                  'pointer up': [
-                    {
-                      cond: 'hasNoSelection',
-                      target: '#toolbar.hidden',
-                      actions: ['clearReference'],
-                    },
-                    {
-                      cond: 'hasRangeSelection',
-                      target: '#toolbar.shown',
-                      actions: ['assignReference'],
-                    },
-                    {
-                      cond: 'hasCollapsedLinkSelection',
-                      target: '#toolbar.shown',
-                      actions: ['assignReference'],
-                    },
-                  ],
-                },
+            on: {
+              selected: {
+                target: 'shown',
               },
             },
           },
           shown: {
             id: 'shown',
             initial: 'open',
+            on: {
+              deselected: {
+                target: '.closing',
+              },
+              close: {
+                target: '.closing',
+              },
+            },
             states: {
               open: {
                 on: {
-                  'edit link': 'openingLinkEdit',
-                },
-              },
-              /** opening link edit also selects whole link */
-              openingLinkEdit: {
-                on: {
-                  'selection change': [
-                    {
-                      cond: 'hasNoSelectionAndPointerUp',
-                      target: '#shown.closing',
-                      actions: ['clearSelection', 'clearReference'],
-                    },
-                    {
-                      cond: 'hasSelectionAndPointerUp',
-                      target: '#shown.linkEditShown',
-                      actions: ['assignSelection', 'assignReference'],
-                    },
-                  ],
-                },
-                /** but if it doesn't happen, open link edit anyway */
-                after: {
-                  100: [
-                    {
-                      cond: 'hasNoSelection',
-                      target: '#shown.closing',
-                      actions: ['clearSelection', 'clearReference'],
-                    },
-                    {
-                      cond: 'hasSelectionAndPointerUp',
-                      target: '#shown.linkEditShown',
-                      actions: ['assignSelection', 'assignReference'],
-                    },
-                  ],
+                  'edit link': 'linkEditShown',
                 },
               },
               linkEditShown: {
                 on: {
                   'cancel link edit': '#shown',
-                  'pointer up': [
-                    {
-                      cond: 'hasNoSelection',
-                      target: '#shown.closing',
-                      actions: ['clearSelection', 'clearReference'],
-                    },
-                    // keep open for pointer ups inside popup
-                    {
-                      actions: ['assignSelection', 'assignReference'],
-                    },
-                  ],
-                  'selection change': {
-                    target: '#shown.open',
-                    actions: ['assignSelection', 'assignReference'],
+                  'selected': {
+                    target: 'open',
                   },
                 },
               },
               closing: {
+                on: {
+                  selected: '#toolbar.shown',
+                },
                 after: {
-                  200: [
-                    {
-                      cond: 'hasSelectionAndPointerUp',
-                      target: '#shown.open',
-                    },
-                    {
-                      target: '#toolbar.hidden',
-                      cond: 'hasNoSelectionAndPointerUp',
-                    },
-                  ],
+                  200: {
+                    target: '#toolbar.hidden',
+                  },
                 },
               },
-            },
-            on: {
-              'close': {
-                target: '#shown.closing',
-              },
-              'selection change': [
-                {
-                  cond: 'rangeSelectionMouseUp',
-                  target: '#shown.open',
-                  actions: ['assignSelection', 'assignReference'],
-                },
-                {
-                  cond: 'noSelectionMouseUp',
-                  target: '#shown.closing',
-                  actions: ['clearSelection', 'clearReference'],
-                },
-                {
-                  actions: ['assignSelection'],
-                },
-              ],
-              'pointer up': [
-                {
-                  cond: 'hasNoSelection',
-                  target: '#shown.closing',
-                  actions: ['clearReference'],
-                },
-                {
-                  cond: 'hasRangeSelection',
-                  target: '#shown.open',
-                  actions: ['assignReference'],
-                },
-                {
-                  cond: 'hasCollapsedLinkSelection',
-                  target: '#shown.open',
-                  actions: ['assignReference'],
-                },
-              ],
             },
           },
         },
       },
     },
-    predictableActionArguments: true,
   },
   {
     actions: {
       assignSelection: assign({
-        selection: (context, event) => {
+        selection: ({ context, event }) => {
           if (event.type === 'selection change') {
-            return event.selection
-              ? {
-                  range: event.selection,
-                  isCollapsedLink: event.collapsed,
-                }
-              : null;
+            return event.selection;
           }
           return context.selection;
         },
@@ -247,39 +216,31 @@ const toolbarMachine = createMachine<Context, Event>(
         selection: null,
       }),
       assignReference: assign({
-        reference: (context) => context.selection?.range || null,
+        reference: ({ context }) => {
+          return context.selection ?? null;
+        },
       }),
       clearReference: assign({
         reference: null,
       }),
+      raiseSelected: raise({ type: 'selected' }),
+      raiseDeselected: raise({ type: 'deselected' }),
     },
     guards: {
-      hasNoSelectionAndPointerUp(context, event, meta) {
-        return meta.state.matches({ pointer: 'up' }) && !context.selection;
+      hasSelection({ context }) {
+        return !!context.selection;
       },
-      hasSelectionAndPointerUp(context, event, meta) {
-        return meta.state.matches({ pointer: 'up' }) && !!context.selection;
-      },
-      hasNoSelection(context) {
+      hasNoSelection({ context }) {
         return !context.selection;
       },
-      hasRangeSelection(context) {
-        return context.selection ? !context.selection.isCollapsedLink : false;
+      rangeSelection({ event }) {
+        return event.type === 'selection change' && !!event.selection && !event.collapsed;
       },
-      hasCollapsedLinkSelection(context) {
-        return context.selection ? context.selection.isCollapsedLink : false;
+      collapsedSelection({ event }) {
+        return event.type === 'selection change' && !!event.selection && event.collapsed;
       },
-      rangeSelectionMouseUp(context, event, meta) {
-        if (event.type === 'selection change' && event.selection) {
-          return !event.collapsed && meta.state.matches({ pointer: 'up' });
-        }
-        return false;
-      },
-      noSelectionMouseUp(context, event, meta) {
-        if (event.type === 'selection change') {
-          return !event.selection && meta.state.matches({ pointer: 'up' });
-        }
-        return false;
+      noSelection({ event }) {
+        return event.type === 'selection change' && !event.selection;
       },
     },
   }
@@ -292,7 +253,9 @@ const {
   useSelector,
 } = createActorContext(
   toolbarMachine,
-  undefined,
+  {
+    devTools: process.env.NODE_ENV === 'development',
+  },
   process.env.NODE_ENV === 'development'
     ? (state) => {
         const { event, value, context } = state;

@@ -3,9 +3,10 @@ import './style.css';
 import { createElement, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { render } from 'solid-js/web';
-import { Editor } from './editor';
 import { ThemeProvider } from '@fxtrot/ui';
 import { createContext } from 'solid-js';
+
+import { Editor } from './editor';
 
 const AppContext = createContext({ root: null as HTMLElement | null });
 
@@ -23,7 +24,9 @@ const ReactApp = () => {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    render(() => <App root={ref.current!} />, ref.current!);
+    const el = ref.current;
+    if (!el) return;
+    render(() => <App root={el} />, el);
   }, []);
   return createElement(ThemeProvider, { children: createElement('div', { ref }) });
 };

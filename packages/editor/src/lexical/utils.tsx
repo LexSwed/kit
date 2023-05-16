@@ -13,7 +13,7 @@ export function resolve<T>(t: MaybeAccessor<T>): T {
   }
 }
 
-export function getSelectedNode(selection: RangeSelection): TextNode | ElementNode {
+export function $getSelectedNode(selection: RangeSelection): TextNode | ElementNode {
   const anchor = selection.anchor;
   const focus = selection.focus;
   const anchorNode = selection.anchor.getNode();

@@ -60,8 +60,9 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPo
   useEffect(() => {
     if (isOpen) {
       return () => {
-        editor.focus();
-        // editor.getRootElement()?.focus();
+        if (editor.getRootElement() !== document.activeElement) {
+          editor.focus();
+        }
       };
     }
   }, [editor, isOpen]);

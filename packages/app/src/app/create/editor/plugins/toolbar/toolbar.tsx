@@ -4,7 +4,7 @@ import { TextFormatFloatingToolbar } from './text-format';
 import { LinkEdit } from './link-edit';
 import { ToolbarStateProvider, useActorRef, useReferenceNode, useSelector } from './state';
 import { EditorPopover } from '../../lib/editor-popover';
-import { getSelection } from './utils';
+import { getSelection, useCurrentSelection } from './utils';
 import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_HIGH,
@@ -30,7 +30,9 @@ function FloatingToolbar() {
 
   const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
   const selectedNode = useReferenceNode();
-  const isCollapsed = useSelector((state) => state.matches({ editor: { selection: 'collapsed' } }));
+  const $selection = useCurrentSelection();
+
+  const isCollapsed = $selection?.isCollapsed();
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -39,7 +41,12 @@ function FloatingToolbar() {
       actor.send({ type: 'pointer down' });
     }
     function handlePointerUp() {
-      actor.send({ type: 'pointer up' });
+      getSelection(editor, true).then((params) => {
+        actor.send({ type: 'pointer up' });
+        if (actor.getSnapshot()?.matches({ pointer: 'up' })) {
+          actor.send({ type: 'selection change', ...params });
+        }
+      });
     }
 
     /** Apply to editorElement to void applying opacity when pointer down is within the toolbar itself. */
@@ -82,12 +89,16 @@ function FloatingToolbar() {
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         (payload, editor) => {
-          getSelection(editor).then((params) => {
-            actor.send({ type: 'selection change', ...params });
-          });
+          if (actor.getSnapshot()?.matches({ pointer: 'up' })) {
+            getSelection(editor).then((params) => {
+              if (actor.getSnapshot()?.matches({ pointer: 'up' })) {
+                actor.send({ type: 'selection change', ...params });
+              }
+            });
+          }
           return false;
         },
-        COMMAND_PRIORITY_LOW
+        COMMAND_PRIORITY_HIGH
       ),
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,

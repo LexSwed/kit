@@ -1,10 +1,10 @@
 import { createSignal, onCleanup, onMount, type JSX } from 'solid-js';
 import { BsTypeItalic, BsTypeUnderline, BsTypeBold, BsCodeSlash } from 'solid-icons/bs';
+import { useLexicalComposerContext } from 'lexical-solid';
 
 import { t } from 'shared';
 import { ToggleButton } from '../../ui';
 import { ToggleGroup } from './toggle-group';
-import { useLexicalComposerContext } from '..';
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
 

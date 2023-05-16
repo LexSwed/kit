@@ -1,28 +1,33 @@
-import { Show, batch, createEffect, createMemo, createSignal, on, onCleanup } from 'solid-js';
+import { Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
 
-import { $getSelection, $isRangeSelection, ElementNode, TextNode, type RangeSelection } from 'lexical';
-import { RiEditorBold } from 'solid-icons/ri';
+import {
+  BLUR_COMMAND,
+  COMMAND_PRIORITY_HIGH,
+  COMMAND_PRIORITY_LOW,
+  ElementNode,
+  FOCUS_COMMAND,
+  KEY_ESCAPE_COMMAND,
+  SELECTION_CHANGE_COMMAND,
+  TextNode,
+} from 'lexical';
+import { useLexicalComposerContext } from 'lexical-solid';
+import { mergeRegister } from '@lexical/utils';
+import { type Placement, inline, offset, flip, shift, type ReferenceElement } from '@floating-ui/dom';
 
 import { createFloating } from '../../lib/floating';
-import { useReducer } from '../../lib/use-reducer';
-import { type Placement, inline, offset, flip, shift, type ReferenceElement } from '@floating-ui/dom';
-import { $findMatchingParent, isHTMLAnchorElement } from '@lexical/utils';
-import { useLexicalComposerContext } from '../../lexical';
-import { $isCodeHighlightNode } from '@lexical/code';
-import { $isLinkNode } from '@lexical/link';
-import { getElementFromDomRange, getSelectedNode } from '../utils';
-import { Popover, ToggleButton } from '../../ui';
+import { getSelection } from './utils';
+import { Popover } from '../../ui';
 import { TextFormatting } from './text-formating';
+import { useToolbarState } from './state';
 
 export const FloatingToolbarPlugin = () => {
   const [editor] = useLexicalComposerContext();
-  const [reference, setReference] = createSignal<ReferenceElement | null>(null);
   const [floating, setFloating] = createSignal<HTMLElement | null>(null);
-  const [state, dispatch] = useFloatingToolbar();
+  const [state, send] = useToolbarState();
 
   // `position` is a reactive object.
-  const position = createFloating(reference, floating, {
-    open: () => state.floatingToolbarOpen,
+  const position = createFloating(() => state().context.reference, floating, {
+    open: () => state().matches({ toolbar: 'open' }),
     placement: 'top-start',
     middleware: [
       inline(),
@@ -35,151 +40,101 @@ export const FloatingToolbarPlugin = () => {
   });
   const split = createMemo(() => getSideAndAlignFromPlacement(position.placement));
 
-  const updatePopup = () => {
-    editor.getEditorState().read(() => {
-      // Should not to pop up the floating toolbar when using IME input
-      if (editor.isComposing()) {
-        return;
+  const isShown = () => state().matches({ toolbar: 'shown' });
+  // const $selection = useCurrentSelection();
+
+  // const isCollapsed = $selection?.isCollapsed();
+
+  /** Should always listen to document pointer down and up in case selection
+   * went outside of the editor - it should still be valid */
+  function handlePointerDown() {
+    send({ type: 'pointer down' });
+  }
+  function handlePointerUp() {
+    getSelection(editor, true).then((params) => {
+      send({ type: 'pointer up' });
+      if (state().matches({ pointer: 'up' })) {
+        send({ type: 'selection change', ...params });
       }
-      const selection = $getSelection();
+    });
+  }
 
-      if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
-        return dispatch({ type: 'deselected' });
-      }
+  /** Apply to editorElement to void applying opacity when pointer down is within the toolbar itself. */
+  // function handlePointerMove(e: PointerEvent) {
+  //   if (!stateRef.current.floatingToolbarOpen || stateRef.current.pointerMove) return;
+  //   if (e.buttons === 1 || e.buttons === 3) {
+  //     dispatch({ type: 'pointer-move' });
+  //   }
+  // }
+  // const editorElement = editor.getRootElement();
 
-      const rawTextContent = selection.getTextContent().replace(/\n/g, '');
-      const node = getSelectedNode(selection);
+  document.addEventListener('pointerdown', handlePointerDown);
+  document.addEventListener('pointerup', handlePointerUp);
+  // editorElement?.addEventListener('pointermove', handlePointerMove);
 
-      if ((!selection.isCollapsed() && rawTextContent === '') || selection.getTextContent() === '') {
-        const linkParent = $findMatchingParent(node, $isLinkNode);
+  onCleanup(() => {
+    document.removeEventListener('pointerdown', handlePointerDown);
+    document.removeEventListener('pointerup', handlePointerUp);
+    // editorElement?.removeEventListener('pointermove', handlePointerMove);
+  });
 
-        if (linkParent !== null) {
-          const link = editor.getElementByKey(linkParent.getKey());
-          if (link && isHTMLAnchorElement(link)) {
-            batch(() => {
-              setReference(link);
-              dispatch({ type: 'selected', selectedNode: node });
+  onCleanup(
+    mergeRegister(
+      editor.registerCommand(
+        FOCUS_COMMAND,
+        () => {
+          send({ type: 'focus' });
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        BLUR_COMMAND,
+        () => {
+          send({ type: 'blur' });
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        SELECTION_CHANGE_COMMAND,
+        (payload, editor) => {
+          if (state().matches({ pointer: 'up' })) {
+            getSelection(editor).then((params) => {
+              if (state().matches({ pointer: 'up' })) {
+                send({ type: 'selection change', ...params });
+              }
             });
-            return;
           }
-        }
-        dispatch({ type: 'deselected' });
-        return;
-      }
-
-      const nativeSelection = window.getSelection();
-      const rootElement = editor.getRootElement();
-      if (
-        nativeSelection !== null &&
-        !nativeSelection.isCollapsed &&
-        rootElement !== null &&
-        rootElement.contains(nativeSelection.anchorNode)
-      ) {
-        const element = getElementFromDomRange(nativeSelection, rootElement);
-        batch(() => {
-          dispatch({ type: 'selected', selectedNode: node });
-          setReference(element);
-        });
-      }
-      position.update();
-    });
-  };
-
-  createEffect(
-    on([], () => {
-      /** Should always listen to document pointer down and up in case selection
-       * went outside of the editor - it should still be valid */
-      function handlePointerDown() {
-        dispatch({ type: 'pointer-down' });
-      }
-      function handlePointerUp() {
-        dispatch({ type: 'pointer-up' });
-        updatePopup();
-      }
-      /** Avoid applying opacity when pointer down is within the toolbar itself. */
-      function handlePointerMove(e: PointerEvent) {
-        if (!state.floatingToolbarOpen || state.pointerMove) return;
-        if (e.buttons === 1 || e.buttons === 3) {
-          dispatch({ type: 'pointer-move' });
-        }
-      }
-      const editorElement = editor.getRootElement();
-
-      document.addEventListener('pointerdown', handlePointerDown);
-      document.addEventListener('pointerup', handlePointerUp);
-      editorElement?.addEventListener('pointermove', handlePointerMove);
-
-      onCleanup(() => {
-        document.removeEventListener('pointerdown', handlePointerDown);
-        document.removeEventListener('pointerup', handlePointerUp);
-        editorElement?.removeEventListener('pointermove', handlePointerMove);
-      });
-    })
+          return false;
+        },
+        COMMAND_PRIORITY_HIGH
+      ),
+      editor.registerCommand(
+        KEY_ESCAPE_COMMAND,
+        () => {
+          if (state().matches({ toolbar: 'shown' })) {
+            send({
+              type: 'selection change',
+              selection: null,
+            });
+            send({ type: 'close' });
+            return true;
+          }
+          return false;
+        },
+        COMMAND_PRIORITY_HIGH
+      )
+    )
   );
-
-  createEffect(
-    on([], () => {
-      const updatePopupWithKeyboardSelectionOnly = () => {
-        if (state.pointerUp) {
-          updatePopup();
-        }
-      };
-      document.addEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
-      onCleanup(() => {
-        document.removeEventListener('selectionchange', updatePopupWithKeyboardSelectionOnly);
-      });
-    })
-  );
-
-  const updateLink = () => {
-    editor.update(() => {
-      if (state.linkEditOpen) {
-        return dispatch({ type: 'link-edit-closed' });
-      }
-      const selection = $getSelection();
-
-      if (!$isRangeSelection(selection)) {
-        return;
-      }
-
-      const node = getSelectedNode(selection);
-      const parent = node.getParent();
-      const linkNode = $isLinkNode(node) ? node : $isLinkNode(parent) ? parent : null;
-
-      if (linkNode) {
-        const textNodes = linkNode.getAllTextNodes();
-
-        const firstTextNode = textNodes[0];
-        const lastTextNode = textNodes[textNodes.length - 1];
-
-        selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
-        const linkDetails = {
-          link: linkNode.getURL(),
-          text: linkNode.getTextContent(),
-        };
-        dispatch({
-          type: 'link-edit-open',
-          linkDetails,
-        });
-      } else {
-        dispatch({
-          type: 'link-edit-open',
-          linkDetails: {
-            link: '',
-            text: selection.getTextContent(),
-          },
-        });
-      }
-    });
-  };
 
   return (
-    <Show when={state.floatingToolbarOpen}>
+    <Show when={isShown}>
       <Popover
         ref={setFloating}
         data-align={split().align}
         data-side={split().side}
-        data-state={state.floatingToolbarOpen ? 'open' : 'closed'}
+        data-state={isShown() ? 'open' : 'closed'}
         class={'isolate transition-[opacity,width,height] duration-300'}
         style={{
           position: position.strategy,
@@ -247,84 +202,3 @@ type State = {
       };
     }
 );
-
-const floatingInitialState = {
-  pointerUp: true,
-  pointerMove: false,
-  floatingToolbarOpen: false,
-  linkEditOpen: false,
-  linkEditDetails: null,
-  lastSelectedNode: null,
-} as const;
-function useFloatingToolbar() {
-  return useReducer(floatingToolbarReducer, floatingInitialState);
-}
-function floatingToolbarReducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'selected': {
-      if (action.selectedNode === state.lastSelectedNode) {
-        return state;
-      }
-      return {
-        ...state,
-        lastSelectedNode: action.selectedNode,
-        floatingToolbarOpen: true,
-        linkEditOpen: false,
-        linkEditDetails: null,
-      };
-    }
-    case 'deselected': {
-      /** Keep showing toolbar when no selected text, but the pointer is down */
-      if (!state.pointerUp && state.floatingToolbarOpen) {
-        return state;
-      }
-      return {
-        ...state,
-        lastSelectedNode: null,
-        floatingToolbarOpen: false,
-        linkEditOpen: false,
-        linkEditDetails: null,
-      };
-    }
-    case 'pointer-down': {
-      return {
-        ...state,
-        pointerUp: false,
-      };
-    }
-    case 'pointer-up': {
-      return {
-        ...state,
-        pointerUp: true,
-        pointerMove: false,
-      };
-    }
-    case 'pointer-move': {
-      return {
-        ...state,
-        pointerMove: true,
-      };
-    }
-    case 'link-edit-closed': {
-      return {
-        ...state,
-        linkEditOpen: false,
-        linkEditDetails: null,
-      };
-    }
-    case 'link-edit-open': {
-      const { floatingToolbarOpen, lastSelectedNode } = state;
-      if (!floatingToolbarOpen || !lastSelectedNode) return state;
-      return {
-        ...state,
-        lastSelectedNode,
-        floatingToolbarOpen: true,
-        linkEditOpen: true,
-        linkEditDetails: action.linkDetails,
-      };
-    }
-    default: {
-      return state;
-    }
-  }
-}

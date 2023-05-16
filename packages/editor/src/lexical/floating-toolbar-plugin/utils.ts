@@ -1,18 +1,7 @@
 import { $isCodeHighlightNode } from '@lexical/code';
-import { $isAutoLinkNode, $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
-import {
-  $getSelection,
-  $isRangeSelection,
-  SELECTION_CHANGE_COMMAND,
-  type LexicalEditor,
-  type RangeSelection,
-  type ElementNode,
-  COMMAND_PRIORITY_LOW,
-} from 'lexical';
-import { getSelectedNode } from '../../utils/getSelectedNode';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { mergeRegister, $findMatchingParent } from '@lexical/utils';
-import { useState, useEffect } from 'react';
+import { $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $getSelection, $isRangeSelection, type LexicalEditor, type RangeSelection, type ElementNode } from 'lexical';
+import { $getSelectedNode } from '../utils';
 
 export async function getSelection(editor: LexicalEditor, includeCollapsed = false) {
   // Should not to pop up the floating toolbar when using IME input
@@ -110,7 +99,7 @@ export function updateSelectedLink(editor: LexicalEditor, { text, link }: { text
 
     const selection = $getSelection();
     if (!$isRangeSelection(selection)) return null;
-    const selectedNode = getSelectedNode(selection).getParent();
+    const selectedNode = $getSelectedNode(selection).getParent();
     $selectLink(selection, selectedNode);
   });
 }
@@ -130,71 +119,4 @@ export function isSelectionCollapsed() {
   const nativeSelection = window.getSelection();
   if (!nativeSelection) return false;
   return nativeSelection.isCollapsed;
-}
-
-export function useIsLinkSelected() {
-  const [isLink, setIsLink] = useState(false);
-  const [editor] = useLexicalComposerContext();
-
-  useEffect(() => {
-    const update = () => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        const node = getSelectedNode(selection);
-        const linkParent = $findMatchingParent(node, $isLinkNode);
-        const autoLinkParent = $findMatchingParent(node, $isAutoLinkNode);
-
-        // We don't want this menu to open for auto links.
-        if (linkParent != null && autoLinkParent == null) {
-          setIsLink(true);
-        } else {
-          setIsLink(false);
-        }
-      }
-    };
-    editor.getEditorState().read(update);
-
-    return mergeRegister(
-      editor.registerCommand(
-        SELECTION_CHANGE_COMMAND,
-        () => {
-          update();
-          return false;
-        },
-        COMMAND_PRIORITY_LOW
-      )
-    );
-  }, [editor]);
-
-  return isLink;
-}
-
-export function useCurrentSelection() {
-  const [editor] = useLexicalComposerContext();
-  const [selection, setSelection] = useState<RangeSelection | null>();
-
-  useEffect(() => {
-    const update = () => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        setSelection(selection);
-      } else {
-        setSelection(null);
-      }
-    };
-    editor.getEditorState().read(update);
-
-    return mergeRegister(
-      editor.registerCommand(
-        SELECTION_CHANGE_COMMAND,
-        () => {
-          update();
-          return false;
-        },
-        COMMAND_PRIORITY_LOW
-      )
-    );
-  }, [editor]);
-
-  return selection;
 }

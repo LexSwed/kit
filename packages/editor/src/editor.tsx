@@ -16,7 +16,7 @@ import {
   LexicalErrorBoundary,
   LexicalMarkdownShortcutPlugin,
   HorizontalRuleNode,
-} from './lexical';
+} from 'lexical-solid';
 import { theme } from './theme';
 import { t } from 'shared';
 import { FloatingToolbarPlugin } from './lexical/floating-toolbar-plugin';

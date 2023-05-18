@@ -1,7 +1,7 @@
 import { createContext, onCleanup, useContext, type ParentProps } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { and, assign, createMachine, stateIn, raise } from 'xstate';
-import { useMachine } from '../../lib/solid-xstate';
+import { createActorContext } from '../../lib/solid-xstate';
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
@@ -248,13 +248,17 @@ const toolbarMachine = createMachine<Context, Event>(
   }
 );
 
-const ToolbarStateContext = createContext();
+const { Provider, useActorContext, useMachine } = createActorContext(
+  toolbarMachine
+  // {
+  //   devTools: process.env.NODE_ENV === 'development',
+  // },
+  // process.env.NODE_ENV === 'development'
+  //   ? (state) => {
+  //       const { event, value, context } = state;
+  //       console.log({ event, value, context });
+  //     }
+  //   : undefined
+);
 
-export function ToolbarStateContextProvider(props: ParentProps) {
-  const { state, send } = useMachine(toolbarMachine);
-  return <ToolbarStateContext.Provider value={[state, send] as const}>{props.children}</ToolbarStateContext.Provider>;
-}
-
-export function useToolbarState() {
-  return useContext(ToolbarStateContext);
-}
+export { Provider, useActorContext, useMachine };

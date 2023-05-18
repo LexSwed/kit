@@ -18,24 +18,24 @@ import { createFloating } from '../../lib/floating';
 import { getSelection } from './utils';
 import { Popover } from '../../ui';
 import { TextFormatting } from './text-formating';
-import { ToolbarStateContextProvider, useToolbarState } from './state';
+import { Provider, useMachine } from './state';
 
 export function FloatingToolbarPlugin() {
   return (
-    <ToolbarStateContextProvider>
+    <Provider>
       <FloatingToolbar />
-    </ToolbarStateContextProvider>
+    </Provider>
   );
 }
 
 function FloatingToolbar() {
   const [editor] = useLexicalComposerContext();
   const [floating, setFloating] = createSignal<HTMLElement | null>(null);
-  const [state, send] = useToolbarState();
+  const [state, send] = useMachine();
 
   // `position` is a reactive object.
-  const position = createFloating(() => state().context.reference, floating, {
-    open: () => state().matches({ toolbar: 'open' }),
+  const position = createFloating(() => state.context.reference, floating, {
+    open: () => state.matches({ toolbar: 'open' }),
     placement: 'top-start',
     middleware: [
       inline(),
@@ -48,7 +48,7 @@ function FloatingToolbar() {
   });
   const split = createMemo(() => getSideAndAlignFromPlacement(position.placement));
 
-  const isShown = () => state().matches({ toolbar: 'shown' });
+  const isShown = () => state.matches({ toolbar: 'shown' });
   // const $selection = useCurrentSelection();
 
   // const isCollapsed = $selection?.isCollapsed();
@@ -61,7 +61,7 @@ function FloatingToolbar() {
   function handlePointerUp() {
     getSelection(editor, true).then((params) => {
       send({ type: 'pointer up' });
-      if (state().matches({ pointer: 'up' })) {
+      if (state.matches({ pointer: 'up' })) {
         send({ type: 'selection change', ...params });
       }
     });
@@ -107,9 +107,9 @@ function FloatingToolbar() {
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         (payload, editor) => {
-          if (state().matches({ pointer: 'up' })) {
+          if (state.matches({ pointer: 'up' })) {
             getSelection(editor).then((params) => {
-              if (state().matches({ pointer: 'up' })) {
+              if (state.matches({ pointer: 'up' })) {
                 send({ type: 'selection change', ...params });
               }
             });
@@ -121,7 +121,7 @@ function FloatingToolbar() {
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,
         () => {
-          if (state().matches({ toolbar: 'shown' })) {
+          if (state.matches({ toolbar: 'shown' })) {
             send({
               type: 'selection change',
               selection: null,
@@ -135,6 +135,10 @@ function FloatingToolbar() {
       )
     )
   );
+
+  createEffect(() => {
+    console.log(state.matches({ pointer: 'up' }));
+  });
 
   return (
     <Show when={isShown}>

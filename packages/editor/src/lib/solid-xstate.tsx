@@ -11,6 +11,8 @@ import {
   type ActorRefFrom,
   type MarkAllImplementationsAsProvided,
   type SnapshotFrom,
+  InterpreterStatus,
+  type InterpreterFrom,
 } from 'xstate';
 import { createContext, onCleanup, useContext, type ParentProps, createEffect } from 'solid-js';
 import { createStore, reconcile } from 'solid-js/store';
@@ -59,9 +61,14 @@ export function useInterpret<TMachine extends AnyStateMachine>(
     sub = service.subscribe(toObserver(observerOrListener as any));
   }
 
+  service.start();
+
   onCleanup(() => {
-    service.stop();
-    sub?.unsubscribe();
+    return () => {
+      service.stop();
+      service.status = InterpreterStatus.NotStarted;
+      (service as any)._initState();
+    };
   });
 
   return service;
@@ -74,33 +81,16 @@ export function createActorContext<TMachine extends AnyStateMachine>(
   interpreterOptions?: InterpreterOptions<TMachine>,
   observerOrListener?: Observer<StateFrom<TMachine>> | ((value: StateFrom<TMachine>) => void)
 ) {
-  const Context = createContext<ActorRefFrom<TMachine> | null>(null);
+  const Context = createContext<InterpreterFrom<TMachine> | null>(null);
 
   const OriginalProvider = Context.Provider;
 
   function Provider(props: ParentProps) {
-    const [state, setState] = createStore<StateFrom<TMachine>>({} as StateFrom<TMachine>);
-    function listener(nextState: StateFrom<TMachine>) {
-      if (nextState.changed) {
-        setState(reconcile(nextState));
-      }
-    }
-
-    const service = useInterpret(machine, interpreterOptions, listener);
-
-    if (observerOrListener) {
-      const sub = service.subscribe(observerOrListener as any);
-      onCleanup(() => {
-        return () => {
-          sub.unsubscribe();
-        };
-      });
-    }
-
+    const service = useInterpret(machine, interpreterOptions, observerOrListener);
     return <OriginalProvider value={service as any}>{props.children}</OriginalProvider>;
   }
 
-  function useActorContext(): ActorRefFrom<TMachine> {
+  function useActorContext() {
     const actor = useContext(Context);
     if (!actor) {
       throw new Error('xstate actor hooks should be called from components wrapped into Provider');
@@ -111,7 +101,17 @@ export function createActorContext<TMachine extends AnyStateMachine>(
 
   function useMachine() {
     const actor = useActorContext();
-    return [actor];
+    const [state, setState] = createStore(actor.getSnapshot());
+
+    const subscription = actor.subscribe((nextState) => {
+      if (nextState.changed) {
+        setState(reconcile(nextState));
+      }
+    });
+
+    onCleanup(subscription.unsubscribe);
+
+    return [state, actor.send] as const;
   }
 
   return {

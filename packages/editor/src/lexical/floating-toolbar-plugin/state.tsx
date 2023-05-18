@@ -1,7 +1,7 @@
-import { useActor } from '@xstate/solid';
-import { onCleanup } from 'solid-js';
+import { createContext, onCleanup, useContext, type ParentProps } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { and, assign, createMachine, stateIn, raise, interpret, type AnyStateMachine } from 'xstate';
+import { and, assign, createMachine, stateIn, raise } from 'xstate';
+import { useMachine } from '../../lib/solid-xstate';
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
@@ -248,19 +248,13 @@ const toolbarMachine = createMachine<Context, Event>(
   }
 );
 
-function createService<T extends AnyStateMachine>(machine: T) {
-  const service = interpret(machine);
-  if (!isServer) {
-    service.start();
-    onCleanup(() => {
-      service.stop();
-    });
-  }
-  return service;
+const ToolbarStateContext = createContext();
+
+export function ToolbarStateContextProvider(props: ParentProps) {
+  const { state, send } = useMachine(toolbarMachine);
+  return <ToolbarStateContext.Provider value={[state, send] as const}>{props.children}</ToolbarStateContext.Provider>;
 }
 
-const service = createService(toolbarMachine);
-
 export function useToolbarState() {
-  return useActor(service);
+  return useContext(ToolbarStateContext);
 }

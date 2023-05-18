@@ -12,15 +12,23 @@ import {
 } from 'lexical';
 import { useLexicalComposerContext } from 'lexical-solid';
 import { mergeRegister } from '@lexical/utils';
-import { type Placement, inline, offset, flip, shift, type ReferenceElement } from '@floating-ui/dom';
+import { type Placement, inline, offset, flip, shift } from '@floating-ui/dom';
 
 import { createFloating } from '../../lib/floating';
 import { getSelection } from './utils';
 import { Popover } from '../../ui';
 import { TextFormatting } from './text-formating';
-import { useToolbarState } from './state';
+import { ToolbarStateContextProvider, useToolbarState } from './state';
 
-export const FloatingToolbarPlugin = () => {
+export function FloatingToolbarPlugin() {
+  return (
+    <ToolbarStateContextProvider>
+      <FloatingToolbar />
+    </ToolbarStateContextProvider>
+  );
+}
+
+function FloatingToolbar() {
   const [editor] = useLexicalComposerContext();
   const [floating, setFloating] = createSignal<HTMLElement | null>(null);
   const [state, send] = useToolbarState();
@@ -147,58 +155,9 @@ export const FloatingToolbarPlugin = () => {
       </Popover>
     </Show>
   );
-};
+}
 
 function getSideAndAlignFromPlacement(placement: Placement) {
   const [side, align = 'center'] = placement.split('-');
   return { side, align };
 }
-
-type Action =
-  | {
-      type: 'selected';
-      selectedNode: TextNode | ElementNode;
-    }
-  | {
-      type: 'pointer-up';
-    }
-  | {
-      type: 'pointer-down';
-    }
-  | {
-      type: 'pointer-move';
-    }
-  | {
-      type: 'deselected';
-    }
-  | {
-      type: 'link-edit-open';
-      linkDetails: {
-        text: string;
-        link: string;
-      };
-    }
-  | {
-      type: 'link-edit-closed';
-    };
-
-type State = {
-  pointerUp: boolean;
-  pointerMove: boolean;
-} & (
-  | {
-      floatingToolbarOpen: boolean;
-      linkEditOpen: false;
-      linkEditDetails: null;
-      lastSelectedNode: null | TextNode | ElementNode;
-    }
-  | {
-      floatingToolbarOpen: true;
-      linkEditOpen: true;
-      lastSelectedNode: TextNode | ElementNode;
-      linkEditDetails: {
-        text: string;
-        link: string;
-      };
-    }
-);

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useCallback, useEffect, useLayoutEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 type PossibleRef<T> = React.Ref<T> | ((instance: T | null) => void) | null | undefined;
 
@@ -132,7 +132,7 @@ export function useDerivedState<V extends string | string[] | number | number[]>
 
   const onChange = useCallback(
     (newValue: V | ((currentState: V) => V)) => {
-      let updatedValue: V = typeof newValue === 'function' ? newValue(valueRef.current as any) : newValue;
+      const updatedValue: V = typeof newValue === 'function' ? newValue(valueRef.current as any) : newValue;
 
       // we expect `propOnChange` to change also `value` prop, so useEffect would update internal value
       if (typeof propOnChangeRef.current === 'function') {

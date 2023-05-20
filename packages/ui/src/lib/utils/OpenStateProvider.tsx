@@ -1,9 +1,9 @@
-import { createContext, useContext, useMemo, useState, useImperativeHandle, forwardRef, type ReactNode } from 'react';
+import { createContext, forwardRef, type ReactNode, useContext, useImperativeHandle, useMemo, useState } from 'react';
 
 const openStateContext = createContext(false);
 const openStateControlsContext = createContext<MenuControlFunctions>({} as MenuControlFunctions);
 
-export interface OpenStateRef extends MenuControlFunctions {}
+export type OpenStateRef = MenuControlFunctions;
 
 export const OpenStateProvider = forwardRef<OpenStateRef, { defaultOpen?: boolean; children?: ReactNode }>(
   ({ children, defaultOpen = false }, ref) => {

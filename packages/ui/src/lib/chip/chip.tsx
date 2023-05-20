@@ -2,9 +2,9 @@ import { type AriaAttributes, type ComponentProps, type ElementType, forwardRef 
 import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
 
-import { Flex } from '../flex';
-import type { FlexVariants } from '../flex/flex';
-import { Icon } from '../icon';
+import { Flex, type FlexVariants } from '../flex/flex.tsx';
+import { Icon } from '../icon/index.ts';
+
 import styles from './chip.module.css';
 
 type SelectableProps<T> = T extends { 'role': 'option'; 'aria-selected': AriaAttributes['aria-selected'] }

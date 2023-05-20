@@ -10,10 +10,10 @@ import {
 import { classed as css } from '@tw-classed/core';
 import { clsx } from 'clsx';
 
-import { Column, type FlexVariants } from '../flex/flex';
-import { FormFieldWrapper, Hint, Label, useFormField } from '../form-field';
-import { fieldBoxCss, type FieldVariants } from '../form-field/form-field';
-import { useForkRef } from '../utils/hooks';
+import { Column, type FlexVariants } from '../flex/flex.tsx';
+import { fieldBoxCss, type FieldVariants } from '../form-field/form-field.tsx';
+import { FormFieldWrapper, Hint, Label, useFormField } from '../form-field/index.ts';
+import { useForkRef } from '../utils/hooks.ts';
 
 import styles from './text-area.module.css';
 

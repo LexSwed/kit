@@ -1,12 +1,12 @@
-import { forwardRef, type ChangeEvent, type Ref, type ElementType, useMemo, type ComponentProps } from 'react';
-import { CheckIcon, XMarkIcon, CalendarIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { type ChangeEvent, type ComponentProps, type ElementType, forwardRef, type Ref, useMemo } from 'react';
+import { CalendarIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { classed as css } from '@tw-classed/core';
 import { clsx } from 'clsx';
 
-import { classed as css } from '@tw-classed/core';
-import { Column, type FlexVariants } from '../flex/flex';
-import { FormFieldWrapper, Hint, Label, useFormField } from '../form-field';
-import { Icon } from '../icon';
-import { fieldBoxCss, type FieldVariants } from '../form-field/form-field';
+import { Column, type FlexVariants } from '../flex/flex.tsx';
+import { fieldBoxCss, type FieldVariants } from '../form-field/form-field.tsx';
+import { FormFieldWrapper, Hint, Label, useFormField } from '../form-field/index.ts';
+import { Icon } from '../icon/index.ts';
 
 import styles from './text-field.module.css';
 

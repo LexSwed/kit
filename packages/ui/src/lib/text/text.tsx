@@ -2,16 +2,15 @@ import { forwardRef } from 'react';
 import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
 
-import type { ForwardRefComponent } from '../utils/polymorphic';
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
+
 import styles from './text.module.css';
 
-interface TextProps extends VariantProps<typeof textCss> {}
+type TextProps = VariantProps<typeof textCss>;
 
-export const Text = forwardRef(
-  ({ as: Component = 'span', textStyle, tone, align, className, style, ...props }, ref) => {
-    return <Component className={clsx(textCss({ textStyle, tone, align }), className)} {...props} ref={ref} />;
-  }
-) as ForwardRefComponent<'span', TextProps>;
+export const Text = forwardRef(({ as: Component = 'span', textStyle, tone, align, className, ...props }, ref) => {
+  return <Component className={clsx(textCss({ textStyle, tone, align }), className)} {...props} ref={ref} />;
+}) as ForwardRefComponent<'span', TextProps>;
 
 export const textCss = css(styles.text, {
   variants: {

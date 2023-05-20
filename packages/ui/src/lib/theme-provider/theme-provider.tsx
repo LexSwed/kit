@@ -13,12 +13,12 @@ import { type Direction, DirectionProvider } from '@radix-ui/react-direction';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { clsx } from 'clsx';
 
-import { useForkRef, useId } from '../utils/hooks';
-import type { Theme } from './types';
+import { useForkRef, useId } from '../utils/hooks.ts';
+
+import type { Theme } from './types.ts';
+import { createThemeVariables, mergeTheme } from './utils.ts';
 
 import styles from './theme-provider.module.css';
-
-import { createThemeVariables, mergeTheme } from './utils';
 
 type Props = {
   children?: ReactNode;

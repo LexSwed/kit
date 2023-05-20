@@ -1,9 +1,9 @@
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import * as RdxTooltip from '@radix-ui/react-tooltip';
 import { clsx } from 'clsx';
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
-import { Portal } from '../portal';
-import { PopoverBox } from '../shared/popover-box';
+import { Portal } from '../portal/index.ts';
+import { PopoverBox } from '../shared/popover-box.tsx';
 
 import styles from './tooltip.module.css';
 

@@ -1,12 +1,15 @@
-import { type ComponentProps, memo, forwardRef } from 'react';
+import { type ComponentProps, forwardRef, memo } from 'react';
+import { Root, type ToggleProps } from '@radix-ui/react-toggle';
 import { clsx } from 'clsx';
-import * as Toggle from '@radix-ui/react-toggle';
 
-import { Button } from '../button';
+import { Button } from '../button/index.ts';
 
 import styles from './toggle-button.module.css';
 
-interface Props extends Toggle.ToggleProps, Omit<ComponentProps<typeof Button>, 'variant'> {
+interface Props extends ToggleProps, Omit<ComponentProps<typeof Button>, 'variant'> {
+  /**
+   * @default "flat"
+   */
   variant?: 'flat';
 }
 
@@ -14,9 +17,9 @@ export const ToggleButton = memo(
   forwardRef<HTMLButtonElement, Props>(
     ({ pressed, onPressedChange, defaultPressed, className, variant = 'flat', ...props }, ref) => {
       return (
-        <Toggle.Root asChild pressed={pressed} defaultPressed={defaultPressed} onPressedChange={onPressedChange}>
-          <Button {...props} className={clsx(styles['variant--flat'], className)} ref={ref} />
-        </Toggle.Root>
+        <Root asChild pressed={pressed} defaultPressed={defaultPressed} onPressedChange={onPressedChange}>
+          <Button {...props} variant={variant} className={clsx(styles['variant--flat'], className)} ref={ref} />
+        </Root>
       );
     }
   )

@@ -1,1 +1,1 @@
-export { t } from './translation';
+export { t } from './translate.ts';

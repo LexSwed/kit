@@ -1,5 +1,14 @@
-import { useState, type FormEvent, useMemo } from 'react';
-import { ToggleGroup } from './toggle-group';
+import { type FormEvent, useMemo, useState } from 'react';
+import { RxLink2, RxLinkBreak2 } from 'react-icons/rx/index.js';
+import {
+  ArrowTopRightOnSquareIcon,
+  ClipboardDocumentCheckIcon,
+  ClipboardDocumentListIcon,
+} from '@heroicons/react/24/outline';
+import { TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
+
+import { t } from '@fxtrot/lib';
 import {
   Button,
   Icon,
@@ -10,19 +19,12 @@ import {
   useCopyToClipboard,
   useKeyboardHandles,
 } from '@fxtrot/ui';
-import { TOGGLE_LINK_COMMAND } from '@lexical/link';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { RxLink2, RxLinkBreak2 } from 'react-icons/rx';
-import {
-  ArrowTopRightOnSquareIcon,
-  ClipboardDocumentCheckIcon,
-  ClipboardDocumentListIcon,
-} from '@heroicons/react/24/outline';
 
-import { t } from 'shared';
-import { useActorRef, useReferenceNode, useSelector } from './state';
-import { EditorPopover } from '../../lib/editor-popover';
-import { selectLinkAndGetTheDetails, updateSelectedLink, useIsLinkSelected } from './utils';
+import { EditorPopover } from '../../lib/editor-popover.tsx';
+
+import { useActorRef, useReferenceNode, useSelector } from './state.ts';
+import { ToggleGroup } from './toggle-group.tsx';
+import { selectLinkAndGetTheDetails, updateSelectedLink, useIsLinkSelected } from './utils.ts';
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();

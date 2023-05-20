@@ -1,5 +1,5 @@
 import { createActorContext } from '@xstate/react';
-import { and, assign, createMachine, stateIn, raise } from 'xstate';
+import { and, assign, createMachine, raise, stateIn } from 'xstate';
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
@@ -248,7 +248,6 @@ const toolbarMachine = createMachine<Context, Event>(
 
 const {
   Provider: ToolbarStateProvider,
-  useActor,
   useActorRef,
   useSelector,
 } = createActorContext(
@@ -264,7 +263,7 @@ const {
     : undefined
 );
 
-export { ToolbarStateProvider, useActor, useActorRef, useSelector };
+export { ToolbarStateProvider, useActorRef, useSelector };
 
 export function useReferenceNode() {
   return useSelector((state) => state.context.reference);

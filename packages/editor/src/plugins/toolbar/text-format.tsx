@@ -1,11 +1,13 @@
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
+import { BsCodeSlash, BsTypeBold, BsTypeItalic, BsTypeUnderline } from 'react-icons/bs/index.js';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { mergeRegister } from '@lexical/utils';
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
-import { type MouseEvent, memo, useCallback, useEffect, useState } from 'react';
+
+import { t } from '@fxtrot/lib';
 import { ToggleButton } from '@fxtrot/ui';
-import { BsTypeItalic, BsTypeUnderline, BsTypeBold, BsCodeSlash } from 'react-icons/bs';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { ToggleGroup } from './toggle-group';
-import { t } from 'shared';
+
+import { ToggleGroup } from './toggle-group.tsx';
 
 interface Props {
   disabled?: boolean;

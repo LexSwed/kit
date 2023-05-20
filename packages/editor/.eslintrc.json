@@ -1,4 +1,6 @@
 {
-  "extends": ["../../.eslintrc.json", "plugin:solid/typescript"],
-  "plugins": ["solid"]
+  "extends": ["../../.eslintrc.json"],
+  "rules": {
+    "import/no-default-export": "error"
+  }
 }

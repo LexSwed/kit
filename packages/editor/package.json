@@ -1,35 +1,20 @@
 {
-  "name": "editor",
-  "version": "0.0.0",
-  "description": "",
+  "name": "@fxtrot/editor",
+  "version": "1.0.0",
+  "description": "Editor for Fxtrot Kit",
   "type": "module",
-  "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview",
-    "lint": "eslint src"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "eslint-plugin-solid": "^0.12.1",
-    "postcss": "^8.4.23",
-    "postcss-preset-env": "^8.3.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tailwindcss": "^3.3.2",
-    "typescript": "^5.0.4",
-    "vite": "^4.3.8",
-    "vite-plugin-solid": "^2.7.0"
+  "main": "./src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.2.8",
+    "@floating-ui/react": "^0.24.1",
+    "@fxtrot/lib": "*",
     "@fxtrot/ui": "^1.4.32",
-    "@kobalte/core": "^0.9.6",
-    "@kobalte/utils": "^0.7.2",
+    "@heroicons/react": "^2.0.18",
     "@lexical/code": "^0.10.0",
-    "@lexical/history": "^0.10.0",
     "@lexical/link": "^0.10.0",
     "@lexical/list": "^0.10.0",
     "@lexical/mark": "^0.10.0",
@@ -38,13 +23,25 @@
     "@lexical/rich-text": "^0.10.0",
     "@lexical/selection": "^0.10.0",
     "@lexical/utils": "^0.10.0",
-    "@xstate/solid": "^0.1.3",
+    "@radix-ui/react-presence": "^1.0.0",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "@xstate/react": "^4.0.0-beta.5",
+    "autoprefixer": "10.4.14",
+    "clsx": "^1.2.1",
     "lexical": "^0.10.0",
-    "lexical-solid": "^0.5.0",
-    "solid-icons": "^1.0.4",
-    "solid-js": "^1.7.5",
-    "tailwind": "^4.0.0",
-    "tailwind-variants": "^0.1.5",
-    "xstate": "^5.0.0-beta.10"
-  }
+    "postcss": "^8.4.23",
+    "react-icons": "^4.8.0",
+    "tailwindcss": "3.3.2",
+    "xstate": "^5.0.0-beta.13"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
 }

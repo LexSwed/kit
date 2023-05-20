@@ -1,4 +1,4 @@
-import { type EditorThemeClasses } from "lexical";
+import { type EditorThemeClasses } from 'lexical';
 
 // for Tailwind editor suggestions by css`` pattern
 const css = (classNames: string) => classNames;
@@ -14,13 +14,15 @@ export const theme: EditorThemeClasses = {
   },
   text: {
     bold: css('font-bold'),
-    code: css('rounded-xs -m-[2px] inline-block whitespace-pre-wrap bg-primary/10 align-middle font-mono text-[0.8em] leading-[1.5em] text-primary px-0.5'),
+    code: css(
+      'rounded-xs -m-[2px] inline-block whitespace-pre-wrap bg-primary/10 align-middle font-mono text-[0.8em] leading-[1.5em] text-primary px-0.5'
+    ),
     italic: css('italic'),
     strikethrough: css('line-through'),
     subscript: css('align-sub'),
     superscript: css('align-super'),
     underline: css('underline'),
-    underlineStrikethrough: css('[text-decoration:underline_line-through]')
+    underlineStrikethrough: css('[text-decoration:underline_line-through]'),
   },
   paragraph: css('relative m-0'),
   quote: css('mb-3 p-4 bg-surface text-on-surface border-2 rounded-sm border-outline'),
@@ -79,4 +81,4 @@ export const theme: EditorThemeClasses = {
   //   url: 'PlaygroundEditorTheme__tokenOperator',
   //   variable: 'PlaygroundEditorTheme__tokenVariable',
   // },
-}
+};

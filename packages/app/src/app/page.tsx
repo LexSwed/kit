@@ -1,6 +1,8 @@
+'use client';
 import { Inter } from 'next/font/google';
+
+import { t } from '@fxtrot/lib';
 import { LinkButton } from '@fxtrot/ui';
-import { t } from 'shared';
 
 const inter = Inter({
   fallback: ['-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, sans-serif'],

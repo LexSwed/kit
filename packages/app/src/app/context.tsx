@@ -1,6 +1,7 @@
 'use client';
-import { ThemeProvider } from '@fxtrot/ui';
 import React, { type ReactNode } from 'react';
+
+import { ThemeProvider } from '@fxtrot/ui';
 
 interface Props {
   children: ReactNode;

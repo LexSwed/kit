@@ -8,11 +8,7 @@
       {
         "name": "typescript-plugin-css-modules"
       }
-    ],
-    "paths": {
-      "~/*": ["./src/*"],
-      "@shared": ["../shared/src/*"]
-    }
+    ]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

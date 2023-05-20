@@ -1,15 +1,15 @@
 import { type ComponentProps, forwardRef, useMemo } from 'react';
 import { useId } from '@radix-ui/react-id';
+import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
 
-import { classed as css, type VariantProps } from '@tw-classed/core';
-import { Text } from '../text';
-import type { ForwardRefComponent } from '../utils/polymorphic';
-import { Flex, type FlexVariants } from '../flex/flex';
+import { Flex, type FlexVariants } from '../flex/flex.tsx';
+import { Text } from '../text/index.ts';
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
 
 import styles from './form-field.module.css';
 
-interface FormFieldProps extends FlexVariants {}
+type FormFieldProps = FlexVariants;
 
 export const FormFieldWrapper = forwardRef(
   ({ cross = 'stretch', flow = 'column', display = 'inline', gap = 'xs', as = 'div', className, ...props }, ref) => {
@@ -56,7 +56,7 @@ export const Hint = ({ validity, className, children, ...props }: HintProps) => 
 };
 
 export function useFormField({ id, hint, label }: { id?: string; hint?: string; label?: string }): InputAriaProps {
-  let newId = useId(id);
+  const newId = useId(id);
 
   return useMemo(
     () => ({

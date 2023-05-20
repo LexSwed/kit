@@ -6,13 +6,18 @@ import {
   type RefAttributes,
   useRef,
 } from 'react';
-import { clsx } from 'clsx';
 import * as RdxPopover from '@radix-ui/react-popover';
+import { clsx } from 'clsx';
 
-import { OpenStateProvider, type OpenStateRef, useOpenState, useOpenStateControls } from '../utils/OpenStateProvider';
-import { Portal } from '../portal';
-import { Presence } from '../shared/presence';
-import { PopoverBox } from '../shared/popover-box';
+import { Portal } from '../portal/index.ts';
+import { PopoverBox } from '../shared/popover-box.tsx';
+import { Presence } from '../shared/presence.tsx';
+import {
+  OpenStateProvider,
+  type OpenStateRef,
+  useOpenState,
+  useOpenStateControls,
+} from '../utils/OpenStateProvider.tsx';
 
 interface Props {
   children: [ReactElement, ReactElement<ContentProps>];

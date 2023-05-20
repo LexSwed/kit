@@ -1,11 +1,12 @@
-import * as RdxDialog from '@radix-ui/react-dialog';
-
 import { type ComponentProps, forwardRef } from 'react';
+import * as RdxDialog from '@radix-ui/react-dialog';
 import { classed as css, type VariantProps } from '@tw-classed/core';
-import { useOpenState } from '../utils/OpenStateProvider';
-import { Portal } from '../portal';
-import { Presence } from '../shared/presence';
-import { DialogClose } from './dialog-close';
+
+import { Portal } from '../portal/index.ts';
+import { Presence } from '../shared/presence.tsx';
+import { useOpenState } from '../utils/OpenStateProvider.tsx';
+
+import { DialogClose } from './dialog-close.tsx';
 
 import styles from './dialog.module.css';
 

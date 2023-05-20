@@ -1,8 +1,9 @@
-import * as RdxDialog from '@radix-ui/react-dialog';
 import type { ComponentProps } from 'react';
-import { Heading } from '../heading';
+import * as RdxDialog from '@radix-ui/react-dialog';
 
-interface Props extends ComponentProps<typeof Heading> {}
+import { Heading } from '../heading/index.ts';
+
+type Props = ComponentProps<typeof Heading>;
 
 export const DialogTitle = ({ level = '4', ...props }: Props) => {
   return (

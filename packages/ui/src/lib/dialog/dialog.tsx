@@ -1,5 +1,4 @@
 import {
-  type ComponentProps,
   forwardRef,
   type ForwardRefExoticComponent,
   type ReactElement,
@@ -9,31 +8,16 @@ import {
 } from 'react';
 import * as RdxModal from '@radix-ui/react-dialog';
 
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { OpenStateProvider, type OpenStateRef, useOpenState, useOpenStateControls } from '../utils/OpenStateProvider';
-import { Button } from '../button';
-import { Heading } from '../heading';
-import { DialogModal } from './dialog-modal';
+import {
+  OpenStateProvider,
+  type OpenStateRef,
+  useOpenState,
+  useOpenStateControls,
+} from '../utils/OpenStateProvider.tsx';
 
-interface CloseButtonProps extends ComponentProps<typeof Button> {}
-
-const DialogClose = forwardRef<HTMLButtonElement, CloseButtonProps>((props, ref) => {
-  return (
-    <RdxModal.DialogClose asChild>
-      <Button icon={XMarkIcon} variant="flat" {...props} ref={ref} />
-    </RdxModal.DialogClose>
-  );
-});
-
-interface TitleProps extends ComponentProps<typeof Heading> {}
-
-const DialogTitle = ({ level = '4', ...props }: TitleProps) => {
-  return (
-    <RdxModal.Title asChild>
-      <Heading {...props} level={level} />
-    </RdxModal.Title>
-  );
-};
+import { DialogClose } from './dialog-close.tsx';
+import { DialogModal } from './dialog-modal.tsx';
+import { DialogTitle } from './dialog-title.tsx';
 
 interface Props {
   children: [ReactElement, (close: () => void) => ReactNode];

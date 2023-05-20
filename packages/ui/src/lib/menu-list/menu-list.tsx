@@ -1,16 +1,15 @@
-import * as RovingFocusGroup from '@radix-ui/react-roving-focus';
-
-import { clsx } from 'clsx';
 import { type ComponentProps, forwardRef } from 'react';
+import * as RovingFocusGroup from '@radix-ui/react-roving-focus';
+import { clsx } from 'clsx';
 
-import { Flex } from '../flex';
-import { useAllHandlers, useKeyboardHandles } from '../utils/hooks';
-import { listItemCss, type ListItemVariants } from '../shared/list-item';
+import { Flex } from '../flex/index.ts';
+import { listItemCss, type ListItemVariants } from '../shared/list-item.tsx';
+import { useAllHandlers, useKeyboardHandles } from '../utils/hooks.ts';
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
 
-import type { ForwardRefComponent } from '../utils/polymorphic';
 import styles from './menu-list.module.css';
 
-interface MenuListProps extends ComponentProps<typeof Flex> {}
+type MenuListProps = ComponentProps<typeof Flex>;
 
 export const MenuList = ({ flow = 'column', className, ...props }: MenuListProps) => {
   return (

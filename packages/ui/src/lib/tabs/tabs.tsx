@@ -1,6 +1,7 @@
 import * as RdxTabs from '@radix-ui/react-tabs';
 import { clsx } from 'clsx';
-import { Flex, type FlexVariants } from '../flex/flex';
+
+import { Flex, type FlexVariants } from '../flex/flex.tsx';
 
 import styles from './tabs.module.css';
 
@@ -41,13 +42,13 @@ const Tabs = ({
   );
 };
 
-interface TabsListProps extends RdxTabs.TabsListProps {}
+type TabsListProps = RdxTabs.TabsListProps;
 
 const TabsList = (props: TabsListProps) => {
   return <RdxTabs.List {...props} className={clsx(styles.list, props.className)} />;
 };
 
-interface TabsTriggerProps extends RdxTabs.TabsTriggerProps {}
+type TabsTriggerProps = RdxTabs.TabsTriggerProps;
 
 const Trigger = ({ children, className, ...props }: TabsTriggerProps) => {
   return (
@@ -57,7 +58,7 @@ const Trigger = ({ children, className, ...props }: TabsTriggerProps) => {
   );
 };
 
-interface TabsContentProps extends RdxTabs.TabsContentProps {}
+type TabsContentProps = RdxTabs.TabsContentProps;
 
 const Content = (props: TabsContentProps) => {
   return <RdxTabs.Content {...props} className={clsx(styles.content, props.className)} />;

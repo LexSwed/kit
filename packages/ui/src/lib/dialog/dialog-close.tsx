@@ -1,10 +1,10 @@
+import { type ComponentProps, forwardRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as RdxDialog from '@radix-ui/react-dialog';
 
-import { type ComponentProps, forwardRef } from 'react';
-import { Button } from '../button';
+import { Button } from '../button/index.ts';
 
-interface CloseButtonProps extends ComponentProps<typeof Button> {}
+type CloseButtonProps = ComponentProps<typeof Button>;
 
 export const DialogClose = forwardRef<HTMLButtonElement, CloseButtonProps>((props, ref) => {
   return (

@@ -6,18 +6,22 @@ import {
   type RefAttributes,
   useRef,
 } from 'react';
-import * as Rdx from '@radix-ui/react-collapsible';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import * as Rdx from '@radix-ui/react-collapsible';
 import { clsx } from 'clsx';
 
-import { OpenStateProvider, useOpenState, type OpenStateRef, useOpenStateControls } from '../utils/OpenStateProvider';
-
-import { Icon } from '../icon';
-import { Button } from '../button';
+import { Button } from '../button/index.ts';
+import { Icon } from '../icon/index.ts';
+import {
+  OpenStateProvider,
+  type OpenStateRef,
+  useOpenState,
+  useOpenStateControls,
+} from '../utils/OpenStateProvider.tsx';
 
 import styles from './collapsible.module.css';
 
-interface TriggerProps extends ComponentProps<typeof Button> {}
+type TriggerProps = ComponentProps<typeof Button>;
 
 const Trigger = forwardRef<HTMLButtonElement, TriggerProps>(
   ({ children, flow = 'row', cross = 'center', main = 'space-between', className, ...props }, ref) => {

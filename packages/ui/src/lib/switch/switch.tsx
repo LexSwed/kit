@@ -1,8 +1,8 @@
 import { type ChangeEvent, type ComponentProps, useMemo } from 'react';
 import { clsx } from 'clsx';
 
-import { Label } from '../form-field';
-import { Flex, type FlexVariants } from '../flex/flex';
+import { Flex, type FlexVariants } from '../flex/flex.tsx';
+import { Label } from '../form-field/index.ts';
 
 import styles from './switch.module.css';
 

@@ -1,13 +1,13 @@
+import type { ComponentProps } from 'react';
 import { ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import * as RdxSelect from '@radix-ui/react-select';
 import { classed as css } from '@tw-classed/core';
 import { clsx } from 'clsx';
-import type { ComponentProps } from 'react';
 
-import { Column, type FlexVariants } from '../flex/flex';
-import { FormFieldWrapper, Hint, useFormField, fieldBoxCss, type FieldVariants } from '../form-field/form-field';
-import { Icon } from '../icon';
-import { Label } from '../form-field';
+import { Column, type FlexVariants } from '../flex/flex.tsx';
+import { fieldBoxCss, type FieldVariants, FormFieldWrapper, Hint, useFormField } from '../form-field/form-field.tsx';
+import { Label } from '../form-field/index.ts';
+import { Icon } from '../icon/index.ts';
 
 import styles from './picker.module.css';
 

@@ -10,13 +10,18 @@ import {
 import * as RdxMenu from '@radix-ui/react-dropdown-menu';
 import { clsx } from 'clsx';
 
-import { PopoverBox } from '../shared/popover-box';
-import { OpenStateProvider, type OpenStateRef, useOpenState, useOpenStateControls } from '../utils/OpenStateProvider';
-import { Label } from '../form-field';
-import { Portal } from '../portal';
-import { ListItem, type ListItemVariants } from '../shared/list-item';
-import { useIsomorphicLayoutEffect } from '../utils/hooks';
-import { Presence } from '../shared/presence';
+import { Label } from '../form-field/index.ts';
+import { Portal } from '../portal/index.ts';
+import { ListItem, type ListItemVariants } from '../shared/list-item.tsx';
+import { PopoverBox } from '../shared/popover-box.tsx';
+import { Presence } from '../shared/presence.tsx';
+import { useIsomorphicLayoutEffect } from '../utils/hooks.ts';
+import {
+  OpenStateProvider,
+  type OpenStateRef,
+  useOpenState,
+  useOpenStateControls,
+} from '../utils/OpenStateProvider.tsx';
 
 import styles from './menu.module.css';
 

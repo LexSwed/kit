@@ -1,12 +1,13 @@
 import { forwardRef } from 'react';
 import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
-import { flexCss, type FlexVariants } from '../flex/flex';
-import type { ForwardRefComponent } from '../utils/polymorphic';
+
+import { flexCss, type FlexVariants } from '../flex/flex.tsx';
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
 
 import styles from './list-item.module.css';
 
-interface ListItemProps extends ListItemVariants {}
+type ListItemProps = ListItemVariants;
 
 export const ListItem = forwardRef(({ as: Component = 'div', className, ...props }, ref) => {
   return <Component className={clsx(listItemCss(props), className)} {...props} ref={ref} />;

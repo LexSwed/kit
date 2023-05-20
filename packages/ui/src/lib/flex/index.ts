@@ -1,1 +1,1 @@
-export { Flex, Row, Column, Grid } from './flex';
+export { Column, Flex, Grid, Row } from './flex.tsx';

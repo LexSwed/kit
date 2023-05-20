@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
 
-import type { ForwardRefComponent } from '../utils/polymorphic';
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
 
 import styles from './heading.module.css';
 

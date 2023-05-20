@@ -1,1 +1,1 @@
-export { Popover, usePopoverRef } from './popover';
+export { Popover, usePopoverRef } from './popover.tsx';

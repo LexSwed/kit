@@ -1,6 +1,6 @@
+import { type ComponentProps, type ElementType, forwardRef } from 'react';
 import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
-import { type ComponentProps, type ElementType, forwardRef } from 'react';
 
 import styles from './icon.module.css';
 
@@ -9,7 +9,7 @@ interface Props extends ComponentProps<'svg'>, VariantProps<typeof iconCss> {
 }
 
 const Icon = forwardRef<SVGSVGElement, Props>(
-  ({ color, as: Svg = 'svg', className, size = 'md', children, ...props }, ref) => {
+  ({ as: Svg = 'svg', className, size = 'md', children, ...props }, ref) => {
     const hidden = props['aria-hidden'] || !Svg || !(props['aria-label'] || props['aria-labelledby']);
     return (
       <Svg

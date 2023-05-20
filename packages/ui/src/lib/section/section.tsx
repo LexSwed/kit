@@ -1,8 +1,8 @@
-import { useId } from '@radix-ui/react-id';
 import type { ComponentProps } from 'react';
-import { Flex } from '../flex/flex';
+import { useId } from '@radix-ui/react-id';
 
-import { Text } from '../text';
+import { Flex } from '../flex/flex.tsx';
+import { Text } from '../text/index.ts';
 
 interface Props extends ComponentProps<typeof Flex> {
   title: string;

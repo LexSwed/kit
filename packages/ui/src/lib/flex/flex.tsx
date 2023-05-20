@@ -1,7 +1,8 @@
+import { forwardRef } from 'react';
 import { classed as css, type VariantProps } from '@tw-classed/core';
 import { clsx } from 'clsx';
-import { forwardRef } from 'react';
-import type { ForwardRefComponent } from '../utils/polymorphic';
+
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
 
 import styles from './flex.module.css';
 
@@ -125,7 +126,7 @@ const grid = css({
   },
 });
 
-interface GridProps extends VariantProps<typeof grid> {}
+type GridProps = VariantProps<typeof grid>;
 
 export const Grid = forwardRef(function Grid(
   { as: Component = 'div', display, placeItems, flow, rows, columns, columnGap, rowGap, gap, className, ...props },

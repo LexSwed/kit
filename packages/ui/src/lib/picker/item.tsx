@@ -1,16 +1,16 @@
+import { type ComponentProps, forwardRef, type ReactElement } from 'react';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import * as RdxSelect from '@radix-ui/react-select';
-import { type ComponentProps, type ReactElement, forwardRef } from 'react';
 
-import { Icon } from '../icon';
-import { ListItem } from '../shared/list-item';
+import { Icon } from '../icon/index.ts';
+import { ListItem } from '../shared/list-item.tsx';
 
 export interface Props extends ComponentProps<typeof ListItem> {
   value: string;
   label?: string;
   disabled?: boolean;
 }
-export interface OptionType extends ReactElement<Props, typeof Item> {}
+export type OptionType = ReactElement<Props, typeof Item>;
 
 const Item = forwardRef<HTMLDivElement, Props>(({ value, label, disabled, ...props }, ref) => {
   return (

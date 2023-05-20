@@ -1,13 +1,13 @@
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import * as RdxSelect from '@radix-ui/react-select';
-import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
-import { Icon } from '../icon';
-import { PopoverBox } from '../shared/popover-box';
-import { Portal } from '../portal';
+import { Icon } from '../icon/index.ts';
+import { Portal } from '../portal/index.ts';
+import { PopoverBox } from '../shared/popover-box.tsx';
 
-import type { OptionType } from './item';
-import Item from './item';
-import { PickerTrigger, type PickerTriggerProps } from './trigger';
+import type { OptionType } from './item.tsx';
+import Item from './item.tsx';
+import { PickerTrigger, type PickerTriggerProps } from './trigger.tsx';
 
 import styles from './picker.module.css';
 

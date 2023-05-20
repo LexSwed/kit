@@ -1,1 +1,1 @@
-export { Menu, useMenuRef } from './menu';
+export { Menu, useMenuRef } from './menu.tsx';

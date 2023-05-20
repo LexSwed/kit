@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
-import type { ThemeColors, TailwindColorVariables, Theme } from '../theme-provider/types';
+
+import type { TailwindColorVariables, Theme, ThemeColors } from '../theme-provider/types.ts';
 
 export function toToken(themeConfig: string, name: string) {
   return `--fx-${themeConfig}-${name.split('.').join('\\.')}`;
@@ -19,9 +20,9 @@ function createFontSizeVariables(fontSizes: NonNullable<Theme['fontSize']>): {
 } {
   return Object.entries(fontSizes).reduce(
     (res, [token]) => {
-      // @ts-expect-error
+      // @ts-expect-error kind difficult to work with object keys in TS
       res.fontSize[token] = `var(${toToken('fontSize', token)})`;
-      // @ts-expect-error
+      // @ts-expect-error kind difficult to work with object keys in TS
       res.lineHeight[token] = `var(${toToken('lineHeight', token)})`;
       return res;
     },
@@ -39,7 +40,7 @@ export function createTailwindVariables(theme: Theme) {
     switch (configKey) {
       case 'colors': {
         if (theme.colors) {
-          // @ts-expect-error
+          // @ts-expect-error kind difficult to work with object keys in TS
           tailwindTheme.colors = createTailwindColorVariables(theme.colors);
         }
         break;
@@ -53,7 +54,7 @@ export function createTailwindVariables(theme: Theme) {
         break;
       }
       default: {
-        // @ts-expect-error
+        // @ts-expect-error kind difficult to work with object keys in TS
         const variables = Object.keys(theme[configKey]).map((token) => [token, `var(${toToken(configKey, token)})`]);
         tailwindTheme[configKey] = Object.fromEntries(variables);
       }

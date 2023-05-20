@@ -1,1 +1,1 @@
-export { Dialog, useDialogRef } from './dialog';
+export { Dialog, useDialogRef } from './dialog.tsx';

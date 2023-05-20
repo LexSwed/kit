@@ -1,2 +1,2 @@
-export { Hint, FormFieldWrapper, useFormField } from './form-field';
-export { Label } from './label';
+export { FormFieldWrapper, Hint, useFormField } from './form-field.tsx';
+export { Label } from './label.tsx';

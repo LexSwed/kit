@@ -1,6 +1,7 @@
+import { type ComponentType, createContext, forwardRef, type ReactNode, useContext } from 'react';
 import * as RdxPortal from '@radix-ui/react-portal';
-import { type ReactNode, type ComponentType, forwardRef, useContext, createContext } from 'react';
-import { useFxtrotRootRef } from '../theme-provider/theme-provider';
+
+import { useFxtrotRootRef } from '../theme-provider/theme-provider.tsx';
 
 type PortalProps = RdxPortal.PortalProps & { forceMount?: true };
 interface Props {

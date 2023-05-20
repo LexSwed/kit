@@ -1,5 +1,6 @@
-import tailwindTheme from 'tailwindcss/defaultTheme';
-import { type Theme } from '../theme-provider/types';
+import tailwindTheme from 'tailwindcss/defaultTheme.js';
+
+import { type Theme } from '../theme-provider/types.ts';
 
 const defaultTheme = {
   colors: {

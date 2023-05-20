@@ -1,0 +1,112 @@
+@layer fxtrot-ui {
+  .list {
+    --border-size: theme('spacing[0.5]');
+    --border-color: theme('colors.outline/0.2');
+    --gradient-dir: to top;
+    display: inline-flex;
+    scrollbar-width: 0;
+    box-sizing: border-box;
+    background: linear-gradient(
+      var(--gradient-dir),
+      var(--border-color) var(--border-size),
+      transparent var(--border-size),
+      transparent 100%
+    );
+    &[data-orientation='horizontal'] {
+      flex-flow: row;
+      overflow: auto visible;
+    }
+    &[data-orientation='vertical'] {
+      --gradient-dir: to left;
+      flex-flow: column;
+      overflow: visible auto;
+      min-width: fit-content;
+    }
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .trigger {
+    padding: theme('spacing[1.5]');
+    outline: none;
+    position: relative;
+    transition: background-color 0.24s ease-in-out;
+    border-start-end-radius: theme('borderRadius.md');
+    border-start-start-radius: theme('borderRadius.md');
+    white-space: nowrap;
+
+    &::after {
+      --scale: 0.4;
+      position: absolute;
+      display: block;
+      content: '';
+      background-color: transparent;
+      transition: 0.14s ease-in-out;
+      transform-origin: center;
+    }
+
+    &[data-orientation='horizontal'] {
+      padding-block-end: theme('spacing.2');
+      &:first-child {
+        margin-inline-start: calc(-1 * theme('spacing[1.5]'));
+      }
+      &:after {
+        inset-inline-start: 0;
+        inset-block-end: 0;
+        width: 100%;
+        height: var(--border-size);
+        scale: var(--scale) 1;
+      }
+    }
+    &[data-orientation='vertical'] {
+      padding-inline-end: theme('spacing.2');
+      &:first-child {
+        margin-block-start: calc(-1 * theme('spacing[1.5]'));
+      }
+      &:after {
+        inset-block-end: 0;
+        inset-inline-end: 0;
+        width: var(--border-size);
+        height: 100%;
+        scale: 1 calc(var(--scale) * 0.8);
+      }
+    }
+
+    &:where(:not([aria-selected='true'])) {
+      &:hover {
+        & > .trigger-inner {
+          background-color: theme('colors.on-surface/0.05');
+        }
+      }
+    }
+    &:where([aria-selected='true']) {
+      color: theme('colors.primary');
+      & > .trigger-inner {
+        background-color: theme('colors.primary/0.1');
+      }
+      &:after {
+        --scale: 0.6;
+        background-color: theme('colors.primary');
+      }
+      &:where(:hover, :focus) {
+        & > .trigger-inner {
+          background-color: theme('colors.primary/0.15');
+        }
+      }
+    }
+  }
+
+  .trigger-inner {
+    padding-block: theme('spacing.1');
+    padding-inline: theme('spacing.4');
+    border-radius: theme('borderRadius.md');
+    transition: background-color 0.14s ease-in-out;
+    font-size: theme('fontSize.sm');
+    line-height: theme('lineHeight.xl');
+  }
+
+  .content {
+    flex: 2;
+  }
+}

@@ -1,0 +1,106 @@
+---
+title: Menu
+---
+
+## Menu
+
+```tsx preview
+<Menu>
+  <Button icon={ChevronDownIcon}>Open menu</Button>
+  <Menu.List>
+    <Menu.Item onSelect={() => window.alert('copy')}>
+      <Icon />
+      Copy
+    </Menu.Item>
+    <Menu.Item onSelect={() => window.alert('cut')}>
+      <Icon />
+      Cut
+    </Menu.Item>
+    <Menu.Separator />
+    <Menu.Item onSelect={() => window.alert('delete')} className="text-error">
+      <Icon as={TrashIcon} />
+      Delete
+    </Menu.Item>
+  </Menu.List>
+</Menu>
+```
+
+You can modify `offset` from the `side` and along the `align`ment.
+
+```tsx preview
+<Menu>
+  <Button variant="tonal" icon={ChevronRightIcon} gap="sm">
+    Open menu
+  </Button>
+  <Menu.List sideOffset={12} side="right" align="start">
+    {Array(20)
+      .fill(null)
+      .map((el, i) => (
+        <Menu.Item key={i} onSelect={() => window.alert(i)}>
+          Item {i}
+        </Menu.Item>
+      ))}
+  </Menu.List>
+</Menu>
+```
+
+## With Dialog
+
+This example shows how to use `useMenuRef` to close the `Menu` manually when necessary.
+
+```tsx preview
+() => {
+  const menuRef = useMenuRef();
+  return (
+    <Menu ref={menuRef}>
+      <Button variant="tonal" gap="md" icon={EllipsisVerticalIcon}>
+        More
+      </Button>
+      <Menu.List>
+        <Dialog>
+          <Menu.Item
+            className="text-error"
+            size="sm"
+            onSelect={(event) => {
+              event.preventDefault();
+            }}
+          >
+            <Icon size="md" as={TrashIcon} />
+            Delete
+          </Menu.Item>
+          {(close) => (
+            <Dialog.Modal>
+              <Column gap="lg">
+                <Dialog.Title level={3}>Delete topic</Dialog.Title>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const form = new FormData(e.target);
+                    alert(`Delete ${form.get('item')}`);
+                    close();
+                    setTimeout(() => {
+                      menuRef.current.close();
+                    }, 250);
+                  }}
+                >
+                  <Column gap="lg">
+                    <Picker defaultValue="2" name="item">
+                      <Picker.Item label="Item 1" value="1" />
+                      <Picker.Item label="Item 2" value="2" />
+                    </Picker>
+                    <Row flow="row-reverse">
+                      <Button type="submit" variant="primary">
+                        Submit
+                      </Button>
+                    </Row>
+                  </Column>
+                </form>
+              </Column>
+            </Dialog.Modal>
+          )}
+        </Dialog>
+      </Menu.List>
+    </Menu>
+  );
+};
+```

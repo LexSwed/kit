@@ -1,0 +1,112 @@
+---
+title: Dialog
+---
+
+## Dialog
+
+```tsx preview
+<Dialog>
+  <Button>New workspace</Button>
+  {(close) => (
+    <Dialog.Modal>
+      <Dialog.Title>Create new workspace</Dialog.Title>
+      <form
+        className="w-[320px] pt-4 md:w-[400px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          window.alert(e.currentTarget['workspace-name'].value);
+          close();
+        }}
+      >
+        <Column gap="sm">
+          <TextField placeholder="Carefive" name="workspace-name" label="Workspace name" autoFocus />
+          <Picker defaultValue="2">
+            <Picker.Item label="Item 1" value="1" />
+            <Picker.Item label="Item 2" value="2" />
+            <Picker.Item label="Item 3" value="3" />
+            <Picker.Item label="Item 4" value="4" />
+          </Picker>
+        </Column>
+        <div className="pb-10" />
+        <Row flow="row-reverse" gap="sm">
+          <Button type="submit" variant="primary">
+            Create
+          </Button>
+          <Button onClick={close} variant="flat">
+            Cancel
+          </Button>
+        </Row>
+      </form>
+    </Dialog.Modal>
+  )}
+</Dialog>
+```
+
+## Side panel
+
+```tsx preview
+<Dialog>
+  <Button>
+    Open menu <Icon as={Bars3Icon} size="md" />
+  </Button>
+  {(close) => (
+    <Dialog.Modal placement="side">
+      <Column gap={4}>
+        <Dialog.Title>Menu</Dialog.Title>
+        <MenuList>
+          <MenuList.Item>Main</MenuList.Item>
+          <MenuList.Item>Workspaces</MenuList.Item>
+          <MenuList.Item>Profile</MenuList.Item>
+        </MenuList>
+      </Column>
+    </Dialog.Modal>
+  )}
+</Dialog>
+```
+
+## Default Open
+
+This Example demonstrates the usage of `defaultOpen`, e.g. when you need to open a dialog on a new page when certain conditions are met.
+
+It also shows how you can manipulate the dialog open state outside its modal, via dialog `ref`. It will use the `ref.current.close()` to close the dialog after 1 second.
+
+```tsx preview
+() => {
+  const [defaultOpen, setDefaultOpen] = React.useState(false);
+  const ref = useDialogRef();
+  return (
+    <Row cross="center" main="start" gap="sm">
+      <Switch label="Default open" value={defaultOpen} onChange={setDefaultOpen} />
+      {defaultOpen && (
+        <Dialog defaultOpen={defaultOpen} ref={ref}>
+          <Button>New workspace</Button>
+          {(close) => (
+            <Dialog.Modal>
+              <Dialog.Title>Create new workspace</Dialog.Title>
+              <form
+                className="pt-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  window.alert(e.currentTarget['workspace-name'].value);
+                  ref.current.close();
+                }}
+              >
+                <TextField placeholder="Carefive" name="workspace-name" label="Workspace name" />
+                <div className="pb-10" />
+                <Flex flow="row-reverse" gap="sm">
+                  <Button type="submit" variant="primary">
+                    Create
+                  </Button>
+                  <Button onClick={close} variant="flat">
+                    Cancel
+                  </Button>
+                </Flex>
+              </form>
+            </Dialog.Modal>
+          )}
+        </Dialog>
+      )}
+    </Row>
+  );
+};
+```

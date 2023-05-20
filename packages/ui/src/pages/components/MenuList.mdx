@@ -1,0 +1,50 @@
+---
+title: MenuList
+---
+
+## MenuList
+
+```tsx preview
+() => {
+  const [selected, setSelected] = React.useState('Profiles');
+  return (
+    <div className="w-[240px]">
+      <MenuList role="navigation">
+        <Section title="Settings">
+          {[
+            {
+              icon: UsersIcon,
+              label: 'Profiles',
+            },
+            {
+              icon: AdjustmentsHorizontalIcon,
+              label: 'Appearance',
+            },
+            {
+              icon: GlobeEuropeAfricaIcon,
+              disabled: true,
+              label: 'Language',
+            },
+            {
+              icon: HeartIcon,
+              label: 'Collections',
+              className: 'text-error',
+            },
+          ].map(({ icon, label, disabled, className }) => (
+            <MenuList.Item
+              key={label}
+              active={selected === label}
+              disabled={disabled}
+              onClick={() => setSelected(label)}
+              className={className}
+            >
+              <Icon as={icon} />
+              {label}
+            </MenuList.Item>
+          ))}
+        </Section>
+      </MenuList>
+    </div>
+  );
+};
+```

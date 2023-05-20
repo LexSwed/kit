@@ -1,0 +1,24 @@
+---
+title: Switch
+---
+
+## Switch
+
+```tsx preview
+<Row gap="xl">
+  <Switch label="Default" />
+  <Switch label="Default" defaultChecked />
+  <Switch label="Disabled" disabled />
+  <Switch label="Checked disabled" disabled defaultChecked />
+</Row>
+```
+
+## Secondary text
+
+The wrapper around the label and the switch is a [Flex](/components/Flex) component, making it easy to change the flow of the elements.
+
+```tsx preview
+<Row display="inline">
+  <Switch label="Format on save" secondaryLabel="(required)" required flow="row-reverse" />
+</Row>
+```

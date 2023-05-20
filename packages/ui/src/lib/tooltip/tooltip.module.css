@@ -1,0 +1,16 @@
+@layer fxtrot-ui {
+  .content {
+    overflow: unset;
+    padding: theme('spacing.2');
+    max-width: theme(space.60);
+    background-color: theme('colors.inverse-surface');
+    color: theme('colors.inverse-on-surface');
+  }
+  .arrow {
+    fill: theme('colors.inverse-surface');
+    width: 11px;
+    height: 5px;
+    filter: drop-shadow(0 0 1px theme('colors.on-surface/0.3'));
+    clip-path: inset(0 -2px -2px -2px);
+  }
+}

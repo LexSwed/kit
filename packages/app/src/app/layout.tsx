@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { AppContext } from './context';
+
+import { AppContext } from './context.tsx';
+
 import './globals.css';
 
-import '@fxtrot/ui/style.css';
 
 export const metadata = {
   title: 'LaKit',

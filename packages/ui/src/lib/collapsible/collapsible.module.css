@@ -1,0 +1,52 @@
+@layer fxtrot-ui {
+  .root {
+    display: contents;
+  }
+  .content {
+    overflow: hidden;
+    will-change: transform, height, opacity;
+
+    &:where([data-state='open']) {
+      animation: 300ms open ease-in forwards;
+    }
+    &:where([data-state='closed']) {
+      animation: 240ms close ease-out forwards;
+    }
+  }
+  .trigger {
+    &:where([data-state='open']) {
+      & > .trigger-icon {
+        rotate: 180deg;
+      }
+    }
+  }
+  .trigger-icon {
+    transition: rotate 150ms ease-in-out;
+  }
+
+  @keyframes open {
+    0% {
+      opacity: 0;
+      transform: translateY(-5px);
+      height: 0;
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(theme('spacing.3'));
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes close {
+    0% {
+      opacity: 1;
+      transform: translateY(theme('spacing.3'));
+      height: var(--radix-collapsible-content-height);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-5px);
+      height: 0;
+    }
+  }
+}

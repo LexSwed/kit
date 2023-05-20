@@ -1,0 +1,85 @@
+---
+title: Pallete
+---
+
+import { Palette, ColorBox } from '../../pages-helpers/PaletteRenderer';
+
+# Palette
+
+The system for color naming is taken from [Material Design 3 Color System](https://m3.material.io/styles/color/the-color-system/key-colors-tones).
+The default theme palette is generated using [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/#/custom).
+
+## Primary
+
+The primary key color is used to derive roles for key components across the UI, such as the FAB, prominent buttons, active states, as well as the tint of elevated surfaces.
+
+<Palette>
+  <ColorBox color="primary" className="bg-primary text-on-primary" />
+  <ColorBox color="on-primary" className="bg-on-primary text-primary" />
+  <ColorBox color="primary-container" className="bg-primary-container text-on-primary-container" />
+  <ColorBox color="on-primary-container" className="bg-on-primary-container text-primary-container" />
+</Palette>
+
+## Secondary
+
+The secondary key color is used for less prominent components in the UI such as filter chips, while expanding the opportunity for color expression.
+
+<Palette>
+  <ColorBox color="secondary" className="bg-secondary text-on-secondary" />
+  <ColorBox color="on-secondary" className="bg-on-secondary text-secondary" />
+  <ColorBox color="secondary-container" className="bg-secondary-container text-on-secondary-container" />
+  <ColorBox color="on-secondary-container" className="bg-on-secondary-container text-secondary-container" />
+</Palette>
+
+## Tertiary
+
+The tertiary key color is used to derive the roles of contrasting accents that can be used to balance primary and secondary colors or bring heightened attention to an element.
+
+<Palette>
+  <ColorBox color="tertiary" className="bg-tertiary text-on-tertiary" />
+  <ColorBox color="on-tertiary" className="bg-on-tertiary text-tertiary" />
+  <ColorBox color="tertiary-container" className="bg-tertiary-container text-on-tertiary-container" />
+  <ColorBox color="on-tertiary-container" className="bg-on-tertiary-container text-tertiary-container" />
+</Palette>
+
+## Neutral
+
+The neutral key color is used to derive the roles of surface and background, as well as high emphasis text and icons.
+
+The neutral variant key color is used to derive medium emphasis text and icons, surface variants, and component outlines.
+
+<Column gap="xs">
+  <Palette>
+    <ColorBox color="background" className="bg-background text-on-background" />
+    <ColorBox color="on-background" className="bg-on-background text-background" />
+    <ColorBox color="surface" className="bg-surface text-on-surface" />
+    <ColorBox color="on-surface" className="bg-on-surface text-surface" />
+  </Palette>
+  <Palette>
+    <ColorBox color="surface-variant" className="bg-surface-variant text-on-surface-variant" />
+    <ColorBox color="on-surface-variant" className="bg-on-surface-variant text-surface-variant" />
+    <ColorBox color="outline" className="bg-outline text-surface-variant" />
+  </Palette>
+</Column>
+
+## Error
+
+A semantic color role for error.
+
+<Palette>
+  <ColorBox color="error" className="bg-error text-on-error" />
+  <ColorBox color="on-error" className="bg-on-error text-error" />
+  <ColorBox color="error-container" className="bg-error-container text-on-error-container" />
+  <ColorBox color="on-error-container" className="bg-on-error-container text-error-container" />
+</Palette>
+
+## Success
+
+A semantic color role for success.
+
+<Palette>
+  <ColorBox color="success" className="bg-success text-on-success" />
+  <ColorBox color="on-success" className="bg-on-success text-success" />
+  <ColorBox color="success-container" className="bg-success-container text-on-success-container" />
+  <ColorBox color="on-success-container" className="bg-on-success-container text-success-container" />
+</Palette>

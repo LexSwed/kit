@@ -1,0 +1,17 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  "rules": {
+    "no-console": ["warn"]
+  },
+  "env": {
+    "node": true
+  },
+  "overrides": [
+    {
+      "files": ["src/lib/**/*.(t|j)sx?"],
+      "rules": {
+        "no-console": ["error"]
+      }
+    }
+  ]
+}

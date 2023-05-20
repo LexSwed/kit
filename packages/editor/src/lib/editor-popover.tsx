@@ -1,19 +1,25 @@
-import React, { forwardRef, type ComponentProps, useCallback, useEffect } from 'react';
+import React, {
+  type ComponentProps,
+  forwardRef,
+  useCallback,
+  useEffect,
+} from "react";
 import {
-  useFloating,
-  offset,
   flip,
-  shift,
   inline,
+  offset,
+  type OffsetOptions,
   type Placement,
   type ReferenceType,
-  type OffsetOptions,
+  shift,
+  useFloating,
   useMergeRefs,
-} from '@floating-ui/react';
-import * as RdxPresence from '@radix-ui/react-presence';
-import { PopoverBox, Portal } from '@fxtrot/ui';
-import cx from 'clsx';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+} from "@floating-ui/react";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import * as RdxPresence from "@radix-ui/react-presence";
+import { clsx } from "clsx";
+
+import { PopoverBox, Portal } from "@fxtrot/ui";
 
 interface Props extends ComponentProps<typeof PopoverBox> {
   isOpen: boolean;
@@ -22,78 +28,83 @@ interface Props extends ComponentProps<typeof PopoverBox> {
   offset?: OffsetOptions;
 }
 
-export const EditorPopover = forwardRef<HTMLDivElement, Props>(function EditorPopoverWithRef(
-  {
-    isOpen,
-    reference,
-    className,
-    placement = 'top-start',
-    offset: offsetOptions = { mainAxis: 8, crossAxis: -32 },
-    children,
-    ...props
-  },
-  propRef
-) {
-  const [editor] = useLexicalComposerContext();
-  const { x, y, strategy, refs, context } = useFloating({
-    open: isOpen,
-    placement,
-    strategy: 'fixed',
-    elements: reference
-      ? {
-          reference: reference,
-        }
-      : undefined,
-    middleware: [
-      inline(),
-      offset(offsetOptions),
-      flip({
-        crossAxis: false,
-      }),
-      shift(),
-    ],
-  });
-  const [side, align] = getSideAndAlignFromPlacement(context.placement);
+export const EditorPopover = forwardRef<HTMLDivElement, Props>(
+  function EditorPopoverWithRef(
+    {
+      isOpen,
+      reference,
+      className,
+      placement = "top-start",
+      offset: offsetOptions = { mainAxis: 8, crossAxis: -32 },
+      children,
+      ...props
+    },
+    propRef
+  ) {
+    const [editor] = useLexicalComposerContext();
+    const { x, y, strategy, refs, context } = useFloating({
+      open: isOpen,
+      placement,
+      strategy: "fixed",
+      elements: reference
+        ? {
+            reference: reference,
+          }
+        : undefined,
+      middleware: [
+        inline(),
+        offset(offsetOptions),
+        flip({
+          crossAxis: false,
+        }),
+        shift(),
+      ],
+    });
+    const [side, align] = getSideAndAlignFromPlacement(context.placement);
 
-  const ref = useMergeRefs([propRef, refs.setFloating]);
+    const ref = useMergeRefs([propRef, refs.setFloating]);
 
-  useEffect(() => {
-    if (isOpen) {
-      return () => {
-        if (editor.getRootElement() !== document.activeElement) {
-          editor.focus();
-        }
-      };
-    }
-  }, [editor, isOpen]);
+    useEffect(() => {
+      if (isOpen) {
+        return () => {
+          if (editor.getRootElement() !== document.activeElement) {
+            editor.focus();
+          }
+        };
+      }
+    }, [editor, isOpen]);
 
-  return (
-    <RdxPresence.Presence present={isOpen}>
-      {/* using the portal the buttons inside the popovers being able to open own popovers 
+    return (
+      <RdxPresence.Presence present={isOpen}>
+        {/* using the portal the buttons inside the popovers being able to open own popovers 
       that are portaled to the root, instead of rendered next to the button itself */}
-      <Portal>
-        <PopoverBox
-          data-align={align}
-          data-side={side}
-          ref={ref}
-          data-state={isOpen ? 'open' : 'closed'}
-          style={{
-            position: strategy,
-            top: y ?? 0,
-            left: x ?? 0,
-            width: 'max-content',
-          }}
-          className={cx('isolate transition-[opacity,width,height] duration-300', className)}
-          {...props}
-        >
-          {children}
-        </PopoverBox>
-      </Portal>
-    </RdxPresence.Presence>
-  );
-});
+        <Portal>
+          <PopoverBox
+            data-align={align}
+            data-side={side}
+            ref={ref}
+            data-state={isOpen ? "open" : "closed"}
+            style={{
+              position: strategy,
+              top: y ?? 0,
+              left: x ?? 0,
+              width: "max-content",
+            }}
+            className={cx(
+              "isolate transition-[opacity,width,height] duration-300",
+              className
+            )}
+            {...props}
+          >
+            {children}
+          </PopoverBox>
+        </Portal>
+      </RdxPresence.Presence>
+    );
+  }
+);
 
 function getSideAndAlignFromPlacement(placement: Placement) {
-  const [side, align = 'center'] = placement.split('-');
+  const [side, align = "center"] = placement.split("-");
   return [side, align] as const;
 }

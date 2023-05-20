@@ -1,0 +1,160 @@
+---
+title: Button
+---
+
+```tsx preview
+<Button variant="primary" flow="column" cross="start" gap="sm">
+  <Row cross="center" gap="sm">
+    <Icon as={DocumentPlusIcon} size="md" />
+    <Text textStyle="label-md">Create new document</Text>
+  </Row>
+  <Row>
+    <Text textStyle="label-sm">Create a document with default template</Text>
+  </Row>
+</Button>
+```
+
+## Variant
+
+Do not use `variant="link"` with actual links, use [`LinkButton`](/components/LinkButton) component instead.
+
+```tsx preview
+<Grid gap="lg" cross="center" main="center" columns="2" placeItems="start" className="p-4">
+  <Button variant="primary">Primary</Button>
+  <Button disabled variant="primary">
+    Primary (disabled)
+  </Button>
+  <Button variant="outline">Outline</Button>
+  <Button variant="outline" disabled>
+    Outline (disabled)
+  </Button>
+  <Button variant="tonal">Tonal</Button>
+  <Button variant="tonal" disabled>
+    Tonal (disabled)
+  </Button>
+  <Button variant="flat">Flat</Button>
+  <Button variant="flat" disabled>
+    Flat (disabled)
+  </Button>
+  <Button variant="link">Link</Button>
+  <Button variant="link" disabled>
+    Link (disabled)
+  </Button>
+</Grid>
+```
+
+## Size
+
+```tsx preview
+<Column gap="xl">
+  <Row gap="sm" className="px-10">
+    <Button size="xs" variant="flat">
+      Flat
+    </Button>
+    <Button size="xs" variant="primary">
+      Primary
+    </Button>
+    <Button size="xs" icon={EllipsisVerticalIcon} variant="tonal">
+      Tonal
+    </Button>
+    <Button size="xs" variant="outline">
+      Outline
+    </Button>
+    <Button size="xs" variant="link">
+      Link
+    </Button>
+  </Row>
+  <Row gap="sm" className="px-10">
+    <Button size="sm" variant="flat">
+      Flat
+    </Button>
+    <Button size="sm" variant="primary">
+      Primary
+    </Button>
+    <Button size="sm" icon={EllipsisVerticalIcon} variant="tonal">
+      Tonal
+    </Button>
+    <Button size="sm" variant="outline">
+      Outline
+    </Button>
+    <Button size="sm" variant="link">
+      Link
+    </Button>
+  </Row>
+  <Row gap="sm" className="px-10">
+    <Button size="md" variant="flat">
+      Flat
+    </Button>
+    <Button size="md" variant="primary">
+      Primary
+    </Button>
+    <Button size="md" icon={EllipsisVerticalIcon} variant="tonal">
+      Tonal
+    </Button>
+    <Button size="md" variant="outline">
+      Outline
+    </Button>
+    <Button size="md" variant="link">
+      Link
+    </Button>
+  </Row>
+  <Row gap="sm" className="px-10">
+    <Button size="lg" gap="md">
+      Outline
+    </Button>
+    <Button size="lg" variant="primary">
+      Primary
+    </Button>
+    <Button size="lg" icon={EllipsisVerticalIcon} variant="tonal">
+      Tonal
+    </Button>
+    <Button size="lg" variant="outline">
+      Outline
+    </Button>
+    <Button size="lg" variant="link">
+      Link
+    </Button>
+  </Row>
+</Column>
+```
+
+## Icon Button
+
+Icon Button allows to easily set up a Button with [Icon](/components/Icon) only as a child.
+
+```tsx preview
+<Column gap="lg">
+  <Row gap="md" className="px-10">
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="xs" variant="primary"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="xs" variant="outline"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="xs" variant="tonal"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="xs" variant="flat"></Button>
+  </Row>
+  <Row gap="md" className="px-10">
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="sm" variant="primary"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="sm" variant="outline"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="sm" variant="tonal"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="sm" variant="flat"></Button>
+  </Row>
+  <Row gap="md" className="px-10">
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="md" variant="primary"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="md" variant="outline"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="md" variant="tonal"></Button>
+    <Button icon={ChevronRightIcon} aria-label="Move right" size="md" variant="flat"></Button>
+  </Row>
+  <Row gap="md" className="px-10">
+    <Button aria-label="Move right" size="lg" variant="primary">
+      <Icon as={ChevronRightIcon} size="lg" />
+    </Button>
+    <Button aria-label="Move right" size="lg" variant="outline">
+      <Icon as={ChevronRightIcon} size="lg" />
+    </Button>
+    <Button aria-label="Move right" size="lg" variant="tonal">
+      <Icon as={ChevronRightIcon} size="lg" />
+    </Button>
+    <Button aria-label="Move right" size="lg" variant="flat">
+      <Icon as={ChevronRightIcon} size="lg" />
+    </Button>
+  </Row>
+</Column>
+```

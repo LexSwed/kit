@@ -1,0 +1,57 @@
+---
+title: Checkbox
+---
+
+# Checkbox
+
+```tsx preview
+<Row gap="sm">
+  <Column>
+    <Section title="Single">
+      <Column gap="sm">
+        <Checkbox label="Accept conditions" />
+        <Checkbox label="Accept conditions" defaultChecked />
+        <Checkbox label="Accept conditions (disabled)" disabled />
+        <Checkbox label="Accept conditions (disabled)" disabled defaultChecked />
+      </Column>
+    </Section>
+  </Column>
+  <Column>
+    <Section title="Group">
+      <Column gap="sm">
+        <Checkbox label="Accept conditions" variant="group" />
+        <Checkbox label="Accept conditions" variant="group" defaultChecked />
+        <Checkbox label="Accept conditions (disabled)" variant="group" disabled />
+        <Checkbox label="Accept conditions (disabled)" variant="group" disabled defaultChecked />
+      </Column>
+    </Section>
+  </Column>
+</Row>
+```
+
+## Size
+
+```tsx preview
+<Column gap="sm">
+  <Checkbox label="Accept conditions" variant="group" size="sm" />
+  <Checkbox label="Accept conditions" variant="group" size="md" />
+  <Checkbox label="Accept conditions" variant="group" size="lg" />
+</Column>
+```
+
+## Secondary text
+
+```tsx preview
+<Checkbox label="Accept conditions" secondaryLabel="(required)" required />
+```
+
+## Stateful
+
+```tsx preview
+() => {
+  const [checked, setChecked] = React.useState(false);
+  return (
+    <Checkbox label="Accept conditions" checked={checked} onChange={setChecked} secondaryLabel="(required)" required />
+  );
+};
+```

@@ -1,0 +1,34 @@
+---
+title: Collapsible
+---
+
+# Collapsible
+
+```tsx preview
+<Row gap="xl">
+  <div className="w-[200px]">
+    <Collapsible>
+      <Collapsible.Trigger variant="flat">Section</Collapsible.Trigger>
+      <Collapsible.Content className="">
+        <Flex gap="md" flow="row">
+          <ExampleBox />
+          <ExampleBox width="80%" />
+        </Flex>
+      </Collapsible.Content>
+    </Collapsible>
+  </div>
+  <div className="w-[200px]">
+    <Collapsible>
+      <Collapsible.Trigger disabled variant="flat">
+        Section (disabled)
+      </Collapsible.Trigger>
+      <Collapsible.Content>
+        <Flex gap="md" flow="row">
+          <ExampleBox />
+          <ExampleBox width="80%" />
+        </Flex>
+      </Collapsible.Content>
+    </Collapsible>
+  </div>
+</Row>
+```

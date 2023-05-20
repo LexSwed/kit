@@ -1,0 +1,116 @@
+---
+title: TextArea
+---
+
+## TextArea
+
+`TextField`-like element but `textarea` and with automatic size adjustment.
+
+```tsx preview
+<Row gap="md">
+  <TextArea label="Enter your name" placeholder="John Doe" />
+  <TextArea label="Enter your name" placeholder="John Doe" secondaryLabel="(disabled)" disabled />
+  <TextArea label="Enter your name" placeholder="John Doe" secondaryLabel="(read only)" readOnly />
+</Row>
+```
+
+## Variants
+
+```tsx preview
+<Row gap="lg">
+  <Column gap="md">
+    <TextArea label="Boxed" hint="Default variant" placeholder="Default boxed variant" />
+    <TextArea variant="underlined" hint="Pretty variant" label="Underlined" placeholder="Pretty underlined" />
+    <TextArea variant="flat" label="Flat variant" hint="Press Esc to cancel" placeholder="Flat variant" />
+  </Column>
+  <Column gap="md">
+    <TextArea
+      label="Boxed"
+      secondaryLabel="(disabled)"
+      hint="Default variant"
+      placeholder="Default boxed variant"
+      disabled
+    />
+    <TextArea
+      variant="underlined"
+      hint="Pretty variant"
+      secondaryLabel="(disabled)"
+      label="Underlined"
+      placeholder="Pretty underlined"
+      disabled
+    />
+    <TextArea disabled variant="flat" label="Flat variant" hint="Press Esc to cancel" placeholder="Flat variant" />
+  </Column>
+</Row>
+```
+
+## Size
+
+```tsx preview
+<Row gap="lg">
+  <Column gap="md">
+    <TextArea size="sm" label="Boxed" hint="Default variant" placeholder="Small size" />
+    <TextArea size="sm" variant="underlined" hint="Pretty variant" label="Underlined" placeholder="Small size" />
+  </Column>
+  <Column gap="md">
+    <TextArea size="md" label="Boxed" hint="Default variant" placeholder="Default size" />
+    <TextArea size="md" variant="underlined" hint="Pretty variant" label="Underlined" placeholder="Default size" />
+  </Column>
+  <Column gap="md">
+    <TextArea size="lg" label="Boxed" hint="Default variant" placeholder="Large size" />
+    <TextArea size="lg" variant="underlined" hint="Pretty variant" label="Underlined" placeholder="Large size" />
+  </Column>
+  <Column gap="md">
+    <TextArea size="xl" label="Boxed" hint="Default variant" placeholder="Editable heading size" />
+    <TextArea
+      size="xl"
+      variant="underlined"
+      hint="Pretty variant"
+      label="Underlined"
+      placeholder="Editable heading size"
+      as="textarea"
+    />
+  </Column>
+</Row>
+```
+
+## Validity
+
+```tsx preview
+() => {
+  const [value, setValue] = React.useState('me@email.com');
+  const isValid = React.useMemo(() => /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value), [value]);
+  return (
+    <Row gap="md" cross="end">
+      <TextArea
+        cross="stretch"
+        validity={isValid ? 'valid' : 'invalid'}
+        label="Email"
+        hint={!isValid ? 'Check that your email is typed correctly' : ' '}
+        placeholder="john.doe@mail.com"
+        value={value}
+        onChange={setValue}
+      />
+      <TextArea
+        cross="stretch"
+        validity={isValid ? 'valid' : 'invalid'}
+        label="Email"
+        hint={!isValid ? 'Check that your email is typed correctly' : ' '}
+        placeholder="john.doe@mail.com"
+        value={value}
+        onChange={setValue}
+        variant="underlined"
+      />
+      <TextArea
+        cross="stretch"
+        validity={isValid ? 'valid' : 'invalid'}
+        hint={!isValid ? 'Check that your email is typed correctly' : ' '}
+        placeholder="john.doe@mail.com"
+        value={value}
+        onChange={setValue}
+        variant="flat"
+      />
+    </Row>
+  );
+};
+```

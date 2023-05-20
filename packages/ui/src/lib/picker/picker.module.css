@@ -1,0 +1,48 @@
+@layer fxtrot-ui {
+  .scroll-direction-arrow {
+    padding-block: theme('spacing.1');
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &[data-placeholder] {
+      color: theme('colors.on-surface-variant');
+    }
+  }
+
+  .size--sm {
+    column-gap: theme('spacing.1');
+    & > .trigger-icon {
+      @apply size-4;
+      stroke-width: 1.5;
+    }
+  }
+  .size--md {
+    column-gap: theme('spacing.1');
+    & > .trigger-icon {
+      @apply size-6;
+      stroke-width: 1.5;
+    }
+  }
+  .size--lg {
+    column-gap: theme('spacing.2');
+    & > .trigger-icon {
+      @apply size-6;
+      stroke-width: 1.8;
+    }
+  }
+  .size--xl {
+    column-gap: theme('spacing.3');
+    & > .trigger-icon {
+      @apply size-6;
+      stroke-width: 1.8;
+    }
+  }
+}

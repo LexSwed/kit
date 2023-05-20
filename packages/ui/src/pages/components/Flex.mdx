@@ -1,0 +1,207 @@
+---
+title: Flex
+---
+
+# Flex
+
+`Flex` is a parent reusable component for many other primitives, like `Button`, that allows to easily align the content. However, for layouts it is recommended to use [Row](/components/Row) or [Column](/components/Column) as they are faster to understand. Use `Flex` when you need to change content alignment dynamically.
+
+## Space
+
+Define gap between elements via `space` prop:
+
+`gap="none"`:
+
+```tsx preview
+<Flex gap="none">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+`gap="xs"`:
+
+```tsx preview
+<Flex gap="xs">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+`gap="sm"`:
+
+```tsx preview
+<Flex gap="sm">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+`gap="md"`:
+
+```tsx preview
+<Flex gap="md">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+`gap="lg"`:
+
+```tsx preview
+<Flex gap="lg">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+`gap="xl"`:
+
+```tsx preview
+<Flex gap="xl">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+`gap="2xl"`:
+
+```tsx preview
+<Flex gap="2xl">
+  <ExampleBox />
+  <ExampleBox />
+  <ExampleBox />
+</Flex>
+```
+
+## Alignment
+
+Since `Flex` can be used for rows and columns, use `main` and `cross` to align items inside `Flex`
+across main axis or cross axis.
+
+`main="start"` (default)
+
+```tsx preview
+<React.Fragment>
+  <Flex className="bg-primary/10 w-[400px]" flow="column" gap="md" main="start">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+  <Flex className="bg-primary/10 mt-8 w-[400px]" flow="row" gap="md" main="start">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+</React.Fragment>
+```
+
+`main="center"`
+
+```tsx preview
+<React.Fragment>
+  <Flex className="bg-primary/10 h-[220px]" gap="md" flow="column" main="center">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+  <Flex className="bg-primary/10 mt-8 w-[400px]" gap="md" flow="row" main="center">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+</React.Fragment>
+```
+
+`main="end"`
+
+```tsx preview
+<React.Fragment>
+  <Flex className="bg-primary/10 h-[240px] w-[400px]" gap="md" flow="column" main="end">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+  <Flex className="bg-primary/10 mt-8 w-[400px]" gap="md" flow="row" main="end">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+</React.Fragment>
+```
+
+`main="space-between"` – spacing between items is now controlled by the container size:
+
+```tsx preview
+<React.Fragment>
+  <Flex className="bg-primary/10 h-[240px] w-[400px]" flow="column" main="space-between">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+  <Flex className="bg-primary/10 mt-8 w-[400px]" flow="row" main="space-between">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+</React.Fragment>
+```
+
+`main="space-between" cross="center"`
+
+```tsx preview
+<React.Fragment>
+  <Flex className="bg-primary/10 h-[240px] w-[400px]" flow="column" cross="center" main="space-between">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+  <Flex className="bg-primary/10 mt-8 h-[240px] w-[400px]" flow="row" cross="center" main="space-between">
+    <ExampleBox width={100} />
+    <ExampleBox width={150} />
+    <ExampleBox width={200} />
+  </Flex>
+</React.Fragment>
+```
+
+## Flow
+
+You can reverse the components render using `flow="column-reverse"`
+
+```tsx preview
+<Flex flow="column-reverse" gap="md">
+  <ExampleBox>1</ExampleBox>
+  <ExampleBox>2</ExampleBox>
+  <ExampleBox>3</ExampleBox>
+</Flex>
+```
+
+And `row-reverse`
+
+```tsx preview
+<Flex flow="row" main="center" cross="end" flow="row-reverse" gap="md">
+  <ExampleBox height="24px">1</ExampleBox>
+  <ExampleBox height="44px">2</ExampleBox>
+  <ExampleBox height="64px">3</ExampleBox>
+</Flex>
+```
+
+## Wrap
+
+Control content wrapping via `wrap` property:
+
+```tsx preview
+<Flex flow="row-reverse" wrap="wrap-reverse" gap="sm" className="w-[224px]">
+  {Array.from({ length: 14 }).map((el, i) => (
+    <ExampleBox className="basis-[50px]" key={i}>
+      {i + 1}
+    </ExampleBox>
+  ))}
+</Flex>
+```

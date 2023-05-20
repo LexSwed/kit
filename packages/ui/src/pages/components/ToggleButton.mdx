@@ -1,0 +1,31 @@
+---
+title: ToggleButton
+---
+
+# ToggleButton
+
+A two-state button that can be either on or off.
+
+```tsx preview
+<Column gap="sm" cross="center">
+  <ToggleButton variant="flat">Toggle</ToggleButton>
+</Column>
+```
+
+## Stateful
+
+```tsx preview
+() => {
+  const [bold, setBold] = React.useState(false);
+  return (
+    <ToggleButton
+      pressed={bold}
+      onPressedChange={setBold}
+      size="sm"
+      aria-label={bold ? 'Turn off bold' : 'Turn on bold'}
+    >
+      <Icon as={BsTypeBold} />
+    </ToggleButton>
+  );
+};
+```

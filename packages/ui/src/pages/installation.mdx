@@ -1,0 +1,142 @@
+---
+title: Installation and setup
+---
+
+# Installation and setup
+
+Install component library in your React project
+
+```bash
+npm install @fxtrot/ui
+```
+
+<Tabs defaultValue="cra" className="mt-8">
+  <Tabs.List>
+    <Tabs.Trigger value="cra">Create React App / Vite</Tabs.Trigger>
+    <Tabs.Trigger value="next">Next.js</Tabs.Trigger>
+    <Tabs.Trigger value="remix">Remix</Tabs.Trigger>
+  </Tabs.List>
+  <Tabs.Content value="cra">
+Import styles and wrap your application in `ThemeProvider`:
+
+```jsx filename="src/index.jsx"
+import { ThemeProvider } from '@fxtrot/ui';
+
+import '@fxtrot/ui/style.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>
+);
+```
+
+  </Tabs.Content>
+  <Tabs.Content value="next">
+    Import styles and wrap your application in `ThemeProvider`:
+
+```jsx filename="app/layout.tsx"
+import { ThemeProvider } from '@fxtrot/ui';
+
+import '@fxtrot/ui/style.css';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <head />
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+  </Tabs.Content>
+  <Tabs.Content value="remix">
+    Import styles and wrap your application in `ThemeProvider`:
+
+```jsx filename="app/root.tsx"
+import { ThemeProvider } from '@fxtrot/ui';
+
+import fxtrotStyles from '@fxtrot/ui/style.css';
+
+export function links() {
+  return [{ rel: 'stylesheet', href: fxtrotStyles }];
+}
+
+export default function App() {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        {/* Wrap the app in ThemeProvider */}
+        <ThemeProvider>
+          <Outlet />
+        </ThemeProvider>
+        <ScrollRestoration />
+        <Scripts />
+        {process.env.NODE_ENV === 'development' && <LiveReload />}
+      </body>
+    </html>
+  );
+}
+```
+
+  </Tabs.Content>
+</Tabs>
+
+In addition to providing the default theme, `ThemeProvider` ensures all components get necessary context parameters. See [theming](/theming) to see how `ThemeProvider` can change the appearance of the component designs.
+
+## Usage
+
+Use components in your app.
+
+```jsx
+import { Button } from '@fxtrot/ui';
+
+<Button variant="outline">Start</Button>;
+```
+
+## Usage with Tailwind CSS
+
+[Tailwind CSS](https://tailwindcss.com/) is utility-first CSS framework. This UI lib is built using Tailwind and exposes the setup to work with Fxtrot UI variables.
+Just import the [preset in your Tailwind config](https://tailwindcss.com/docs/presets):
+
+```js filename="tailwind.config.cjs"
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ['./src/**/*.{js,jsx,ts,tsx,md,mdx}'],
+  presets: [require('@fxtrot/ui/tailwind-preset.cjs')],
+};
+```
+
+Next, in your global CSS, where you enable Tailwind rules, specify the order in which the browser should treat the `layers` ([MDN - CSS Cascade Layers](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)):
+
+```css filename="globals.css"
+@layer tailwind-base, fxtrot-ui;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@tailwind components;
+@tailwind utilities;
+```
+
+This way, Tailwind CSS User Agent styles resets from `tailwind-base` won't override the styles provided in `fxtrot-ui` layer.
+
+You will see a warning message:
+
+```
+Nested @tailwind rules were detected, but are not supported.
+```
+
+It should be ignored for now until better fix from Tailwind team. Follow this discussion if you want to know more: [tailwindcss/Dealing with cascade layers](https://github.com/tailwindlabs/tailwindcss/discussions/6694)

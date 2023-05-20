@@ -12,7 +12,7 @@
     "@floating-ui/dom": "^1.2.8",
     "@floating-ui/react": "^0.24.1",
     "@fxtrot/lib": "*",
-    "@fxtrot/ui": "^1.4.32",
+    "@fxtrot/ui": "*",
     "@heroicons/react": "^2.0.18",
     "@lexical/code": "^0.10.0",
     "@lexical/link": "^0.10.0",

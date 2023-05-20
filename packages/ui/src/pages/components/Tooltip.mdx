@@ -1,0 +1,25 @@
+---
+title: Tooltip
+---
+
+# Tooltip
+
+Citing great <TextLink external="icon" href="https://primer.style/design/accessibility/tooltip-alternatives">Primer design guidelines</TextLink>:
+
+- Reserve tooltips for components like icon buttons.
+- Keep your tooltip text minimal.
+- Only include tooltips on other components as a last resort.
+- Never include tooltips on non-interactive components (div, span, p).
+
+```tsx preview
+<Tooltip
+  side="right"
+  content={
+    <Text as="div" textStyle="body-sm">
+      Info
+    </Text>
+  }
+>
+  <Button icon={InformationCircleIcon} size="lg" aria-label="Show more" variant="flat" />
+</Tooltip>
+```

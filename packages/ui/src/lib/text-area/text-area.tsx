@@ -14,10 +14,11 @@ import { Column, type FlexVariants } from '../flex/flex.tsx';
 import { fieldBoxCss, type FieldVariants } from '../form-field/form-field.tsx';
 import { FormFieldWrapper, Hint, Label, useFormField } from '../form-field/index.ts';
 import { useForkRef } from '../utils/hooks.ts';
+import type { ForwardRefComponent } from '../utils/polymorphic.ts';
 
 import styles from './text-area.module.css';
 
-export const TextArea = forwardRef<HTMLDivElement, Props>(
+export const TextArea = forwardRef(
   (
     {
       label,
@@ -37,29 +38,15 @@ export const TextArea = forwardRef<HTMLDivElement, Props>(
       disabled,
       variant = 'boxed',
       id,
-      defaultValue,
-      inputRef,
       size = 'md',
+      as: Component,
+      ref: _ignoreRef,
       ...props
     },
     ref
   ) => {
-    const innerRef = useRef<HTMLTextAreaElement>(null);
     const ariaProps = useFormField({ id, hint });
-
-    useEffect(() => {
-      if (innerRef.current) {
-        autosize(innerRef.current);
-      }
-    }, []);
-
-    const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
-      const el = e.currentTarget;
-      onChange?.(el.value, e);
-      autosize(el);
-    };
-
-    const refs = useForkRef(inputRef, innerRef);
+    const inputClassName = clsx(fieldBoxCss({ validity, size, variant }), textfieldCss({ size }));
 
     return (
       <FormFieldWrapper
@@ -77,17 +64,11 @@ export const TextArea = forwardRef<HTMLDivElement, Props>(
           <Label label={label} secondary={secondaryLabel} htmlFor={ariaProps.id} disabled={disabled} />
         )}
         <Column gap="xs">
-          <textarea
-            rows={1}
-            {...props}
-            {...ariaProps}
-            defaultValue={defaultValue}
-            disabled={disabled}
-            value={value}
-            onChange={handleChange}
-            ref={refs}
-            className={clsx(fieldBoxCss({ validity, size, variant }), textfieldCss({ size }))}
-          />
+          {!Component ? (
+            <TextAreaInner {...props} {...ariaProps} className={inputClassName} />
+          ) : (
+            <Component {...props} {...ariaProps} className={inputClassName} />
+          )}
           {hint && (
             <Hint id={ariaProps['aria-describedby']} validity={validity}>
               {hint}
@@ -97,17 +78,39 @@ export const TextArea = forwardRef<HTMLDivElement, Props>(
       </FormFieldWrapper>
     );
   }
-);
+) as ForwardRefComponent<'textarea', Props & { ref?: ComponentProps<typeof FormFieldWrapper>['ref'] }>;
+
+const TextAreaInner = ({ onChange, inputRef, ...props }: TextAreaProps & ComponentProps<'textarea'>) => {
+  const innerRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (innerRef.current) {
+      autosize(innerRef.current);
+    }
+  }, []);
+
+  const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
+    const el = e.currentTarget;
+    onChange?.(el.value, e);
+    autosize(el);
+  };
+
+  const refs = useForkRef(inputRef as any, innerRef);
+
+  return <textarea rows={1} {...props} onChange={handleChange} ref={refs} />;
+};
 
 TextArea.displayName = 'TextArea';
 
-interface Props extends FlexVariants, FieldVariants, Omit<ComponentProps<'textarea'>, 'wrap' | 'onChange'> {
+interface TextAreaProps {
+  inputRef?: Pick<ComponentProps<'textarea'>, 'ref'>;
+  onChange?: (value: string, event: ChangeEvent<HTMLTextAreaElement>) => void;
+}
+
+interface Props extends FlexVariants, FieldVariants, TextAreaProps {
   label?: string;
   secondaryLabel?: string;
   hint?: string;
-  validity?: 'valid' | 'invalid';
-  inputRef?: Ref<HTMLTextAreaElement>;
-  onChange?: (value: string, event: ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 function autosize(el: HTMLTextAreaElement) {

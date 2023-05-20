@@ -11,6 +11,7 @@ import { $findMatchingParent, mergeRegister } from "@lexical/utils";
 import {
   $getSelection,
   $isRangeSelection,
+  $isTextNode,
   COMMAND_PRIORITY_LOW,
   type ElementNode,
   type LexicalEditor,
@@ -80,28 +81,19 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
   return new Promise<{ link: string; text: string }>((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
-      if (!$isRangeSelection(selection)) {
-        return resolve({
-          link: "",
-          text: "",
-        });
-      }
+      if (!$isRangeSelection(selection)) return;
       const linkNode = $getLinkSelection();
 
       if (linkNode) {
         $selectLink(selection, linkNode);
-
-        const linkDetails = {
-          link: linkNode.getURL(),
-          text: linkNode.getTextContent(),
-        };
-        return resolve(linkDetails);
-      } else {
-        return resolve({
-          link: "",
-          text: selection.getTextContent(),
-        });
       }
+      console.log(selection.extract());
+      resolve({
+        link: linkNode ? linkNode.getURL() : "",
+        text: JSON.stringify(
+          selection.getNodes().map((node) => node.exportJSON())
+        ),
+      });
     });
   });
 }
@@ -155,7 +147,7 @@ export function $getLinkSelection(): LinkNode | null {
   }
   const nodes = selection.getNodes();
   const linkNode = [nodes[0], nodes[0].getParent()].find($isLinkNode);
-
+  console.log(nodes);
   return linkNode ? linkNode : null;
 }
 
@@ -167,52 +159,32 @@ export function isSelectionCollapsed() {
 
 export function useIsLinkSelected() {
   const [isLink, setIsLink] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
     const update = () => {
       const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        const node = getSelectedNode(selection);
-        const linkParent = $findMatchingParent(node, $isLinkNode);
-        const autoLinkParent = $findMatchingParent(node, $isAutoLinkNode);
-
-        // We don't want this menu to open for auto links.
-        if (linkParent != null && autoLinkParent == null) {
-          setIsLink(true);
-        } else {
-          setIsLink(false);
-        }
+      if (!$isRangeSelection(selection)) {
+        setIsDisabled(true);
+        return;
       }
-    };
-    editor.getEditorState().read(update);
 
-    return mergeRegister(
-      editor.registerCommand(
-        SELECTION_CHANGE_COMMAND,
-        () => {
-          update();
-          return false;
-        },
-        COMMAND_PRIORITY_LOW
-      )
-    );
-  }, [editor]);
+      if (!selection.getNodes().every($isTextNode)) {
+        setIsDisabled(true);
+        return;
+      }
+      setIsDisabled(false);
 
-  return isLink;
-}
-
-export function useCurrentSelection() {
-  const [editor] = useLexicalComposerContext();
-  const [selection, setSelection] = useState<RangeSelection | null>();
-
-  useEffect(() => {
-    const update = () => {
-      const selection = $getSelection();
-      if ($isRangeSelection(selection)) {
-        setSelection(selection);
+      const node = getSelectedNode(selection);
+      const linkParent = $findMatchingParent(node, $isLinkNode);
+      const autoLinkParent = $findMatchingParent(node, $isAutoLinkNode);
+      // const allNodesAreSupported = selection.getNodes().every(node => )
+      // We don't want this menu to open for auto links.
+      if (linkParent != null && autoLinkParent == null) {
+        setIsLink(true);
       } else {
-        setSelection(null);
+        setIsLink(false);
       }
     };
     editor.getEditorState().read(update);
@@ -229,5 +201,5 @@ export function useCurrentSelection() {
     );
   }, [editor]);
 
-  return selection;
+  return [isLink, isDisabled] as const;
 }

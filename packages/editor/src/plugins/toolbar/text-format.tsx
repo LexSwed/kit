@@ -19,12 +19,10 @@ import { ToggleButton } from "@fxtrot/ui";
 
 import { ToggleGroup } from "./toggle-group.tsx";
 
-interface Props {
-  disabled?: boolean;
-}
-
-export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
+export const TextFormatFloatingToolbar = () => {
   const [editor] = useLexicalComposerContext();
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
@@ -38,6 +36,8 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
       return;
     }
 
+    setIsCollapsed(selection.isCollapsed());
+
     // Update text format
     setIsBold(selection.hasFormat("bold"));
     setIsItalic(selection.hasFormat("italic"));
@@ -46,15 +46,14 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
   }, []);
 
   useEffect(() => {
-    if (disabled) return;
-    // get initial values
+    if (isCollapsed) return;
     editor.getEditorState().read(updateFormat);
     return mergeRegister(
       editor.registerUpdateListener(({ editorState }) => {
         editorState.read(updateFormat);
       })
     );
-  }, [editor, disabled, updateFormat]);
+  }, [editor, updateFormat, isCollapsed]);
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -67,46 +66,42 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
   );
 
   return (
-    <ToggleGroup>
+    <ToggleGroup disabled={isCollapsed}>
       <ToggleButton
         pressed={isBold}
         onClick={handleToggle}
         value="bold"
-        disabled={disabled}
         label={t("Format text as bold")}
         size="sm"
         icon={BsTypeBold}
-        className={disabled ? "bg-surface opacity-80" : undefined}
+        className="disabled:bg-surface disabled:opacity-80"
       />
       <ToggleButton
         pressed={isItalic}
         value="italic"
-        disabled={disabled}
         onClick={handleToggle}
         size="sm"
         label={t("Format text as italics")}
         icon={BsTypeItalic}
-        className={disabled ? "bg-surface opacity-80" : undefined}
+        className="disabled:bg-surface disabled:opacity-80"
       />
       <ToggleButton
         pressed={isUnderline}
         value="underline"
-        disabled={disabled}
         onClick={handleToggle}
         size="sm"
         label={t("Format text to underlined")}
         icon={BsTypeUnderline}
-        className={disabled ? "bg-surface opacity-80" : undefined}
+        className="disabled:bg-surface disabled:opacity-80"
       />
       <ToggleButton
         pressed={isCode}
         value="code"
-        disabled={disabled}
         onClick={handleToggle}
         size="sm"
         label={t("Insert code block")}
         icon={BsCodeSlash}
-        className={disabled ? "bg-surface opacity-80" : undefined}
+        className="disabled:bg-surface disabled:opacity-80"
       />
     </ToggleGroup>
   );

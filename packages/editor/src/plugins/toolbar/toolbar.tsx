@@ -20,7 +20,7 @@ import {
   useSelector,
 } from "./state.ts";
 import { TextFormatFloatingToolbar } from "./text-format.tsx";
-import { getSelection, useCurrentSelection } from "./utils.ts";
+import { getSelection } from "./utils.ts";
 
 export function FloatingToolbarPlugin() {
   return (
@@ -37,9 +37,6 @@ function FloatingToolbar() {
 
   const isShown = useSelector((state) => state.matches({ toolbar: "shown" }));
   const selectedNode = useReferenceNode();
-  const $selection = useCurrentSelection();
-
-  const isCollapsed = $selection?.isCollapsed();
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -135,8 +132,7 @@ function FloatingToolbar() {
         // }
       >
         <div className="flex gap-1">
-          <TextFormatFloatingToolbar disabled={isCollapsed} />
-          <div className="w-0.5 bg-outline/10" />
+          <TextFormatFloatingToolbar />
           <LinkEdit />
         </div>
       </EditorPopover>

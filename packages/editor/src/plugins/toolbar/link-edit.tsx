@@ -40,7 +40,7 @@ export const LinkEdit = () => {
     })
   );
   const actor = useActorRef();
-  const isLink = useIsLinkSelected();
+  const [isLink, isDisabled] = useIsLinkSelected();
   const [initialValues, setInitialValues] = useState<{
     text: string;
     link: string;
@@ -68,8 +68,11 @@ export const LinkEdit = () => {
     return { open, close, toggle };
   }, [actor, editor]);
 
+  if (isDisabled) return null;
+
   return (
     <>
+      <div className="w-0.5 bg-outline/10" />
       <ToggleGroup>
         <ToggleButton
           pressed={isLink || isLinkEditOpen}
@@ -135,48 +138,59 @@ export const LinkEditPopup = ({
       reference={selectedNode}
     >
       {isLink ? (
-        <Row main="end" gap="xs">
-          <Tooltip
-            delayDuration={200}
-            content={<Text textStyle="body-sm">Open in a new tab</Text>}
-          >
-            <Button
-              icon={ArrowTopRightOnSquareIcon}
-              aria-label={t("Open in a new tab")}
-            />
-          </Tooltip>
-          <Tooltip
-            delayDuration={200}
-            content={<Text textStyle="body-sm">Unlink</Text>}
-          >
-            <Button
-              icon={RxLinkBreak2}
-              label={t("Remove link")}
-              intent="danger"
-              onClick={removeLink}
-            />
-          </Tooltip>
-          <CopyLinkButton href={initialValues.link} />
+        <Row main="space-between" cross="center">
+          <Text textStyle="label-sm" className="ml-2 mt-1.5">
+            Edit link
+          </Text>
+          <Row gap="sm">
+            <Tooltip
+              delayDuration={200}
+              content={<Text textStyle="body-sm">Open in a new tab</Text>}
+            >
+              <Button
+                size="sm"
+                icon={ArrowTopRightOnSquareIcon}
+                aria-label={t("Open in a new tab")}
+              />
+            </Tooltip>
+            <Tooltip
+              delayDuration={200}
+              content={<Text textStyle="body-sm">Unlink</Text>}
+            >
+              <Button
+                size="sm"
+                icon={RxLinkBreak2}
+                label={t("Remove link")}
+                intent="danger"
+                onClick={removeLink}
+              />
+            </Tooltip>
+            <CopyLinkButton href={initialValues.link} />
+          </Row>
         </Row>
       ) : null}
       <form
         className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2"
         onSubmit={saveLink}
       >
-        <TextField
+        {/* 
+         TODO: to implement this, the editor needs to get the
+               selection and extract from selected nodes selected text with their styles.
+               Then, on save, selected nodes need to be split on selection anchor and offset and new nodes created.
+               Maybe at some point, but not now :)
+        <MinimalEditor
           size="sm"
-          placeholder="Text"
+          placeholder={t("Text")}
           name="text"
           label={t("Text")}
-          defaultValue={initialValues.text}
           autoFocus
-        />
+          initialEditorState={initialValues.text}
+        /> */}
         <TextField
           size="sm"
           placeholder="https://example.com"
           name="link"
           type="url"
-          label={t("Link")}
           defaultValue={initialValues.link}
         />
         <div className="flex flex-row justify-end gap-2 pt-1">
@@ -205,6 +219,7 @@ const CopyLinkButton = ({ href }: { href: string }) => {
       }
     >
       <Button
+        size="sm"
         icon={copied ? ClipboardDocumentCheckIcon : ClipboardDocumentListIcon}
         label={t("Copy link")}
         onClick={() => copy(href)}

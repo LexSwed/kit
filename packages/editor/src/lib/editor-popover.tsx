@@ -24,6 +24,16 @@ interface Props extends ComponentProps<typeof PopoverBox> {
 }
 
 export const EditorPopover = forwardRef<HTMLDivElement, Props>(
+  function EditorPopoverWithRef(props, ref) {
+    return (
+      <RdxPresence.Presence present={props.isOpen}>
+        <EditorPopoverInner {...props} ref={ref} />
+      </RdxPresence.Presence>
+    );
+  }
+);
+
+const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
   function EditorPopoverWithRef(
     {
       isOpen,
@@ -60,6 +70,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
     const ref = useMergeRefs([propRef, refs.setFloating]);
 
     useEffect(() => {
+      // Can't return focus to the trigger as the reference is selected text
       if (isOpen) {
         return () => {
           if (editor.getRootElement() !== document.activeElement) {
@@ -69,32 +80,30 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
       }
     }, [editor, isOpen]);
 
+    /* using the portal the buttons inside the popovers being able to open own popovers 
+      that are portaled to the root, instead of rendered next to the button itself */
     return (
-      <RdxPresence.Presence present={isOpen}>
-        {/* using the portal the buttons inside the popovers being able to open own popovers 
-      that are portaled to the root, instead of rendered next to the button itself */}
-        <Portal>
-          <PopoverBox
-            data-align={align}
-            data-side={side}
-            ref={ref}
-            data-state={isOpen ? "open" : "closed"}
-            style={{
-              position: strategy,
-              top: y ?? 0,
-              left: x ?? 0,
-              width: "max-content",
-            }}
-            className={clsx(
-              "isolate transition-[opacity,width,height] duration-300",
-              className
-            )}
-            {...props}
-          >
-            {children}
-          </PopoverBox>
-        </Portal>
-      </RdxPresence.Presence>
+      <Portal>
+        <PopoverBox
+          data-align={align}
+          data-side={side}
+          ref={ref}
+          data-state={isOpen ? "open" : "closed"}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            width: "max-content",
+          }}
+          className={clsx(
+            "isolate transition-[opacity,width,height] duration-300",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </PopoverBox>
+      </Portal>
     );
   }
 );

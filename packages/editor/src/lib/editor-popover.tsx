@@ -1,9 +1,4 @@
-import React, {
-  type ComponentProps,
-  forwardRef,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { type ComponentProps, forwardRef, useEffect } from "react";
 import {
   flip,
   inline,
@@ -15,7 +10,7 @@ import {
   useFloating,
   useMergeRefs,
 } from "@floating-ui/react";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 import * as RdxPresence from "@radix-ui/react-presence";
 import { clsx } from "clsx";
 
@@ -90,7 +85,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
               left: x ?? 0,
               width: "max-content",
             }}
-            className={cx(
+            className={clsx(
               "isolate transition-[opacity,width,height] duration-300",
               className
             )}

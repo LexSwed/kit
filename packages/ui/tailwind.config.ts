@@ -1,5 +1,4 @@
-/* eslint-disable import/no-anonymous-default-export */
-import fxtrotPreset from './src/lib/tailwind/preset';
+import fxtrotPreset from './src/lib/tailwind/preset.ts';
 
 /** @type {import('tailwindcss').Config} */
 export default {

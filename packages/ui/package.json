@@ -14,10 +14,12 @@
     },
     "./tailwind-preset": {
       "types": "./src/lib/tailwind/preset.ts",
-      "import": "./src/lib/tailwind/preset.ts",
-      "require": "./src/lib/tailwind/preset.ts"
+      "import": "./src/lib/tailwind/preset.ts"
     },
-    "./style.css": "./dist/style.css"
+    "./*": {
+      "types": "./src/lib/*",
+      "import": "./src/lib/*"
+    }
   },
   "sideEffects": false,
   "scripts": {

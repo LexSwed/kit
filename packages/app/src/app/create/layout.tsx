@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 export const metadata = {
-  title: 'Fxtrot Kit - Editor',
+  title: "Fxtrot Kit - Editor",
 };
 
 export default function EditorLayout({ children }: { children: ReactNode }) {

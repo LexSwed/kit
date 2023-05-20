@@ -3,8 +3,8 @@ import { BsTypeBold, BsTypeItalic, BsTypeUnderline } from 'react-icons/bs/index.
 import * as HeroIcons from '@heroicons/react/24/outline';
 import { MDXProvider } from '@mdx-js/react';
 import { clsx } from 'clsx';
-import NextImage from 'next/image.js';
-import NextLink from 'next/link.js';
+import Image from 'next/image.js';
+import Link from 'next/link.js';
 
 import * as FxtrotUI from '@fxtrot/ui';
 import { Heading, Text, TextLink } from '@fxtrot/ui';
@@ -14,8 +14,6 @@ import * as helpers from '../pages-helpers/index.tsx';
 import { MainLayout } from './MainLayout/index.ts';
 import { Code } from './Code.tsx';
 
-const Link = NextLink.default;
-const Image = NextImage.default;
 const MultilineCode = React.lazy(() => import(/* webpackChunkName: "MultilineCode" */ './MultilineCode.tsx'));
 const Playground = React.lazy(() => import(/* webpackChunkName: "CodePlayground" */ './Playground.tsx'));
 
@@ -40,6 +38,7 @@ const AnchoredHeading = ({ id, children, ...props }: any) => {
     <Heading className="group/heading [scroll-margin-block-start:100px] " dense={false} {...props} id={id}>
       {children}{' '}
       {id && (
+        // @ts-expect-error https://github.com/vercel/next.js/issues/46078
         <Link
           href={`#${id}`}
           replace
@@ -63,6 +62,7 @@ export const components = {
   a: ({ href, ...props }: any) => {
     if (href.startsWith('/')) {
       return (
+        // @ts-expect-error https://github.com/vercel/next.js/issues/46078
         <Link href={href} passHref legacyBehavior>
           <TextLink {...props} inline />
         </Link>
@@ -70,6 +70,7 @@ export const components = {
     }
     return <TextLink href={href} external="icon" {...props} />;
   },
+  // @ts-expect-error https://github.com/vercel/next.js/issues/46078
   img: (props: any) => <Image alt={props.alt} layout="responsive" {...props} />,
   h1: (props: any) => <AnchoredHeading {...props} dense={false} as="h2" level="1" />,
   h2: (props: any) => <AnchoredHeading {...props} dense={false} as="h3" level="2" />,

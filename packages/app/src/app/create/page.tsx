@@ -1,4 +1,4 @@
-import { Editor } from '@fxtrot/editor';
+import { Editor } from "@fxtrot/editor";
 
 export default function EditorPage() {
   const initialEditorState = null;

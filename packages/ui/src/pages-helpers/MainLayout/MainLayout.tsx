@@ -1,7 +1,7 @@
 import type React from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
-import NextHead from 'next/head.js';
-import NextLink from 'next/link.js';
+import Head from 'next/head.js';
+import Link from 'next/link.js';
 
 import { Button, Column, Dialog, Icon, Row, TextLink } from '@fxtrot/ui';
 
@@ -15,12 +15,10 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Link = NextLink.default;
-const Head = NextHead.default;
-
 export const MainLayout: React.FC<Props> = ({ children, meta, docs }) => {
   return (
     <>
+      {/* @ts-expect-error https://github.com/vercel/next.js/issues/46078 */}
       <Head>
         <title>{[meta.title, 'Fxtrot UI'].join(' | ')}</title>
         <meta name="keywords" content="react, fxtrot, components, component library, design system" />
@@ -45,6 +43,7 @@ export const MainLayout: React.FC<Props> = ({ children, meta, docs }) => {
                 </Dialog>
               </div>
               <Row main="space-between" className="flex-1">
+                {/* @ts-expect-error https://github.com/vercel/next.js/issues/46078 */}
                 <Link href="/" passHref legacyBehavior>
                   <TextLink inline={false} textStyle="title-sm" tone="neutral">
                     Fxtrot UI

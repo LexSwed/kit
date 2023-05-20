@@ -1,10 +1,8 @@
 import { BsGithub } from 'react-icons/bs/index.js';
-import NextLink from 'next/link.js';
+import Link from 'next/link.js';
 import { NextSeo } from 'next-seo';
 
 import { Column, Heading, Icon, LinkButton, Row, TextLink } from '@fxtrot/ui';
-
-const Link = NextLink.default;
 
 const App = () => {
   return (
@@ -33,6 +31,7 @@ const App = () => {
               <Heading as="h1" level="2">
                 Fxtrot React component library
               </Heading>
+              {/* @ts-expect-error https://github.com/vercel/next.js/issues/46078 */}
               <Link href="/installation" passHref legacyBehavior>
                 <LinkButton variant="primary" size="lg">
                   Documentation
@@ -69,7 +68,8 @@ const App = () => {
                 </TextLink>
               </li>
               <li className="w-[16rem] rounded-md bg-primary/5 p-4">
-                Customizable{' '}
+                Customizable
+                {/* @ts-expect-error https://github.com/vercel/next.js/issues/46078 */}
                 <Link href="/theming" passHref legacyBehavior>
                   <TextLink inline={false}>theming with great Tailwind defaults</TextLink>
                 </Link>

@@ -1,4 +1,4 @@
-import NextLink from 'next/link.js';
+import Link from 'next/link.js';
 import { useRouter } from 'next/router.js';
 
 import { Column, MenuList, Section } from '@fxtrot/ui';
@@ -8,8 +8,6 @@ type DocEntry = { section: string; title?: string; href: string };
 type Props = {
   docs: DocEntry[];
 };
-
-const Link = NextLink.default;
 
 export const SideNav = ({ docs }: Props) => {
   const groupped = docs.reduce<{ [section: string]: DocEntry[] }>(
@@ -47,6 +45,7 @@ const LinksList = ({ links }: { links: DocEntry[] }) => {
     <>
       {links.map((item) => {
         return (
+          // @ts-expect-error https://github.com/vercel/next.js/issues/46078
           <Link href={item.href} passHref legacyBehavior key={item.title}>
             <MenuList.Item active={item.href === router.pathname}>{item.title}</MenuList.Item>
           </Link>

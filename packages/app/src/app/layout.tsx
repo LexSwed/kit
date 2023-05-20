@@ -1,14 +1,13 @@
 /* Layers definition for fxtrot-ui should go very first */
 /* eslint-disable simple-import-sort/imports */
 import "./globals.css";
-
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 
 import { AppContext } from "./context.tsx";
 
 export const metadata = {
-  title: "LaKit",
+  title: "Fxtrot Kit",
   description: "Something something about education",
 };
 

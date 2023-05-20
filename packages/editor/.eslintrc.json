@@ -1,6 +1,12 @@
 {
   "extends": ["../../.eslintrc.json"],
-  "rules": {
-    "import/no-default-export": "error"
-  }
+  "rules": {},
+  "overrides": [
+    {
+      "files": ["./postcss.config.cjs"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
 }

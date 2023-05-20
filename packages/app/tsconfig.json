@@ -15,6 +15,17 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "../shared/**/*.ts",
+    "../shared/**/*.tsx",
+    "../editor/**/*.ts",
+    "../editor/**/*.tsx",
+    "../ui/**/*.ts",
+    "../ui/**/*.tsx",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

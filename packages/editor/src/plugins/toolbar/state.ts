@@ -1,5 +1,5 @@
-import { createActorContext } from '@xstate/react';
-import { and, assign, createMachine, raise, stateIn } from 'xstate';
+import { createActorContext } from "@xstate/react";
+import { and, assign, createMachine, raise, stateIn } from "xstate";
 
 interface Context {
   /** Currently selected range, with keyboard or pointer */
@@ -11,66 +11,69 @@ interface Context {
 }
 
 type Event =
-  | { type: 'pointer down' }
-  | { type: 'pointer up' }
-  | { type: 'focus' }
-  | { type: 'blur' }
-  | { type: 'selection change'; selection: Range; collapsed: boolean }
-  | { type: 'selection change'; selection: null }
-  | { type: 'selected' }
-  | { type: 'deselected' }
-  | { type: 'edit link' }
-  | { type: 'close' }
-  | { type: 'cancel link edit' };
+  | { type: "pointer down" }
+  | { type: "pointer up" }
+  | { type: "focus" }
+  | { type: "blur" }
+  | { type: "selection change"; selection: Range; collapsed: boolean }
+  | { type: "selection change"; selection: null }
+  | { type: "selected" }
+  | { type: "deselected" }
+  | { type: "edit link" }
+  | { type: "close" }
+  | { type: "cancel link edit" };
 
 const toolbarMachine = createMachine<Context, Event>(
   {
-    id: 'toolbarMachine',
+    id: "toolbarMachine",
     context: {
       reference: null,
       selection: null,
     },
-    type: 'parallel',
+    type: "parallel",
     states: {
       editor: {
-        id: 'editor',
-        type: 'parallel',
+        id: "editor",
+        type: "parallel",
         states: {
           focus: {
-            initial: 'out',
-            id: 'focus',
+            initial: "out",
+            id: "focus",
             states: {
               in: {
                 on: {
-                  blur: 'out',
+                  blur: "out",
                 },
               },
               out: {
                 on: {
-                  focus: { target: 'in' },
+                  focus: { target: "in" },
                 },
               },
             },
           },
           selection: {
-            id: 'selection',
-            initial: 'none',
+            id: "selection",
+            initial: "none",
             on: {
-              'selected': {
-                actions: ['assignReference'],
+              selected: {
+                actions: ["assignReference"],
               },
-              'deselected': {
-                actions: ['clearSelection', 'clearReference'],
+              deselected: {
+                actions: ["clearSelection", "clearReference"],
               },
-              'selection change': [
+              "selection change": [
                 /**
                  * Keyboard selection
                  * (or weird cases when "pointer up" is emitted before "selection change")
                  */
                 {
-                  guard: and(['rangeSelection', stateIn({ pointer: 'up', editor: { focus: 'in' } })]),
-                  actions: ['assignSelection', 'raiseSelected'],
-                  target: ['#selection.range'],
+                  guard: and([
+                    "rangeSelection",
+                    stateIn({ pointer: "up", editor: { focus: "in" } }),
+                  ]),
+                  actions: ["assignSelection", "raiseSelected"],
+                  target: ["#selection.range"],
                 },
                 /**
                  * Commented out is to avoid toolbar opening on collapsed (link) navigating with keyboard only
@@ -87,38 +90,47 @@ const toolbarMachine = createMachine<Context, Event>(
                 //   target: ['#selection.collapsed'],
                 // },
                 {
-                  guard: and(['noSelection', stateIn({ pointer: 'up', editor: { focus: 'in' } })]),
-                  actions: ['raiseDeselected'],
-                  target: ['#selection.none'],
+                  guard: and([
+                    "noSelection",
+                    stateIn({ pointer: "up", editor: { focus: "in" } }),
+                  ]),
+                  actions: ["raiseDeselected"],
+                  target: ["#selection.none"],
                 },
                 {
-                  guard: 'collapsedSelection',
-                  actions: ['assignSelection'],
-                  target: ['#selection.collapsed'],
+                  guard: "collapsedSelection",
+                  actions: ["assignSelection"],
+                  target: ["#selection.collapsed"],
                 },
                 {
-                  guard: 'rangeSelection',
-                  actions: ['assignSelection'],
-                  target: ['#selection.range'],
+                  guard: "rangeSelection",
+                  actions: ["assignSelection"],
+                  target: ["#selection.range"],
                 },
                 {
-                  guard: 'noSelection',
-                  actions: ['clearSelection'],
-                  target: ['#selection.none'],
+                  guard: "noSelection",
+                  actions: ["clearSelection"],
+                  target: ["#selection.none"],
                 },
                 {
-                  actions: ['assignSelection'],
+                  actions: ["assignSelection"],
                 },
               ],
-              'pointer up': [
+              "pointer up": [
                 {
-                  guard: and(['hasNoSelection', stateIn({ editor: { focus: 'in' } })]),
-                  actions: ['raiseDeselected'],
-                  target: ['.none'],
+                  guard: and([
+                    "hasNoSelection",
+                    stateIn({ editor: { focus: "in" } }),
+                  ]),
+                  actions: ["raiseDeselected"],
+                  target: [".none"],
                 },
                 {
-                  guard: and(['hasSelection', stateIn({ editor: { focus: 'in' } })]),
-                  actions: ['raiseSelected'],
+                  guard: and([
+                    "hasSelection",
+                    stateIn({ editor: { focus: "in" } }),
+                  ]),
+                  actions: ["raiseSelected"],
                 },
               ],
             },
@@ -131,68 +143,68 @@ const toolbarMachine = createMachine<Context, Event>(
         },
       },
       pointer: {
-        id: 'pointer',
-        initial: 'up',
+        id: "pointer",
+        initial: "up",
         states: {
           up: {
             on: {
-              'pointer down': {
-                target: 'down',
+              "pointer down": {
+                target: "down",
               },
             },
           },
           down: {
             on: {
-              'pointer up': {
-                target: 'up',
+              "pointer up": {
+                target: "up",
               },
             },
           },
         },
       },
       toolbar: {
-        id: 'toolbar',
-        initial: 'hidden',
+        id: "toolbar",
+        initial: "hidden",
         states: {
           hidden: {
             on: {
               selected: {
-                target: 'shown',
+                target: "shown",
               },
             },
           },
           shown: {
-            id: 'shown',
-            initial: 'open',
+            id: "shown",
+            initial: "open",
             on: {
               deselected: {
-                target: '.closing',
+                target: ".closing",
               },
               close: {
-                target: '.closing',
+                target: ".closing",
               },
             },
             states: {
               open: {
                 on: {
-                  'edit link': 'linkEditShown',
+                  "edit link": "linkEditShown",
                 },
               },
               linkEditShown: {
                 on: {
-                  'cancel link edit': '#shown',
-                  'selected': {
-                    target: 'open',
+                  "cancel link edit": "#shown",
+                  selected: {
+                    target: "open",
                   },
                 },
               },
               closing: {
                 on: {
-                  selected: '#toolbar.shown',
+                  selected: "#toolbar.shown",
                 },
                 after: {
                   200: {
-                    target: '#toolbar.hidden',
+                    target: "#toolbar.hidden",
                   },
                 },
               },
@@ -206,7 +218,7 @@ const toolbarMachine = createMachine<Context, Event>(
     actions: {
       assignSelection: assign({
         selection: ({ context, event }) => {
-          if (event.type === 'selection change') {
+          if (event.type === "selection change") {
             return event.selection;
           }
           return context.selection;
@@ -223,8 +235,8 @@ const toolbarMachine = createMachine<Context, Event>(
       clearReference: assign({
         reference: null,
       }),
-      raiseSelected: raise({ type: 'selected' }),
-      raiseDeselected: raise({ type: 'deselected' }),
+      raiseSelected: raise({ type: "selected" }),
+      raiseDeselected: raise({ type: "deselected" }),
     },
     guards: {
       hasSelection({ context }) {
@@ -234,13 +246,17 @@ const toolbarMachine = createMachine<Context, Event>(
         return !context.selection;
       },
       rangeSelection({ event }) {
-        return event.type === 'selection change' && !!event.selection;
+        return event.type === "selection change" && !!event.selection;
       },
       collapsedSelection({ event }) {
-        return event.type === 'selection change' && !!event.selection && event.collapsed;
+        return (
+          event.type === "selection change" &&
+          !!event.selection &&
+          event.collapsed
+        );
       },
       noSelection({ event }) {
-        return event.type === 'selection change' && !event.selection;
+        return event.type === "selection change" && !event.selection;
       },
     },
   }
@@ -253,9 +269,9 @@ const {
 } = createActorContext(
   toolbarMachine,
   {
-    devTools: process.env.NODE_ENV === 'development',
+    devTools: process.env.NODE_ENV === "development",
   },
-  process.env.NODE_ENV === 'development'
+  process.env.NODE_ENV === "development"
     ? (state) => {
         const { event, value, context } = state;
         console.log({ event, value, context });

@@ -1,35 +1,53 @@
-import { $isCodeHighlightNode } from '@lexical/code';
-import { $isAutoLinkNode, $isLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { useEffect, useState } from "react";
+import { $isCodeHighlightNode } from "@lexical/code";
+import {
+  $isAutoLinkNode,
+  $isLinkNode,
+  LinkNode,
+  TOGGLE_LINK_COMMAND,
+} from "@lexical/link";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
+import { $findMatchingParent, mergeRegister } from "@lexical/utils";
 import {
   $getSelection,
   $isRangeSelection,
-  SELECTION_CHANGE_COMMAND,
+  COMMAND_PRIORITY_LOW,
+  type ElementNode,
   type LexicalEditor,
   type RangeSelection,
-  type ElementNode,
-  COMMAND_PRIORITY_LOW,
-} from 'lexical';
-import { getSelectedNode } from '../../utils/getSelectedNode';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { mergeRegister, $findMatchingParent } from '@lexical/utils';
-import { useState, useEffect } from 'react';
+  SELECTION_CHANGE_COMMAND,
+} from "lexical";
 
-export async function getSelection(editor: LexicalEditor, includeCollapsed = false) {
+import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
+
+export async function getSelection(
+  editor: LexicalEditor,
+  includeCollapsed = false
+) {
   // Should not to pop up the floating toolbar when using IME input
   if (editor.isComposing()) {
     return { selection: null };
   }
-  return new Promise<{ selection: null } | { selection: Range; collapsed: boolean }>((resolve) => {
+  return new Promise<
+    { selection: null } | { selection: Range; collapsed: boolean }
+  >((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
 
-      if (!$isRangeSelection(selection) || $isCodeHighlightNode(selection.anchor.getNode())) {
+      if (
+        !$isRangeSelection(selection) ||
+        $isCodeHighlightNode(selection.anchor.getNode())
+      ) {
         return resolve({ selection: null });
       }
 
       const nativeSelection = window.getSelection();
       const rootElement = editor.getRootElement();
-      if (nativeSelection === null || rootElement === null || !rootElement.contains(nativeSelection.anchorNode)) {
+      if (
+        nativeSelection === null ||
+        rootElement === null ||
+        !rootElement.contains(nativeSelection.anchorNode)
+      ) {
         return resolve({ selection: null });
       }
 
@@ -60,8 +78,8 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) {
         return resolve({
-          link: '',
-          text: '',
+          link: "",
+          text: "",
         });
       }
       const linkNode = $getLinkSelection();
@@ -76,7 +94,7 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
         return resolve(linkDetails);
       } else {
         return resolve({
-          link: '',
+          link: "",
           text: selection.getTextContent(),
         });
       }
@@ -84,7 +102,10 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
   });
 }
 
-export function $selectLink(selection: RangeSelection, node: ElementNode | null) {
+export function $selectLink(
+  selection: RangeSelection,
+  node: ElementNode | null
+) {
   if (!node) {
     return null;
   }
@@ -95,11 +116,19 @@ export function $selectLink(selection: RangeSelection, node: ElementNode | null)
   const lastTextNode = textNodes.at(-1);
 
   if (firstTextNode && lastTextNode) {
-    selection.setTextNodeRange(firstTextNode, 0, lastTextNode, lastTextNode.getTextContentSize());
+    selection.setTextNodeRange(
+      firstTextNode,
+      0,
+      lastTextNode,
+      lastTextNode.getTextContentSize()
+    );
   }
 }
 
-export function updateSelectedLink(editor: LexicalEditor, { text, link }: { text: string; link: string }) {
+export function updateSelectedLink(
+  editor: LexicalEditor,
+  { text, link }: { text: string; link: string }
+) {
   editor.update(() => {
     const node = $getLinkSelection();
 

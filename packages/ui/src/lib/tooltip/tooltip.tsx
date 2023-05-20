@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import * as RdxTooltip from '@radix-ui/react-tooltip';
 import { clsx } from 'clsx';
 
@@ -7,14 +7,15 @@ import { PopoverBox } from '../shared/popover-box.tsx';
 
 import styles from './tooltip.module.css';
 
-type Props = Pick<RdxTooltip.TooltipProps, 'children' | 'defaultOpen' | 'delayDuration' | 'disableHoverableContent'> &
-  Pick<
-    RdxTooltip.TooltipContentProps,
-    'side' | 'sideOffset' | 'align' | 'alignOffset' | 'sticky' | 'hideWhenDetached'
-  > &
-  ComponentPropsWithoutRef<'div'> & {
-    content?: ReactNode;
-  };
+interface Props
+  extends Pick<RdxTooltip.TooltipProps, 'children' | 'defaultOpen' | 'delayDuration' | 'disableHoverableContent'>,
+    Pick<
+      RdxTooltip.TooltipContentProps,
+      'side' | 'sideOffset' | 'align' | 'alignOffset' | 'sticky' | 'hideWhenDetached'
+    >,
+    Omit<ComponentPropsWithoutRef<'div'>, 'content'> {
+  content?: ReactNode;
+}
 
 export const Tooltip = ({
   children,

@@ -1,56 +1,64 @@
-import { type FormEvent, useMemo, useState } from 'react';
-import { RxLink2, RxLinkBreak2 } from 'react-icons/rx/index.js';
+import { type FormEvent, useMemo, useState } from "react";
+import { RxLink2, RxLinkBreak2 } from "react-icons/rx/index.js";
 import {
   ArrowTopRightOnSquareIcon,
   ClipboardDocumentCheckIcon,
   ClipboardDocumentListIcon,
-} from '@heroicons/react/24/outline';
-import { TOGGLE_LINK_COMMAND } from '@lexical/link';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
+} from "@heroicons/react/24/outline";
+import { TOGGLE_LINK_COMMAND } from "@lexical/link";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 
-import { t } from '@fxtrot/lib';
+import { t } from "@fxtrot/lib";
 import {
   Button,
   Icon,
   Row,
+  Text,
   TextField,
   ToggleButton,
   Tooltip,
   useCopyToClipboard,
   useKeyboardHandles,
-} from '@fxtrot/ui';
+} from "@fxtrot/ui";
 
-import { EditorPopover } from '../../lib/editor-popover.tsx';
+import { EditorPopover } from "../../lib/editor-popover.tsx";
 
-import { useActorRef, useReferenceNode, useSelector } from './state.ts';
-import { ToggleGroup } from './toggle-group.tsx';
-import { selectLinkAndGetTheDetails, updateSelectedLink, useIsLinkSelected } from './utils.ts';
+import { useActorRef, useReferenceNode, useSelector } from "./state.ts";
+import { ToggleGroup } from "./toggle-group.tsx";
+import {
+  selectLinkAndGetTheDetails,
+  updateSelectedLink,
+  useIsLinkSelected,
+} from "./utils.ts";
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();
 
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
-      toolbar: { shown: 'linkEditShown' },
+      toolbar: { shown: "linkEditShown" },
     })
   );
   const actor = useActorRef();
   const isLink = useIsLinkSelected();
-  const [initialValues, setInitialValues] = useState<{ text: string; link: string } | null>();
+  const [initialValues, setInitialValues] = useState<{
+    text: string;
+    link: string;
+  } | null>();
 
   const { close, toggle } = useMemo(() => {
     const close = () => {
       setInitialValues(null);
-      actor.send({ type: 'cancel link edit' });
+      actor.send({ type: "cancel link edit" });
     };
     const open = async () => {
-      actor.send({ type: 'edit link' });
+      actor.send({ type: "edit link" });
       const details = await selectLinkAndGetTheDetails(editor);
       setInitialValues(details);
     };
     const toggle = async () => {
       const state = actor.getSnapshot();
-      if (state?.matches({ toolbar: { shown: 'linkEditShown' } })) {
+      if (state?.matches({ toolbar: { shown: "linkEditShown" } })) {
         close();
       } else {
         open();
@@ -63,14 +71,22 @@ export const LinkEdit = () => {
   return (
     <>
       <ToggleGroup>
-        <ToggleButton pressed={isLink || isLinkEditOpen} onClick={toggle} size="sm">
+        <ToggleButton
+          pressed={isLink || isLinkEditOpen}
+          onClick={toggle}
+          size="sm"
+        >
           <Icon size="sm" as={RxLink2} />
-          {t('Link')}
+          {t("Link")}
         </ToggleButton>
       </ToggleGroup>
 
       {isLinkEditOpen && initialValues && (
-        <LinkEditPopup initialValues={initialValues} isLink={isLink} onClose={close} />
+        <LinkEditPopup
+          initialValues={initialValues}
+          isLink={isLink}
+          onClose={close}
+        />
       )}
     </>
   );
@@ -85,7 +101,11 @@ interface LinkEditPopupProps {
   onClose: () => void;
 }
 
-export const LinkEditPopup = ({ initialValues, isLink, onClose }: LinkEditPopupProps) => {
+export const LinkEditPopup = ({
+  initialValues,
+  isLink,
+  onClose,
+}: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
   const selectedNode = useReferenceNode();
 
@@ -97,8 +117,8 @@ export const LinkEditPopup = ({ initialValues, isLink, onClose }: LinkEditPopupP
   const saveLink = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const text = (form.get('text') as string) || '';
-    const link = (form.get('link') as string) || '';
+    const text = (form.get("text") as string) || "";
+    const link = (form.get("link") as string) || "";
     updateSelectedLink(editor, { text, link });
   };
 
@@ -116,21 +136,38 @@ export const LinkEditPopup = ({ initialValues, isLink, onClose }: LinkEditPopupP
     >
       {isLink ? (
         <Row main="end" gap="sm">
-          <Tooltip delayDuration={200} content={'Open in a new tab'}>
-            <Button icon={ArrowTopRightOnSquareIcon} aria-label={t('Open in a new tab')} />
+          <Tooltip
+            delayDuration={200}
+            content={<Text textStyle="body-sm">Open in a new tab</Text>}
+          >
+            <Button
+              icon={ArrowTopRightOnSquareIcon}
+              aria-label={t("Open in a new tab")}
+            />
           </Tooltip>
-          <Tooltip delayDuration={200} content={'Unlink'}>
-            <Button icon={RxLinkBreak2} label={t('Remove link')} intent="danger" onClick={removeLink} />
+          <Tooltip
+            delayDuration={200}
+            content={<Text textStyle="body-sm">Unlink</Text>}
+          >
+            <Button
+              icon={RxLinkBreak2}
+              label={t("Remove link")}
+              intent="danger"
+              onClick={removeLink}
+            />
           </Tooltip>
           <CopyLinkButton href={initialValues.link} />
         </Row>
       ) : null}
-      <form className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2" onSubmit={saveLink}>
+      <form
+        className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2"
+        onSubmit={saveLink}
+      >
         <TextField
           size="sm"
           placeholder="Text"
           name="text"
-          label={t('Text')}
+          label={t("Text")}
           defaultValue={initialValues.text}
           autoFocus
         />
@@ -139,15 +176,15 @@ export const LinkEditPopup = ({ initialValues, isLink, onClose }: LinkEditPopupP
           placeholder="https://example.com"
           name="link"
           type="url"
-          label={t('Link')}
+          label={t("Link")}
           defaultValue={initialValues.link}
         />
         <div className="flex flex-row justify-end gap-2 pt-1">
           <Button size="sm" onClick={onClose}>
-            {t('Cancel')}
+            {t("Cancel")}
           </Button>
           <Button size="sm" type="submit" variant="tonal">
-            {t('Save')}
+            {t("Save")}
           </Button>
         </div>
       </form>
@@ -159,10 +196,17 @@ const CopyLinkButton = ({ href }: { href: string }) => {
   const [copied, copy] = useCopyToClipboard();
 
   return (
-    <Tooltip delayDuration={200} content={copied ? 'Copied to clipboard' : 'Copy to clipboard'}>
+    <Tooltip
+      delayDuration={200}
+      content={
+        <Text textStyle="body-sm">
+          {copied ? "Copied to clipboard" : "Copy to clipboard"}
+        </Text>
+      }
+    >
       <Button
         icon={copied ? ClipboardDocumentCheckIcon : ClipboardDocumentListIcon}
-        label={t('Copy link')}
+        label={t("Copy link")}
         onClick={() => copy(href)}
       />
     </Tooltip>

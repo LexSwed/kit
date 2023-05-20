@@ -1,10 +1,6 @@
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect } from 'react';
-import { TextFormatFloatingToolbar } from './text-format';
-import { LinkEdit } from './link-edit';
-import { ToolbarStateProvider, useActorRef, useReferenceNode, useSelector } from './state';
-import { EditorPopover } from '../../lib/editor-popover';
-import { getSelection, useCurrentSelection } from './utils';
+import { useEffect } from "react";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
+import { mergeRegister } from "@lexical/utils";
 import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_HIGH,
@@ -12,8 +8,19 @@ import {
   FOCUS_COMMAND,
   KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
-} from 'lexical';
-import { mergeRegister } from '@lexical/utils';
+} from "lexical";
+
+import { EditorPopover } from "../../lib/editor-popover.tsx";
+
+import { LinkEdit } from "./link-edit.tsx";
+import {
+  ToolbarStateProvider,
+  useActorRef,
+  useReferenceNode,
+  useSelector,
+} from "./state.ts";
+import { TextFormatFloatingToolbar } from "./text-format.tsx";
+import { getSelection, useCurrentSelection } from "./utils.ts";
 
 export function FloatingToolbarPlugin() {
   return (
@@ -28,7 +35,7 @@ function FloatingToolbar() {
 
   const actor = useActorRef();
 
-  const isShown = useSelector((state) => state.matches({ toolbar: 'shown' }));
+  const isShown = useSelector((state) => state.matches({ toolbar: "shown" }));
   const selectedNode = useReferenceNode();
   const $selection = useCurrentSelection();
 
@@ -38,13 +45,13 @@ function FloatingToolbar() {
     /** Should always listen to document pointer down and up in case selection
      * went outside of the editor - it should still be valid */
     function handlePointerDown() {
-      actor.send({ type: 'pointer down' });
+      actor.send({ type: "pointer down" });
     }
     function handlePointerUp() {
       getSelection(editor, true).then((params) => {
-        actor.send({ type: 'pointer up' });
-        if (actor.getSnapshot()?.matches({ pointer: 'up' })) {
-          actor.send({ type: 'selection change', ...params });
+        actor.send({ type: "pointer up" });
+        if (actor.getSnapshot()?.matches({ pointer: "up" })) {
+          actor.send({ type: "selection change", ...params });
         }
       });
     }
@@ -58,12 +65,12 @@ function FloatingToolbar() {
     // }
     // const editorElement = editor.getRootElement();
 
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("pointerup", handlePointerUp);
     // editorElement?.addEventListener('pointermove', handlePointerMove);
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("pointerup", handlePointerUp);
       // editorElement?.removeEventListener('pointermove', handlePointerMove);
     };
   }, [actor, editor]);
@@ -73,7 +80,7 @@ function FloatingToolbar() {
       editor.registerCommand(
         FOCUS_COMMAND,
         () => {
-          actor.send({ type: 'focus' });
+          actor.send({ type: "focus" });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -81,7 +88,7 @@ function FloatingToolbar() {
       editor.registerCommand(
         BLUR_COMMAND,
         () => {
-          actor.send({ type: 'blur' });
+          actor.send({ type: "blur" });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -89,10 +96,10 @@ function FloatingToolbar() {
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         (payload, editor) => {
-          if (actor.getSnapshot()?.matches({ pointer: 'up' })) {
+          if (actor.getSnapshot()?.matches({ pointer: "up" })) {
             getSelection(editor).then((params) => {
-              if (actor.getSnapshot()?.matches({ pointer: 'up' })) {
-                actor.send({ type: 'selection change', ...params });
+              if (actor.getSnapshot()?.matches({ pointer: "up" })) {
+                actor.send({ type: "selection change", ...params });
               }
             });
           }
@@ -103,12 +110,12 @@ function FloatingToolbar() {
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,
         () => {
-          if (actor.getSnapshot()?.matches({ toolbar: 'shown' })) {
+          if (actor.getSnapshot()?.matches({ toolbar: "shown" })) {
             actor.send({
-              type: 'selection change',
+              type: "selection change",
               selection: null,
             });
-            actor.send({ type: 'close' });
+            actor.send({ type: "close" });
             return true;
           }
           return false;

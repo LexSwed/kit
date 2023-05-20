@@ -1,13 +1,23 @@
-import { type MouseEvent, useCallback, useEffect, useState } from 'react';
-import { BsCodeSlash, BsTypeBold, BsTypeItalic, BsTypeUnderline } from 'react-icons/bs/index.js';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
-import { mergeRegister } from '@lexical/utils';
-import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
+import { type MouseEvent, useCallback, useEffect, useState } from "react";
+import {
+  BsCodeSlash,
+  BsTypeBold,
+  BsTypeItalic,
+  BsTypeUnderline,
+} from "react-icons/bs/index.js";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
+import { mergeRegister } from "@lexical/utils";
+import {
+  $getSelection,
+  $isRangeSelection,
+  FORMAT_TEXT_COMMAND,
+  type TextFormatType,
+} from "lexical";
 
-import { t } from '@fxtrot/lib';
-import { ToggleButton } from '@fxtrot/ui';
+import { t } from "@fxtrot/lib";
+import { ToggleButton } from "@fxtrot/ui";
 
-import { ToggleGroup } from './toggle-group.tsx';
+import { ToggleGroup } from "./toggle-group.tsx";
 
 interface Props {
   disabled?: boolean;
@@ -29,10 +39,10 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
     }
 
     // Update text format
-    setIsBold(selection.hasFormat('bold'));
-    setIsItalic(selection.hasFormat('italic'));
-    setIsUnderline(selection.hasFormat('underline'));
-    setIsCode(selection.hasFormat('code'));
+    setIsBold(selection.hasFormat("bold"));
+    setIsItalic(selection.hasFormat("italic"));
+    setIsUnderline(selection.hasFormat("underline"));
+    setIsCode(selection.hasFormat("code"));
   }, []);
 
   useEffect(() => {
@@ -48,7 +58,10 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
-      editor.dispatchCommand(FORMAT_TEXT_COMMAND, e.currentTarget.value as TextFormatType);
+      editor.dispatchCommand(
+        FORMAT_TEXT_COMMAND,
+        e.currentTarget.value as TextFormatType
+      );
     },
     [editor]
   );
@@ -60,10 +73,10 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
         onClick={handleToggle}
         value="bold"
         disabled={disabled}
-        label={t('Format text as bold')}
+        label={t("Format text as bold")}
         size="sm"
         icon={BsTypeBold}
-        className={disabled ? 'bg-surface opacity-80' : undefined}
+        className={disabled ? "bg-surface opacity-80" : undefined}
       />
       <ToggleButton
         pressed={isItalic}
@@ -71,9 +84,9 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
         disabled={disabled}
         onClick={handleToggle}
         size="sm"
-        label={t('Format text as italics')}
+        label={t("Format text as italics")}
         icon={BsTypeItalic}
-        className={disabled ? 'bg-surface opacity-80' : undefined}
+        className={disabled ? "bg-surface opacity-80" : undefined}
       />
       <ToggleButton
         pressed={isUnderline}
@@ -81,9 +94,9 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
         disabled={disabled}
         onClick={handleToggle}
         size="sm"
-        label={t('Format text to underlined')}
+        label={t("Format text to underlined")}
         icon={BsTypeUnderline}
-        className={disabled ? 'bg-surface opacity-80' : undefined}
+        className={disabled ? "bg-surface opacity-80" : undefined}
       />
       <ToggleButton
         pressed={isCode}
@@ -91,9 +104,9 @@ export const TextFormatFloatingToolbar = ({ disabled }: Props) => {
         disabled={disabled}
         onClick={handleToggle}
         size="sm"
-        label={t('Insert code block')}
+        label={t("Insert code block")}
         icon={BsCodeSlash}
-        className={disabled ? 'bg-surface opacity-80' : undefined}
+        className={disabled ? "bg-surface opacity-80" : undefined}
       />
     </ToggleGroup>
   );

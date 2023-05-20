@@ -15,11 +15,31 @@ interface ButtonOwnProps extends VariantProps<typeof buttonCss> {
 interface ButtonProps extends ButtonOwnProps, ComponentProps<'button'> {}
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
-  const { icon, label, type = 'button', size = 'md', disabled, children, ...rest } = props;
+  const {
+    icon,
+    label,
+    type = 'button',
+    display,
+    main,
+    cross,
+    flow,
+    gap,
+    variant,
+    // only for the icon, other defaults are defined in `buttonCss`
+    size = 'md',
+    disabled,
+    children,
+    className,
+    ...rest
+  } = props;
   return (
     <button
       {...rest}
-      className={clsx(buttonCss(props), isIconButton(props) && styles['button--icon'])}
+      className={clsx(
+        buttonCss({ display, main, cross, flow, gap, variant, size }),
+        isIconButton(props) && styles['button--icon'],
+        className
+      )}
       aria-label={label}
       title={label}
       disabled={disabled}
@@ -38,11 +58,29 @@ Button.displayName = 'Button';
 interface LinkButtonProps extends ButtonOwnProps, ComponentProps<'a'> {}
 
 const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>((props, ref) => {
-  const { icon, label, size = 'md', children, ...rest } = props;
+  const {
+    icon,
+    label,
+    display,
+    main,
+    cross,
+    flow,
+    gap,
+    variant,
+    // only for the icon, other defaults are defined in `buttonCss`
+    size = 'md',
+    children,
+    className,
+    ...rest
+  } = props;
   return (
     <a
       {...rest}
-      className={clsx(buttonCss(props), isIconButton(props) && styles['button--icon'])}
+      className={clsx(
+        buttonCss({ display, main, cross, flow, gap, variant, size }),
+        isIconButton(props) && styles['button--icon'],
+        className
+      )}
       aria-label={label}
       title={label}
       ref={ref}

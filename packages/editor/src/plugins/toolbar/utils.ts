@@ -51,6 +51,10 @@ export async function getSelection(
         return resolve({ selection: null });
       }
 
+      if (nativeSelection.isCollapsed && !includeCollapsed) {
+        resolve({ selection: null });
+      }
+
       if (nativeSelection.isCollapsed && includeCollapsed) {
         const linkNode = $getLinkSelection();
         if (linkNode) {

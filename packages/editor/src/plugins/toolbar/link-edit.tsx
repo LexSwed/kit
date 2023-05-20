@@ -135,7 +135,7 @@ export const LinkEditPopup = ({
       reference={selectedNode}
     >
       {isLink ? (
-        <Row main="end" gap="sm">
+        <Row main="end" gap="xs">
           <Tooltip
             delayDuration={200}
             content={<Text textStyle="body-sm">Open in a new tab</Text>}

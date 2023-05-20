@@ -1,4 +1,5 @@
-import { Children, type ComponentProps, type ForwardedRef, forwardRef, isValidElement, type ReactElement } from 'react';
+import { type ComponentProps, type ForwardedRef, forwardRef, isValidElement, type ReactElement } from 'react';
+import flattenChildren from 'react-keyed-flatten-children';
 import * as ToggleGroup from '@radix-ui/react-toggle-group';
 import { clsx } from 'clsx';
 
@@ -15,7 +16,7 @@ export const ActionGroup = forwardRef(
     return (
       // @ts-expect-error tough kid
       <ToggleGroup.Root type={type} className={clsx(flexCss({ gap, ...props }), className)} {...props} ref={ref}>
-        {Children.map(children, (child) => {
+        {(flattenChildren as unknown as typeof flattenChildren.default)(children).map((child) => {
           if (isValidElement(child) && child.type === ToggleButton) {
             return (
               <ToggleGroup.Item

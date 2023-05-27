@@ -21,10 +21,7 @@ import {
 
 import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
 
-export async function getSelection(
-  editor: LexicalEditor,
-  includeCollapsed = false
-) {
+export async function getSelection(editor: LexicalEditor) {
   // Should not to pop up the floating toolbar when using IME input
   if (editor.isComposing()) {
     return { selection: null };
@@ -52,11 +49,7 @@ export async function getSelection(
         return resolve({ selection: null });
       }
 
-      if (nativeSelection.isCollapsed && !includeCollapsed) {
-        resolve({ selection: null });
-      }
-
-      if (nativeSelection.isCollapsed && includeCollapsed) {
+      if (nativeSelection.isCollapsed) {
         const linkNode = $getLinkSelection();
         if (linkNode) {
           const link = editor.getElementByKey(linkNode.getKey());

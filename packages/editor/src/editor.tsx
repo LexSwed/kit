@@ -28,6 +28,8 @@ import { LinkPlugin } from "./plugins/link/index.tsx";
 import { FloatingToolbarPlugin } from "./plugins/toolbar/index.ts";
 import { theme } from "./theme.ts";
 
+import css from "./editor.module.css";
+
 interface Props {
   initialEditorState: InitialEditorStateType;
 }
@@ -63,7 +65,9 @@ export const Editor = ({ initialEditorState }: Props) => {
         <LexicalComposer initialConfig={initialConfig}>
           <RichTextPlugin
             contentEditable={
-              <ContentEditable className="relative min-h-[70vh] rounded-sm p-6 font-sans text-on-background shadow-2xl outline-none" />
+              <ContentEditable
+                className={`relative min-h-[70vh] rounded-sm p-6 font-sans text-on-background shadow-2xl outline-none ${css.editor}`}
+              />
             }
             placeholder={
               <div className="pointer-events-none absolute start-0 top-0 p-6 text-on-surface-variant">

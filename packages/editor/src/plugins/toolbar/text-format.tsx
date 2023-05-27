@@ -17,14 +17,14 @@ import {
 import { t } from "@fxtrot/lib";
 import { ToggleButton } from "@fxtrot/ui";
 
-import { useSelector } from "./state.ts";
+import { useSelector } from "./state-v2.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
 
 export const TextFormatFloatingToolbar = () => {
   const [editor] = useLexicalComposerContext();
 
   const isCollapsed = useSelector((state) =>
-    state.matches({ editor: { selection: "collapsed" } })
+    state.matches({ selection: "collapsed" })
   );
 
   const [isBold, setIsBold] = useState(false);

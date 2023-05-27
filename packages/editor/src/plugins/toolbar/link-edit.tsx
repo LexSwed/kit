@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { RxLink2, RxLinkBreak2 } from "react-icons/rx/index.js";
 import {
   ArrowTopRightOnSquareIcon,
@@ -23,7 +23,7 @@ import {
 
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
-import { useActorRef, useReferenceNode, useSelector } from "./state.ts";
+import { useActorRef, useReferenceNode, useSelector } from "./state-v2.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
 import {
   selectLinkAndGetTheDetails,
@@ -52,8 +52,8 @@ export const LinkEdit = () => {
       actor.send({ type: "cancel link edit" });
     };
     const open = async () => {
-      actor.send({ type: "edit link" });
       const details = await selectLinkAndGetTheDetails(editor);
+      actor.send({ type: "edit link" });
       setInitialValues(details);
     };
     const toggle = async () => {
@@ -68,12 +68,10 @@ export const LinkEdit = () => {
     return { open, close, toggle };
   }, [actor, editor]);
 
-  if (isDisabled) return null;
-
   return (
     <>
       <div className="w-0.5 bg-outline/10" />
-      <ToggleGroup>
+      <ToggleGroup disabled={isDisabled}>
         <ToggleButton
           pressed={isLink || isLinkEditOpen}
           onClick={toggle}
@@ -111,6 +109,20 @@ export const LinkEditPopup = ({
 }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
   const selectedNode = useReferenceNode();
+
+  useEffect(() => {
+    // @ts-expect-error Highlights API is not yet in lib/dom
+    if (selectedNode && typeof Highlight !== "undefined") {
+      // @ts-expect-error Highlights API is not yet in lib/dom
+      const highlight = new Highlight(selectedNode);
+      // @ts-expect-error Highlights API is not yet in lib/dom
+      CSS.highlights.set("editor", highlight);
+      return () => {
+        // @ts-expect-error Highlights API is not yet in lib/dom
+        CSS.highlights.delete("editor");
+      };
+    }
+  }, [selectedNode]);
 
   const removeLink = () => {
     editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
@@ -192,6 +204,7 @@ export const LinkEditPopup = ({
           name="link"
           type="url"
           defaultValue={initialValues.link}
+          autoFocus
         />
         <div className="flex flex-row justify-end gap-2 pt-1">
           <Button size="sm" onClick={onClose}>

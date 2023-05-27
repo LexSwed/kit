@@ -1,1 +1,1 @@
-export { FloatingToolbarPlugin } from './toolbar'
+export { FloatingToolbarPlugin } from "./toolbar.tsx";

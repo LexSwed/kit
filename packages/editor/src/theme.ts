@@ -1,47 +1,51 @@
-import { type EditorThemeClasses } from 'lexical';
+import { type EditorThemeClasses } from "lexical";
 
 // for Tailwind editor suggestions by css`` pattern
 const css = (classNames: string) => classNames;
 
 export const theme: EditorThemeClasses = {
   heading: {
-    h1: css('mt-[0.8em] mb-[0.4em] text-3xl'),
-    h2: css('mt-[0.8em] mb-[0.4em] text-2xl'),
-    h3: css('mt-[0.8em] mb-[0.4em] text-xl'),
-    h4: css('mt-[0.8em] mb-[0.4em] text-xl'),
-    h5: css('mt-[0.8em] mb-[0.4em] text-xl'),
-    h6: css('mt-[0.8em] mb-[0.4em] text-lg uppercase'),
+    h1: css("mt-[0.8em] mb-[0.4em] text-3xl"),
+    h2: css("mt-[0.8em] mb-[0.4em] text-2xl"),
+    h3: css("mt-[0.8em] mb-[0.4em] text-xl"),
+    h4: css("mt-[0.8em] mb-[0.4em] text-xl"),
+    h5: css("mt-[0.8em] mb-[0.4em] text-xl"),
+    h6: css("mt-[0.8em] mb-[0.4em] text-lg uppercase"),
   },
   text: {
-    bold: css('font-bold'),
+    bold: css("font-bold"),
     code: css(
-      'rounded-xs -m-[2px] inline-block whitespace-pre-wrap bg-primary/10 align-middle font-mono text-[0.8em] leading-[1.5em] text-primary px-0.5'
+      "rounded-xs -m-[2px] inline-block whitespace-pre-wrap bg-primary/10 align-middle font-mono text-[0.8em] leading-[1.5em] text-primary px-0.5"
     ),
-    italic: css('italic'),
-    strikethrough: css('line-through'),
-    subscript: css('align-sub'),
-    superscript: css('align-super'),
-    underline: css('underline'),
-    underlineStrikethrough: css('[text-decoration:underline_line-through]'),
+    italic: css("italic"),
+    strikethrough: css("line-through"),
+    subscript: css("align-sub"),
+    superscript: css("align-super"),
+    underline: css("underline"),
+    underlineStrikethrough: css("[text-decoration:underline_line-through]"),
   },
-  paragraph: css('relative m-0'),
-  quote: css('mb-3 p-4 bg-surface text-on-surface border-2 rounded-sm border-outline'),
-  indent: css('pl-6'),
-  link: css('border-b-[1px] border-dotted pb-0.5 border-current cursor-pointer hover:border-solid'),
+  paragraph: css("relative m-0"),
+  quote: css(
+    "mb-3 p-4 bg-surface text-on-surface border-2 rounded-sm border-outline"
+  ),
+  indent: css("pl-6"),
+  link: css(
+    "border-b-[1px] border-dotted pb-0.5 border-current cursor-pointer hover:border-solid"
+  ),
   list: {
-    listitem: css('ml-6'),
+    listitem: css("ml-6"),
     nested: {
-      listitem: css('list-none'),
+      listitem: css("list-none"),
     },
     olDepth: [
-      css('list-inside'),
-      css('[list-style-type:upper-alpha]'),
-      css('[list-style-type:lower-alpha]'),
-      css('[list-style-type:upper-roman]'),
-      css('[list-style-type:lower-roman]'),
+      css("list-inside"),
+      css("[list-style-type:upper-alpha]"),
+      css("[list-style-type:lower-alpha]"),
+      css("[list-style-type:upper-roman]"),
+      css("[list-style-type:lower-roman]"),
     ],
-    ol: css('list-decimal'),
-    ul: css('list-disc'),
+    ol: css("list-decimal"),
+    ul: css("list-disc"),
   },
   // image: 'editor-image',
   // mark: 'PlaygroundEditorTheme__mark',

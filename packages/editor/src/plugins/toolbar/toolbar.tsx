@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 import { mergeRegister } from "@lexical/utils";
 import {
@@ -9,22 +9,33 @@ import {
   KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
+import { createMachine } from "xstate";
 
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
 import { LinkEdit } from "./link-edit.tsx";
 import {
+  toolbarMachine,
   ToolbarStateProvider,
   useActorRef,
   useReferenceNode,
   useSelector,
-} from "./state.ts";
+} from "./state-v2.ts";
 import { TextFormatFloatingToolbar } from "./text-format.tsx";
-import { getSelection } from "./utils.ts";
 
 export function FloatingToolbarPlugin() {
+  const [editor] = useLexicalComposerContext();
+  const machine = useMemo(() => {
+    return createMachine(
+      {
+        ...toolbarMachine.config,
+        context: { ...toolbarMachine.getContext(), editor },
+      },
+      toolbarMachine.options
+    );
+  }, [editor]);
   return (
-    <ToolbarStateProvider>
+    <ToolbarStateProvider machine={machine}>
       <FloatingToolbar />
     </ToolbarStateProvider>
   );
@@ -45,12 +56,7 @@ function FloatingToolbar() {
       actor.send({ type: "pointer down" });
     }
     function handlePointerUp() {
-      getSelection(editor, true).then((params) => {
-        actor.send({ type: "pointer up" });
-        if (actor.getSnapshot()?.matches({ pointer: "up" })) {
-          actor.send({ type: "selection change", ...params });
-        }
-      });
+      actor.send({ type: "pointer up" });
     }
 
     /** Apply to editorElement to void applying opacity when pointer down is within the toolbar itself. */
@@ -93,13 +99,7 @@ function FloatingToolbar() {
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         (payload, editor) => {
-          if (actor.getSnapshot()?.matches({ pointer: "up" })) {
-            getSelection(editor).then((params) => {
-              if (actor.getSnapshot()?.matches({ pointer: "up" })) {
-                actor.send({ type: "selection change", ...params });
-              }
-            });
-          }
+          actor.send({ type: "selection change" });
           return false;
         },
         COMMAND_PRIORITY_HIGH
@@ -107,14 +107,7 @@ function FloatingToolbar() {
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,
         () => {
-          if (actor.getSnapshot()?.matches({ toolbar: "shown" })) {
-            actor.send({
-              type: "selection change",
-              selection: null,
-            });
-            actor.send({ type: "close" });
-            return true;
-          }
+          actor.send({ type: "close" });
           return false;
         },
         COMMAND_PRIORITY_HIGH

@@ -87,12 +87,13 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
       if (linkNode) {
         $selectLink(selection, linkNode);
       }
-      console.log(selection.extract());
+
       resolve({
         link: linkNode ? linkNode.getURL() : "",
-        text: JSON.stringify(
-          selection.getNodes().map((node) => node.exportJSON())
-        ),
+        text: "",
+        // text: JSON.stringify(
+        //   selection.getNodes().map((node) => node..exportJSON())
+        // ),
       });
     });
   });

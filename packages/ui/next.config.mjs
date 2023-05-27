@@ -1,9 +1,10 @@
-import remarkFrontmatter from 'remark-frontmatter';
-import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-import rehypeSlug from 'rehype-slug';
 import createWithMdx from '@next/mdx';
+import rehypeSlug from 'rehype-slug';
+import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import remarkMdxCodeMeta from 'remark-mdx-code-meta';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
+
 import { remarkNextStaticProps } from './plugins/remark-next-static-props.mjs';
 
 const metaPropName = 'meta';

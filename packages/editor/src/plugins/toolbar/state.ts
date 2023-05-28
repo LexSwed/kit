@@ -1,13 +1,15 @@
 import { createActorContext } from "@xstate/react";
-import { and, assign, createMachine, raise, stateIn } from "xstate";
+import type { LexicalEditor } from "lexical/LexicalEditor.js";
+import { assign, createMachine, fromPromise, raise, stateIn } from "xstate";
+
+import { getSelection } from "./utils.ts";
 
 interface Context {
-  /** Currently selected range, with keyboard or pointer */
-  selection: null | Range;
   /**
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
-  reference: null | Range;
+  selection: null | Range;
+  editor: LexicalEditor;
 }
 
 type Event =
@@ -15,153 +17,100 @@ type Event =
   | { type: "pointer up" }
   | { type: "focus" }
   | { type: "blur" }
-  | { type: "selection change"; selection: Range; collapsed: boolean }
-  | { type: "selection change"; selection: null }
+  | { type: "selection change" }
   | { type: "selected" }
   | { type: "deselected" }
   | { type: "edit link" }
   | { type: "close" }
-  | { type: "cancel link edit" };
+  | { type: "cancel link edit" }
+  | {
+      type: "done.invoke.toolbarMachine.selection.checking selection:invocation[0]";
+      output: Awaited<ReturnType<typeof getSelection>>;
+    };
 
 const toolbarMachine = createMachine<Context, Event>(
   {
     id: "toolbarMachine",
-    context: {
-      reference: null,
-      selection: null,
-    },
+    context: {} as Context,
     type: "parallel",
     states: {
-      editor: {
-        id: "editor",
-        type: "parallel",
+      focus: {
+        initial: "in",
         states: {
-          focus: {
-            initial: "out",
-            id: "focus",
-            states: {
-              in: {
-                on: {
-                  blur: "out",
-                },
-              },
-              out: {
-                on: {
-                  focus: { target: "in" },
-                },
-              },
-            },
+          in: {
+            on: { blur: "out" },
           },
-          selection: {
-            id: "selection",
-            initial: "none",
+          out: {
             on: {
-              selected: {
-                actions: ["assignReference"],
-              },
-              deselected: {
-                actions: ["clearSelection", "clearReference"],
-              },
-              "selection change": [
-                /**
-                 * Keyboard selection
-                 * (or weird cases when "pointer up" is emitted before "selection change")
-                 */
-                {
-                  guard: and([
-                    "rangeSelection",
-                    stateIn({ pointer: "up", editor: { focus: "in" } }),
-                  ]),
-                  actions: ["assignSelection", "raiseSelected"],
-                  target: ["#selection.range"],
-                },
-                /**
-                 * Commented out is to avoid toolbar opening on collapsed (link) navigating with keyboard only
-                 */
-                // {
-                //   in: {
-                //     pointer: 'up',
-                //     editor: {
-                //       focus: 'in',
-                //     },
-                //   },
-                //   cond: 'collapsedSelection',
-                //   actions: ['assignSelection', 'assignReference', 'raiseSelected'],
-                //   target: ['#selection.collapsed'],
-                // },
-                {
-                  guard: and([
-                    "noSelection",
-                    stateIn({ pointer: "up", editor: { focus: "in" } }),
-                  ]),
-                  actions: ["raiseDeselected"],
-                  target: ["#selection.none"],
-                },
-                {
-                  guard: "collapsedSelection",
-                  actions: ["assignSelection"],
-                  target: ["#selection.collapsed"],
-                },
-                {
-                  guard: "rangeSelection",
-                  actions: ["assignSelection"],
-                  target: ["#selection.range"],
-                },
-                {
-                  guard: "noSelection",
-                  actions: ["clearSelection"],
-                  target: ["#selection.none"],
-                },
-                {
-                  actions: ["assignSelection"],
-                },
-              ],
-              "pointer up": [
-                {
-                  guard: and([
-                    "hasNoSelection",
-                    stateIn({ editor: { focus: "in" } }),
-                  ]),
-                  actions: ["raiseDeselected"],
-                  target: [".none"],
-                },
-                {
-                  guard: and([
-                    "hasSelection",
-                    stateIn({ editor: { focus: "in" } }),
-                  ]),
-                  actions: ["raiseSelected"],
-                },
-              ],
-            },
-            states: {
-              none: {},
-              collapsed: {},
-              range: {},
+              focus: "in",
             },
           },
         },
       },
       pointer: {
-        id: "pointer",
         initial: "up",
         states: {
           up: {
             on: {
-              "pointer down": {
-                target: "down",
-              },
+              "pointer down": "down",
             },
           },
           down: {
             on: {
-              "pointer up": {
-                target: "up",
-              },
+              "pointer up": "up",
             },
           },
         },
       },
+
+      selection: {
+        id: "selection",
+        initial: "none",
+        on: {
+          selected: {
+            target: ".range",
+          },
+          deselected: {
+            target: ".none",
+          },
+          "pointer up": [
+            {
+              guard: stateIn({ focus: "in" }),
+              target: ".checking selection",
+            },
+          ],
+          "selection change": [
+            {
+              guard: stateIn({ focus: "in", pointer: "up" }),
+              target: ".checking selection",
+            },
+          ],
+        },
+        states: {
+          "checking selection": {
+            invoke: {
+              src: "getSelection",
+              input: ({ context }: { context: Context }) => ({
+                editor: context.editor,
+              }),
+              onDone: [
+                {
+                  guard: "isRangeSelection",
+                  actions: ["assignSelection", "raiseSelected"],
+                  target: "range",
+                },
+                {
+                  actions: ["clearSelection", "raiseDeselected"],
+                  target: "none",
+                },
+              ],
+            },
+          },
+          none: {},
+          range: {},
+        },
+      },
+
       toolbar: {
         id: "toolbar",
         initial: "hidden",
@@ -187,7 +136,9 @@ const toolbarMachine = createMachine<Context, Event>(
             states: {
               open: {
                 on: {
-                  "edit link": "linkEditShown",
+                  "edit link": {
+                    target: "linkEditShown",
+                  },
                 },
               },
               linkEditShown: {
@@ -218,8 +169,8 @@ const toolbarMachine = createMachine<Context, Event>(
     actions: {
       assignSelection: assign({
         selection: ({ context, event }) => {
-          if (event.type === "selection change") {
-            return event.selection;
+          if ("output" in event && event.output.selection) {
+            return event.output.selection;
           }
           return context.selection;
         },
@@ -227,37 +178,36 @@ const toolbarMachine = createMachine<Context, Event>(
       clearSelection: assign({
         selection: null,
       }),
-      assignReference: assign({
-        reference: ({ context }) => {
-          return context.selection ?? null;
-        },
+      raiseSelected: raise(({ event }) => {
+        if (
+          event.type ===
+            "done.invoke.toolbarMachine.selection.checking selection:invocation[0]" &&
+          event.output.selection
+        ) {
+          return {
+            type: "selected",
+          };
+        }
+        throw new Error("Cannot raise selected event from non-selection queue");
       }),
-      clearReference: assign({
-        reference: null,
-      }),
-      raiseSelected: raise({ type: "selected" }),
       raiseDeselected: raise({ type: "deselected" }),
     },
     guards: {
-      hasSelection({ context }) {
-        return !!context.selection;
+      isRangeSelection: ({ event }) => {
+        if (
+          event.type ===
+          "done.invoke.toolbarMachine.selection.checking selection:invocation[0]"
+        ) {
+          return !!event.output.selection;
+        }
+        return false;
       },
-      hasNoSelection({ context }) {
-        return !context.selection;
-      },
-      rangeSelection({ event }) {
-        return event.type === "selection change" && !!event.selection;
-      },
-      collapsedSelection({ event }) {
-        return (
-          event.type === "selection change" &&
-          !!event.selection &&
-          event.collapsed
-        );
-      },
-      noSelection({ event }) {
-        return event.type === "selection change" && !event.selection;
-      },
+    },
+    actors: {
+      getSelection: fromPromise(async ({ input: { editor } }) => {
+        const selection = await getSelection(editor);
+        return selection;
+      }),
     },
   }
 );
@@ -279,8 +229,8 @@ const {
     : undefined
 );
 
-export { ToolbarStateProvider, useActorRef, useSelector };
+export { toolbarMachine, ToolbarStateProvider, useActorRef, useSelector };
 
 export function useReferenceNode() {
-  return useSelector((state) => state.context.reference);
+  return useSelector((state) => state.context.selection);
 }

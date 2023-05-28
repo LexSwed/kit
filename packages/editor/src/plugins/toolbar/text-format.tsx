@@ -1,4 +1,4 @@
-import { type MouseEvent, useCallback, useEffect, useState } from "react";
+import { type MouseEvent, useCallback, useState } from "react";
 import {
   BsCodeSlash,
   BsTypeBold,
@@ -6,7 +6,6 @@ import {
   BsTypeUnderline,
 } from "react-icons/bs/index.js";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { mergeRegister } from "@lexical/utils";
 import {
   $getSelection,
   $isRangeSelection,
@@ -17,20 +16,17 @@ import {
 import { t } from "@fxtrot/lib";
 import { ToggleButton } from "@fxtrot/ui";
 
-import { useSelector } from "./state-v2.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
+import { useSelectionChange } from "./utils.ts";
 
 export const TextFormatFloatingToolbar = () => {
   const [editor] = useLexicalComposerContext();
-
-  const isCollapsed = useSelector((state) =>
-    state.matches({ selection: "collapsed" })
-  );
 
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
   const [isCode, setIsCode] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const updateFormat = useCallback(() => {
     const selection = $getSelection();
@@ -44,17 +40,10 @@ export const TextFormatFloatingToolbar = () => {
     setIsItalic(selection.hasFormat("italic"));
     setIsUnderline(selection.hasFormat("underline"));
     setIsCode(selection.hasFormat("code"));
+    setIsCollapsed(selection.isCollapsed());
   }, []);
 
-  useEffect(() => {
-    if (isCollapsed) return;
-    editor.getEditorState().read(updateFormat);
-    return mergeRegister(
-      editor.registerUpdateListener(({ editorState }) => {
-        editorState.read(updateFormat);
-      })
-    );
-  }, [editor, updateFormat, isCollapsed]);
+  useSelectionChange(updateFormat);
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {

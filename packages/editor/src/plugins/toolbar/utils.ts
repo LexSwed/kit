@@ -12,12 +12,14 @@ import {
   $getSelection,
   $isRangeSelection,
   $isTextNode,
+  COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
-  type ElementNode,
+  type CommandListenerPriority,
   type LexicalEditor,
-  type RangeSelection,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
+
+import { useLatest } from "@fxtrot/ui";
 
 import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
 
@@ -70,16 +72,39 @@ export async function getSelection(editor: LexicalEditor) {
   });
 }
 
-export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
-  return new Promise<{ link: string; text: string }>((resolve) => {
+export async function selectWholeLink(editor: LexicalEditor) {
+  return new Promise((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
       const linkNode = $getLinkSelection();
 
       if (linkNode) {
-        $selectLink(selection, linkNode);
+        const textNodes = linkNode.getAllTextNodes();
+
+        const firstTextNode = textNodes.at(0);
+        const lastTextNode = textNodes.at(-1);
+
+        if (firstTextNode && lastTextNode) {
+          selection.setTextNodeRange(
+            firstTextNode,
+            0,
+            lastTextNode,
+            lastTextNode.getTextContentSize()
+          );
+        }
       }
+      resolve(undefined);
+    });
+  });
+}
+
+export async function getLinkDetails(editor: LexicalEditor) {
+  return new Promise<{ link: string; text: string }>((resolve) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+      const linkNode = $getLinkSelection();
 
       resolve({
         link: linkNode ? linkNode.getURL() : "",
@@ -92,46 +117,11 @@ export async function selectLinkAndGetTheDetails(editor: LexicalEditor) {
   });
 }
 
-export function $selectLink(
-  selection: RangeSelection,
-  node: ElementNode | null
-) {
-  if (!node) {
-    return null;
-  }
-
-  const textNodes = node.getAllTextNodes();
-
-  const firstTextNode = textNodes.at(0);
-  const lastTextNode = textNodes.at(-1);
-
-  if (firstTextNode && lastTextNode) {
-    selection.setTextNodeRange(
-      firstTextNode,
-      0,
-      lastTextNode,
-      lastTextNode.getTextContentSize()
-    );
-  }
-}
-
 export function updateSelectedLink(
   editor: LexicalEditor,
   { text, link }: { text: string; link: string }
 ) {
-  editor.update(() => {
-    const node = $getLinkSelection();
-
-    if (!node) return;
-
-    node.setTextContent(text);
-    editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
-
-    const selection = $getSelection();
-    if (!$isRangeSelection(selection)) return null;
-    const selectedNode = getSelectedNode(selection).getParent();
-    $selectLink(selection, selectedNode);
-  });
+  editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
 }
 
 export function $getLinkSelection(): LinkNode | null {
@@ -141,7 +131,6 @@ export function $getLinkSelection(): LinkNode | null {
   }
   const nodes = selection.getNodes();
   const linkNode = [nodes[0], nodes[0].getParent()].find($isLinkNode);
-  console.log(nodes);
   return linkNode ? linkNode : null;
 }
 
@@ -196,4 +185,41 @@ export function useIsLinkSelected() {
   }, [editor]);
 
   return [isLink, isDisabled] as const;
+}
+
+export function useSelectionChange(
+  handler: () => void,
+  priority: CommandListenerPriority = COMMAND_PRIORITY_HIGH
+) {
+  const [editor] = useLexicalComposerContext();
+  const handlerRef = useLatest(handler);
+
+  useEffect(() => {
+    editor.getEditorState().read(handlerRef.current);
+    return mergeRegister(
+      editor.registerCommand(
+        SELECTION_CHANGE_COMMAND,
+        () => {
+          console.log("selection change");
+          handlerRef.current?.();
+          return false;
+        },
+        priority
+      )
+    );
+  }, [editor, priority, handlerRef]);
+}
+
+export function useEditorStateUpdate(handler: () => void) {
+  const [editor] = useLexicalComposerContext();
+  const handlerRef = useLatest(handler);
+
+  useEffect(() => {
+    editor.getEditorState().read(handlerRef.current);
+    return mergeRegister(
+      editor.registerUpdateListener(({ editorState }) => {
+        editorState.read(handlerRef.current);
+      })
+    );
+  }, [editor, handlerRef]);
 }

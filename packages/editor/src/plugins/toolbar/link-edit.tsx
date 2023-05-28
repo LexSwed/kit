@@ -23,16 +23,18 @@ import {
 
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
-import { useActorRef, useReferenceNode, useSelector } from "./state-v2.ts";
+import { useActorRef, useReferenceNode, useSelector } from "./state.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
 import {
-  selectLinkAndGetTheDetails,
+  getLinkDetails,
+  selectWholeLink,
   updateSelectedLink,
   useIsLinkSelected,
 } from "./utils.ts";
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();
+  const selection = useReferenceNode();
 
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
@@ -52,8 +54,10 @@ export const LinkEdit = () => {
       actor.send({ type: "cancel link edit" });
     };
     const open = async () => {
-      const details = await selectLinkAndGetTheDetails(editor);
+      // actor.send({ type: "selection change" });
+      await selectWholeLink(editor);
       actor.send({ type: "edit link" });
+      const details = await getLinkDetails(editor);
       setInitialValues(details);
     };
     const toggle = async () => {
@@ -108,13 +112,13 @@ export const LinkEditPopup = ({
   onClose,
 }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
-  const selectedNode = useReferenceNode();
+  const selection = useReferenceNode();
 
   useEffect(() => {
     // @ts-expect-error Highlights API is not yet in lib/dom
-    if (selectedNode && typeof Highlight !== "undefined") {
+    if (selection && typeof Highlight !== "undefined") {
       // @ts-expect-error Highlights API is not yet in lib/dom
-      const highlight = new Highlight(selectedNode);
+      const highlight = new Highlight(selection);
       // @ts-expect-error Highlights API is not yet in lib/dom
       CSS.highlights.set("editor", highlight);
       return () => {
@@ -122,11 +126,11 @@ export const LinkEditPopup = ({
         CSS.highlights.delete("editor");
       };
     }
-  }, [selectedNode]);
+  }, [selection]);
 
   const removeLink = () => {
     editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    close();
+    onClose();
   };
 
   const saveLink = (event: FormEvent<HTMLFormElement>) => {
@@ -135,6 +139,7 @@ export const LinkEditPopup = ({
     const text = (form.get("text") as string) || "";
     const link = (form.get("link") as string) || "";
     updateSelectedLink(editor, { text, link });
+    onClose();
   };
 
   const onKeyDown = useKeyboardHandles({
@@ -147,7 +152,7 @@ export const LinkEditPopup = ({
       isOpen={!!initialValues}
       placement="bottom"
       offset={8}
-      reference={selectedNode}
+      reference={selection}
     >
       {isLink ? (
         <Row main="space-between" cross="center">
@@ -226,9 +231,11 @@ const CopyLinkButton = ({ href }: { href: string }) => {
     <Tooltip
       delayDuration={200}
       content={
-        <Text textStyle="body-sm">
-          {copied ? "Copied to clipboard" : "Copy to clipboard"}
-        </Text>
+        copied ? (
+          <Text textStyle="body-sm">Copied to clipboard</Text>
+        ) : (
+          <Text textStyle="body-sm">Copy to clipboard</Text>
+        )
       }
     >
       <Button

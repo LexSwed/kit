@@ -20,7 +20,7 @@ import {
   useActorRef,
   useReferenceNode,
   useSelector,
-} from "./state-v2.ts";
+} from "./state.ts";
 import { TextFormatFloatingToolbar } from "./text-format.tsx";
 
 export function FloatingToolbarPlugin() {
@@ -98,17 +98,17 @@ function FloatingToolbar() {
       ),
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
-        (payload, editor) => {
+        () => {
           actor.send({ type: "selection change" });
           return false;
         },
-        COMMAND_PRIORITY_HIGH
+        COMMAND_PRIORITY_LOW
       ),
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,
         () => {
           actor.send({ type: "close" });
-          return false;
+          return true;
         },
         COMMAND_PRIORITY_HIGH
       )

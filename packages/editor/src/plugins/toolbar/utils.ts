@@ -81,11 +81,12 @@ export async function selectWholeLink(editor: LexicalEditor, newRange: Range) {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
       selection.applyDOMRange(newRange);
+      resolve(undefined);
       // enforce focusing for and waiting for selection change event to be emitted
       // lexical ignores selection change if the editor is not focused
-      editor.focus(() => {
-        requestAnimationFrame(resolve);
-      });
+      // editor.focus(() => {
+      //   requestAnimationFrame(resolve);
+      // });
     });
   });
 }

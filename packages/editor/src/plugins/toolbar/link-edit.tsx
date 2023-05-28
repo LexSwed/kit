@@ -54,7 +54,6 @@ export const LinkEdit = () => {
       actor.send({ type: "cancel link edit" });
     };
     const open = async () => {
-      // actor.send({ type: "selection change" });
       if (selection) {
         await selectWholeLink(editor, selection);
         actor.send({ type: "edit link" });
@@ -115,6 +114,7 @@ export const LinkEditPopup = ({
 }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
   const selection = useReferenceNode();
+  const supportsTextEditing = Boolean(initialValues.text);
 
   useEffect(() => {
     // @ts-expect-error Highlights API is not yet in lib/dom
@@ -184,7 +184,7 @@ export const LinkEditPopup = ({
         </Row>
       ) : null}
       <form
-        className="col-span-full row-start-2 flex w-64 flex-col gap-4 p-2"
+        className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2"
         onSubmit={saveLink}
       >
         {/* 
@@ -200,24 +200,27 @@ export const LinkEditPopup = ({
           autoFocus
           initialEditorState={initialValues.text}
         /> */}
-        {initialValues.text && (
+        <fieldset autoFocus>
+          {supportsTextEditing && (
+            <TextField
+              size="sm"
+              label="Link title"
+              placeholder="Reference"
+              name="text"
+              defaultValue={initialValues.text}
+              autoFocus
+            />
+          )}
           <TextField
             size="sm"
-            label="Link title"
-            placeholder="Reference"
-            name="text"
-            defaultValue={initialValues.text}
-            autoFocus
+            label="Link URL"
+            placeholder="https://example.com"
+            name="link"
+            type="url"
+            autoFocus={!supportsTextEditing}
+            defaultValue={initialValues.link}
           />
-        )}
-        <TextField
-          size="sm"
-          label="Link URL"
-          placeholder="https://example.com"
-          name="link"
-          type="url"
-          defaultValue={initialValues.link}
-        />
+        </fieldset>
         <div className="flex flex-row justify-end gap-2 pt-1">
           <Button size="sm" onClick={onClose}>
             {t("Cancel")}

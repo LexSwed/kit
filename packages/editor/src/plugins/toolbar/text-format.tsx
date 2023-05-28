@@ -9,7 +9,6 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import {
   $getSelection,
   $isRangeSelection,
-  COMMAND_PRIORITY_CRITICAL,
   FORMAT_TEXT_COMMAND,
   type TextFormatType,
 } from "lexical";
@@ -18,7 +17,7 @@ import { t } from "@fxtrot/lib";
 import { ToggleButton } from "@fxtrot/ui";
 
 import { ToggleGroup } from "./toggle-group.tsx";
-import { useSelectionChange } from "./utils.ts";
+import { useEditorStateChange } from "./utils.ts";
 
 export const TextFormatFloatingToolbar = () => {
   const [editor] = useLexicalComposerContext();
@@ -44,7 +43,11 @@ export const TextFormatFloatingToolbar = () => {
     setIsCollapsed(selection.isCollapsed());
   }, []);
 
-  useSelectionChange(updateFormat, COMMAND_PRIORITY_CRITICAL);
+  /**
+   * EditorStateChange to sync selection FORMAT_TEXT_COMMAND
+   * with the local state.
+   */
+  useEditorStateChange(updateFormat);
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {

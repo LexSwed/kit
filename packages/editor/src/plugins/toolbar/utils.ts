@@ -23,7 +23,7 @@ import { useLatest } from "@fxtrot/ui";
 import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
 
 export async function getSelection(editor: LexicalEditor) {
-  // Should not to pop up the floating toolbar when using IME input
+  // copied from Lexical Playground, not sure what's this
   if (editor.isComposing()) {
     return { selection: null };
   }
@@ -185,4 +185,18 @@ export function useSelectionChange(
       )
     );
   }, [editor, priority, handlerRef]);
+}
+
+export function useEditorStateChange(onChange: () => void) {
+  const [editor] = useLexicalComposerContext();
+  const handlerRef = useLatest(onChange);
+
+  useEffect(() => {
+    editor.getEditorState().read(handlerRef.current);
+    return mergeRegister(
+      editor.registerUpdateListener(({ editorState }) => {
+        editorState.read(handlerRef.current);
+      })
+    );
+  }, [editor, handlerRef]);
 }

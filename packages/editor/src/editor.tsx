@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
@@ -14,11 +14,9 @@ import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary.js";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin.js";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin.js";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin.js";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin.js";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin.js";
 import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin.js";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
-import type { EditorState } from "lexical";
 
 import { t } from "@fxtrot/lib";
 

@@ -9,6 +9,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import {
   $getSelection,
   $isRangeSelection,
+  COMMAND_PRIORITY_CRITICAL,
   FORMAT_TEXT_COMMAND,
   type TextFormatType,
 } from "lexical";
@@ -43,7 +44,7 @@ export const TextFormatFloatingToolbar = () => {
     setIsCollapsed(selection.isCollapsed());
   }, []);
 
-  useSelectionChange(updateFormat);
+  useSelectionChange(updateFormat, COMMAND_PRIORITY_CRITICAL);
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {

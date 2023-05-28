@@ -72,29 +72,17 @@ export async function getSelection(editor: LexicalEditor) {
   });
 }
 
-export async function selectWholeLink(editor: LexicalEditor) {
+export async function selectWholeLink(editor: LexicalEditor, newRange: Range) {
   return new Promise((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
-      const linkNode = $getLinkSelection();
-
-      if (linkNode) {
-        const textNodes = linkNode.getAllTextNodes();
-
-        const firstTextNode = textNodes.at(0);
-        const lastTextNode = textNodes.at(-1);
-
-        if (firstTextNode && lastTextNode) {
-          selection.setTextNodeRange(
-            firstTextNode,
-            0,
-            lastTextNode,
-            lastTextNode.getTextContentSize()
-          );
-        }
-      }
-      resolve(undefined);
+      selection.applyDOMRange(newRange);
+      // enforce focusing for and waiting for selection change event to be emitted
+      // lexical ignores selection change if the editor is not focused
+      editor.focus(() => {
+        requestAnimationFrame(resolve);
+      });
     });
   });
 }
@@ -208,18 +196,4 @@ export function useSelectionChange(
       )
     );
   }, [editor, priority, handlerRef]);
-}
-
-export function useEditorStateUpdate(handler: () => void) {
-  const [editor] = useLexicalComposerContext();
-  const handlerRef = useLatest(handler);
-
-  useEffect(() => {
-    editor.getEditorState().read(handlerRef.current);
-    return mergeRegister(
-      editor.registerUpdateListener(({ editorState }) => {
-        editorState.read(handlerRef.current);
-      })
-    );
-  }, [editor, handlerRef]);
 }

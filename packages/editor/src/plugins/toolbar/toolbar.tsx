@@ -102,7 +102,7 @@ function FloatingToolbar() {
           actor.send({ type: "selection change" });
           return false;
         },
-        COMMAND_PRIORITY_LOW
+        COMMAND_PRIORITY_HIGH
       ),
       editor.registerCommand(
         KEY_ESCAPE_COMMAND,

@@ -55,10 +55,12 @@ export const LinkEdit = () => {
     };
     const open = async () => {
       // actor.send({ type: "selection change" });
-      await selectWholeLink(editor);
-      actor.send({ type: "edit link" });
-      const details = await getLinkDetails(editor);
-      setInitialValues(details);
+      if (selection) {
+        await selectWholeLink(editor, selection);
+        actor.send({ type: "edit link" });
+        const details = await getLinkDetails(editor);
+        setInitialValues(details);
+      }
     };
     const toggle = async () => {
       const state = actor.getSnapshot();
@@ -70,7 +72,7 @@ export const LinkEdit = () => {
     };
 
     return { open, close, toggle };
-  }, [actor, editor]);
+  }, [actor, editor, selection]);
 
   return (
     <>

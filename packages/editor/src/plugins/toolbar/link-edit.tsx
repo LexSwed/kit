@@ -157,39 +157,34 @@ export const LinkEditPopup = ({
       reference={selection}
     >
       {isLink ? (
-        <Row main="space-between" cross="center">
-          <Text textStyle="label-sm" className="ml-2 mt-1.5">
-            Edit link
-          </Text>
-          <Row gap="sm">
-            <Tooltip
-              delayDuration={200}
-              content={<Text textStyle="body-sm">Open in a new tab</Text>}
-            >
-              <Button
-                size="sm"
-                icon={ArrowTopRightOnSquareIcon}
-                aria-label={t("Open in a new tab")}
-              />
-            </Tooltip>
-            <Tooltip
-              delayDuration={200}
-              content={<Text textStyle="body-sm">Unlink</Text>}
-            >
-              <Button
-                size="sm"
-                icon={RxLinkBreak2}
-                label={t("Remove link")}
-                intent="danger"
-                onClick={removeLink}
-              />
-            </Tooltip>
-            <CopyLinkButton href={initialValues.link} />
-          </Row>
+        <Row main="end" cross="center">
+          <Tooltip
+            delayDuration={200}
+            content={<Text textStyle="body-sm">Open in a new tab</Text>}
+          >
+            <Button
+              size="sm"
+              icon={ArrowTopRightOnSquareIcon}
+              aria-label={t("Open in a new tab")}
+            />
+          </Tooltip>
+          <Tooltip
+            delayDuration={200}
+            content={<Text textStyle="body-sm">Unlink</Text>}
+          >
+            <Button
+              size="sm"
+              icon={RxLinkBreak2}
+              label={t("Remove link")}
+              intent="danger"
+              onClick={removeLink}
+            />
+          </Tooltip>
+          <CopyLinkButton href={initialValues.link} />
         </Row>
       ) : null}
       <form
-        className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2"
+        className="col-span-full row-start-2 flex w-64 flex-col gap-4 p-2"
         onSubmit={saveLink}
       >
         {/* 
@@ -205,13 +200,23 @@ export const LinkEditPopup = ({
           autoFocus
           initialEditorState={initialValues.text}
         /> */}
+        {initialValues.text && (
+          <TextField
+            size="sm"
+            label="Link title"
+            placeholder="Reference"
+            name="text"
+            defaultValue={initialValues.text}
+            autoFocus
+          />
+        )}
         <TextField
           size="sm"
+          label="Link URL"
           placeholder="https://example.com"
           name="link"
           type="url"
           defaultValue={initialValues.link}
-          autoFocus
         />
         <div className="flex flex-row justify-end gap-2 pt-1">
           <Button size="sm" onClick={onClose}>

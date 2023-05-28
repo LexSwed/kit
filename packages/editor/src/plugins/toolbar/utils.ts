@@ -3,6 +3,7 @@ import { $isCodeHighlightNode } from "@lexical/code";
 import {
   $isAutoLinkNode,
   $isLinkNode,
+  AutoLinkNode,
   LinkNode,
   TOGGLE_LINK_COMMAND,
 } from "@lexical/link";
@@ -16,6 +17,7 @@ import {
   type CommandListenerPriority,
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
+  TextNode,
 } from "lexical";
 
 import { useLatest } from "@fxtrot/ui";
@@ -94,10 +96,19 @@ export async function getLinkDetails(editor: LexicalEditor) {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
       const linkNode = $getLinkSelection();
+      if (!linkNode) return resolve({ link: "", text: "" });
+      let text = "";
+      const textNodes = linkNode.getAllTextNodes();
+
+      const textNode: TextNode | null =
+        textNodes.length === 1 ? textNodes.at(0) : null;
+      if (textNode) {
+        text = textNode.getTextContent();
+      }
 
       resolve({
         link: linkNode ? linkNode.getURL() : "",
-        text: "",
+        text,
         // text: JSON.stringify(
         //   selection.getNodes().map((node) => node..exportJSON())
         // ),
@@ -110,10 +121,22 @@ export function updateSelectedLink(
   editor: LexicalEditor,
   { text, link }: { text: string; link: string }
 ) {
+  if (text) {
+    editor.update(() => {
+      const linkNode = $getLinkSelection();
+      if (!linkNode) return;
+
+      const textNodes = linkNode.getAllTextNodes();
+      if (textNodes.length === 1) {
+        const textNode: TextNode = textNodes.at(0);
+        textNode.setTextContent(text);
+      }
+    });
+  }
   editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
 }
 
-export function $getLinkSelection(): LinkNode | null {
+export function $getLinkSelection(): LinkNode | AutoLinkNode | null {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) {
     return null;
@@ -125,7 +148,7 @@ export function $getLinkSelection(): LinkNode | null {
     $findMatchingParent(selectedNode, $isLinkNode) ||
     $findMatchingParent(selectedNode, $isAutoLinkNode);
 
-  return linkNode ? (linkNode as LinkNode) : null;
+  return linkNode ? (linkNode as any) : null;
 }
 
 export function isSelectionCollapsed() {

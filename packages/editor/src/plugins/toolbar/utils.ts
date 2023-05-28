@@ -13,7 +13,6 @@ import {
   $isRangeSelection,
   $isTextNode,
   COMMAND_PRIORITY_HIGH,
-  COMMAND_PRIORITY_LOW,
   type CommandListenerPriority,
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
@@ -51,23 +50,25 @@ export async function getSelection(editor: LexicalEditor) {
         return resolve({ selection: null });
       }
 
-      if (nativeSelection.isCollapsed) {
-        const linkNode = $getLinkSelection();
-        if (linkNode) {
-          const link = editor.getElementByKey(linkNode.getKey());
-          if (link) {
-            const range = new Range();
-            range.setStartBefore(link);
-            range.setEndAfter(link);
-            return resolve({ selection: range, collapsed: true });
-          }
-        } else {
-          return resolve({ selection: null });
+      const linkNode = $getLinkSelection();
+      const isCollapsed = selection.isCollapsed();
+
+      if (linkNode) {
+        const link = editor.getElementByKey(linkNode.getKey());
+        if (link) {
+          const range = new Range();
+          range.setStartBefore(link);
+          range.setEndAfter(link);
+          return resolve({ selection: range, collapsed: isCollapsed });
         }
       }
 
       const range = nativeSelection.getRangeAt(0);
-      return resolve({ selection: range, collapsed: false });
+      if (isCollapsed) {
+        return resolve({ selection: null });
+      } else {
+        return resolve({ selection: range, collapsed: false });
+      }
     });
   });
 }
@@ -117,9 +118,14 @@ export function $getLinkSelection(): LinkNode | null {
   if (!$isRangeSelection(selection)) {
     return null;
   }
-  const nodes = selection.getNodes();
-  const linkNode = [nodes[0], nodes[0].getParent()].find($isLinkNode);
-  return linkNode ? linkNode : null;
+  const selectedNode = selection.getNodes().at(0);
+  if (!selectedNode) return null;
+
+  const linkNode =
+    $findMatchingParent(selectedNode, $isLinkNode) ||
+    $findMatchingParent(selectedNode, $isAutoLinkNode);
+
+  return linkNode ? (linkNode as LinkNode) : null;
 }
 
 export function isSelectionCollapsed() {
@@ -131,46 +137,30 @@ export function isSelectionCollapsed() {
 export function useIsLinkSelected() {
   const [isLink, setIsLink] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
-  const [editor] = useLexicalComposerContext();
 
-  useEffect(() => {
-    const update = () => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) {
-        setIsDisabled(true);
-        return;
-      }
+  useSelectionChange(() => {
+    const selection = $getSelection();
+    if (!$isRangeSelection(selection)) {
+      setIsDisabled(true);
+      return;
+    }
 
-      if (!selection.getNodes().every($isTextNode)) {
-        setIsDisabled(true);
-        return;
-      }
-      setIsDisabled(false);
+    if (!selection.getNodes().every($isTextNode)) {
+      setIsDisabled(true);
+      return;
+    }
+    setIsDisabled(false);
 
-      const node = getSelectedNode(selection);
-      const linkParent = $findMatchingParent(node, $isLinkNode);
-      const autoLinkParent = $findMatchingParent(node, $isAutoLinkNode);
-      // const allNodesAreSupported = selection.getNodes().every(node => )
-      // We don't want this menu to open for auto links.
-      if (linkParent != null && autoLinkParent == null) {
-        setIsLink(true);
-      } else {
-        setIsLink(false);
-      }
-    };
-    editor.getEditorState().read(update);
-
-    return mergeRegister(
-      editor.registerCommand(
-        SELECTION_CHANGE_COMMAND,
-        () => {
-          update();
-          return false;
-        },
-        COMMAND_PRIORITY_LOW
-      )
+    const node = getSelectedNode(selection);
+    const isLink = [$isLinkNode, $isAutoLinkNode].some((check) =>
+      $findMatchingParent(node, check)
     );
-  }, [editor]);
+    if (isLink) {
+      setIsLink(true);
+    } else {
+      setIsLink(false);
+    }
+  });
 
   return [isLink, isDisabled] as const;
 }
@@ -188,7 +178,6 @@ export function useSelectionChange(
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          console.log("selection change");
           handlerRef.current?.();
           return false;
         },

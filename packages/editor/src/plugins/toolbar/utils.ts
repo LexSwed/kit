@@ -25,7 +25,7 @@ import { useLatest } from "@fxtrot/ui";
 import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
 
 export async function getSelection(editor: LexicalEditor) {
-  // copied from Lexical Playground, not sure what's this
+  // copied from Lexical Playground code
   if (editor.isComposing()) {
     return { selection: null };
   }

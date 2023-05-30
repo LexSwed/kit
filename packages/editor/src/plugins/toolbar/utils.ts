@@ -27,11 +27,9 @@ import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
 export async function getSelection(editor: LexicalEditor) {
   // copied from Lexical Playground code
   if (editor.isComposing()) {
-    return { selection: null };
+    return null;
   }
-  return new Promise<
-    { selection: null } | { selection: Range; collapsed: boolean }
-  >((resolve) => {
+  return new Promise<null | { range: Range; collapsed: boolean }>((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
 
@@ -39,7 +37,7 @@ export async function getSelection(editor: LexicalEditor) {
         !$isRangeSelection(selection) ||
         $isCodeHighlightNode(selection.anchor.getNode())
       ) {
-        return resolve({ selection: null });
+        return resolve(null);
       }
 
       const nativeSelection = window.getSelection();
@@ -49,7 +47,7 @@ export async function getSelection(editor: LexicalEditor) {
         rootElement === null ||
         !rootElement.contains(nativeSelection.anchorNode)
       ) {
-        return resolve({ selection: null });
+        return resolve(null);
       }
 
       const linkNode = $getLinkSelection();
@@ -61,15 +59,15 @@ export async function getSelection(editor: LexicalEditor) {
           const range = new Range();
           range.setStartBefore(link);
           range.setEndAfter(link);
-          return resolve({ selection: range, collapsed: isCollapsed });
+          return resolve({ range: range, collapsed: isCollapsed });
         }
       }
 
       const range = nativeSelection.getRangeAt(0);
       if (isCollapsed) {
-        return resolve({ selection: null });
+        return resolve(null);
       } else {
-        return resolve({ selection: range, collapsed: false });
+        return resolve({ range: range, collapsed: false });
       }
     });
   });

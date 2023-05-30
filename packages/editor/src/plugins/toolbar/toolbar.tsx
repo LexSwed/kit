@@ -14,6 +14,7 @@ import { createMachine } from "xstate";
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
 import { LinkEdit } from "./link-edit.tsx";
+import { LinkPopup } from "./link-popup.tsx";
 import {
   toolbarMachine,
   ToolbarStateProvider,
@@ -46,8 +47,13 @@ function FloatingToolbar() {
 
   const actor = useActorRef();
 
-  const isShown = useSelector((state) => state.matches({ toolbar: "shown" }));
   const selectedNode = useReferenceNode();
+  const isRangeSelected = useSelector((state) =>
+    state.matches({ selection: "range" })
+  );
+  const isLinkSelected = useSelector((state) =>
+    state.matches({ selection: "link" })
+  );
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -116,19 +122,21 @@ function FloatingToolbar() {
   }, [editor, actor]);
 
   return (
-    <>
-      <EditorPopover
-        isOpen={isShown}
-        reference={selectedNode}
-        // className={
-        //   state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
-        // }
-      >
+    <EditorPopover
+      open={isRangeSelected || isLinkSelected}
+      reference={selectedNode}
+      // className={
+      //   state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
+      // }
+    >
+      {isLinkSelected ? (
+        <LinkPopup />
+      ) : isRangeSelected ? (
         <div className="flex gap-1">
           <TextFormatFloatingToolbar />
           <LinkEdit />
         </div>
-      </EditorPopover>
-    </>
+      ) : null}
+    </EditorPopover>
   );
 }

@@ -26,7 +26,6 @@ export const TextFormatFloatingToolbar = () => {
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
   const [isCode, setIsCode] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const updateFormat = useCallback(() => {
     const selection = $getSelection();
@@ -40,7 +39,6 @@ export const TextFormatFloatingToolbar = () => {
     setIsItalic(selection.hasFormat("italic"));
     setIsUnderline(selection.hasFormat("underline"));
     setIsCode(selection.hasFormat("code"));
-    setIsCollapsed(selection.isCollapsed());
   }, []);
 
   /**
@@ -60,7 +58,7 @@ export const TextFormatFloatingToolbar = () => {
   );
 
   return (
-    <ToggleGroup disabled={isCollapsed}>
+    <ToggleGroup>
       <ToggleButton
         pressed={isBold}
         onClick={handleToggle}

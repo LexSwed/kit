@@ -8,7 +8,10 @@ interface Context {
   /**
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
-  selection: null | Range;
+  selection: {
+    range: Range;
+    collapsed: boolean;
+  } | null;
   editor: LexicalEditor;
 }
 
@@ -24,7 +27,7 @@ type Event =
   | { type: "close" }
   | { type: "cancel link edit" }
   | {
-      type: "done.invoke.toolbarMachine.selection.checking selection:invocation[0]";
+      type: "done.invoke.selector";
       output: Awaited<ReturnType<typeof getSelection>>;
     };
 
@@ -65,31 +68,37 @@ const toolbarMachine = createMachine<Context, Event>(
 
       selection: {
         id: "selection",
-        initial: "none",
+        initial: "idle",
         on: {
-          selected: {
-            target: ".range",
-          },
           deselected: {
-            target: ".none",
+            target: ".idle",
           },
           "pointer up": [
             {
               guard: stateIn({ focus: "in" }),
-              target: ".checking selection",
+              target: ".check selection",
             },
           ],
           "selection change": [
             {
               guard: stateIn({ focus: "in", pointer: "up" }),
-              target: ".checking selection",
+              target: ".check selection",
             },
           ],
         },
         states: {
+          idle: {},
+          "check selection": {
+            after: {
+              anotherInputDelay: {
+                target: "checking selection",
+              },
+            },
+          },
           "checking selection": {
             invoke: {
               src: "getSelection",
+              id: "selector",
               input: ({ context }: { context: Context }) => ({
                 editor: context.editor,
               }),
@@ -97,17 +106,20 @@ const toolbarMachine = createMachine<Context, Event>(
                 {
                   guard: "isRangeSelection",
                   actions: ["assignSelection", "raiseSelected"],
-                  target: "range",
+                  target: "idle",
+                },
+                {
+                  guard: "isLinkSelection",
+                  actions: ["assignSelection", "raiseSelected"],
+                  target: "idle",
                 },
                 {
                   actions: ["clearSelection", "raiseDeselected"],
-                  target: "none",
+                  target: "idle",
                 },
               ],
             },
           },
-          none: {},
-          range: {},
         },
       },
 
@@ -154,7 +166,7 @@ const toolbarMachine = createMachine<Context, Event>(
                   selected: "#toolbar.shown",
                 },
                 after: {
-                  200: {
+                  anotherInputDelay: {
                     target: "#toolbar.hidden",
                   },
                 },
@@ -169,8 +181,8 @@ const toolbarMachine = createMachine<Context, Event>(
     actions: {
       assignSelection: assign({
         selection: ({ context, event }) => {
-          if ("output" in event && event.output.selection) {
-            return event.output.selection;
+          if ("output" in event && event.output) {
+            return event.output;
           }
           return context.selection;
         },
@@ -179,11 +191,7 @@ const toolbarMachine = createMachine<Context, Event>(
         selection: null,
       }),
       raiseSelected: raise(({ event }) => {
-        if (
-          event.type ===
-            "done.invoke.toolbarMachine.selection.checking selection:invocation[0]" &&
-          event.output.selection
-        ) {
+        if (event.type === "done.invoke.selector" && event.output) {
           return {
             type: "selected",
           };
@@ -193,21 +201,26 @@ const toolbarMachine = createMachine<Context, Event>(
       raiseDeselected: raise({ type: "deselected" }),
     },
     guards: {
+      isLinkSelection: ({ event }) => {
+        if (event.type === "done.invoke.selector" && event.output) {
+          return event.output.range ? event.output.collapsed : false;
+        }
+        return false;
+      },
       isRangeSelection: ({ event }) => {
-        if (
-          event.type ===
-          "done.invoke.toolbarMachine.selection.checking selection:invocation[0]"
-        ) {
-          return !!event.output.selection;
+        if (event.type === "done.invoke.selector" && event.output) {
+          return event.output.range ? !event.output.collapsed : false;
         }
         return false;
       },
     },
     actors: {
-      getSelection: fromPromise(async ({ input: { editor } }) => {
-        const selection = await getSelection(editor);
-        return selection;
-      }),
+      getSelection: fromPromise(async ({ input: { editor } }) =>
+        getSelection(editor)
+      ),
+    },
+    delays: {
+      anotherInputDelay: 150,
     },
   }
 );
@@ -232,5 +245,5 @@ const {
 export { toolbarMachine, ToolbarStateProvider, useActorRef, useSelector };
 
 export function useReferenceNode() {
-  return useSelector((state) => state.context.selection);
+  return useSelector((state) => state.context.selection?.range);
 }

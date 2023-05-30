@@ -151,7 +151,7 @@ export const LinkEditPopup = ({
   return (
     <EditorPopover
       onKeyDown={onKeyDown}
-      isOpen={!!initialValues}
+      open={!!initialValues}
       placement="bottom"
       offset={8}
       reference={selection}

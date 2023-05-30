@@ -17,7 +17,7 @@ import { clsx } from "clsx";
 import { PopoverBox, Portal } from "@fxtrot/ui";
 
 interface Props extends ComponentProps<typeof PopoverBox> {
-  isOpen: boolean;
+  open: boolean;
   reference: ReferenceType | null | undefined;
   placement?: Placement;
   offset?: OffsetOptions;
@@ -26,7 +26,7 @@ interface Props extends ComponentProps<typeof PopoverBox> {
 export const EditorPopover = forwardRef<HTMLDivElement, Props>(
   function EditorPopoverWithRef(props, ref) {
     return (
-      <RdxPresence.Presence present={props.isOpen}>
+      <RdxPresence.Presence present={props.open}>
         <EditorPopoverInner {...props} ref={ref} />
       </RdxPresence.Presence>
     );
@@ -36,7 +36,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
 const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
   function EditorPopoverWithRef(
     {
-      isOpen,
+      open,
       reference,
       className,
       placement = "top-start",
@@ -48,7 +48,7 @@ const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
   ) {
     const [editor] = useLexicalComposerContext();
     const { x, y, strategy, refs, context } = useFloating({
-      open: isOpen,
+      open: open,
       placement,
       strategy: "fixed",
       elements: reference
@@ -71,14 +71,14 @@ const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
 
     useEffect(() => {
       // Can't return focus to the trigger as the reference is selected text
-      if (isOpen) {
+      if (open) {
         return () => {
           if (editor.getRootElement() !== document.activeElement) {
             editor.focus();
           }
         };
       }
-    }, [editor, isOpen]);
+    }, [editor, open]);
 
     /* using the portal the buttons inside the popovers being able to open own popovers 
       that are portaled to the root, instead of rendered next to the button itself */
@@ -88,7 +88,7 @@ const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
           data-align={align}
           data-side={side}
           ref={ref}
-          data-state={isOpen ? "open" : "closed"}
+          data-state={open ? "open" : "closed"}
           style={{
             position: strategy,
             top: y ?? 0,

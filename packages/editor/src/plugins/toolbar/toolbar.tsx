@@ -48,12 +48,7 @@ function FloatingToolbar() {
   const actor = useActorRef();
 
   const selectedNode = useReferenceNode();
-  const isRangeSelected = useSelector((state) =>
-    state.matches({ selection: "range" })
-  );
-  const isLinkSelected = useSelector((state) =>
-    state.matches({ selection: "link" })
-  );
+  const isShown = useSelector((state) => state.matches({ toolbar: "shown" }));
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -123,20 +118,16 @@ function FloatingToolbar() {
 
   return (
     <EditorPopover
-      open={isRangeSelected || isLinkSelected}
+      open={isShown}
       reference={selectedNode}
       // className={
       //   state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
       // }
     >
-      {isLinkSelected ? (
-        <LinkPopup />
-      ) : isRangeSelected ? (
-        <div className="flex gap-1">
-          <TextFormatFloatingToolbar />
-          <LinkEdit />
-        </div>
-      ) : null}
+      <div className="flex gap-1">
+        <TextFormatFloatingToolbar />
+        <LinkEdit />
+      </div>
     </EditorPopover>
   );
 }

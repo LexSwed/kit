@@ -90,7 +90,7 @@ const toolbarMachine = createMachine<Context, Event>(
           idle: {},
           "check selection": {
             after: {
-              anotherInputDelay: {
+              50: {
                 target: "checking selection",
               },
             },
@@ -139,10 +139,10 @@ const toolbarMachine = createMachine<Context, Event>(
             initial: "open",
             on: {
               deselected: {
-                target: ".closing",
+                target: "hidden",
               },
               close: {
-                target: ".closing",
+                target: "hidden",
               },
             },
             states: {
@@ -158,16 +158,6 @@ const toolbarMachine = createMachine<Context, Event>(
                   "cancel link edit": "#shown",
                   selected: {
                     target: "open",
-                  },
-                },
-              },
-              closing: {
-                on: {
-                  selected: "#toolbar.shown",
-                },
-                after: {
-                  anotherInputDelay: {
-                    target: "#toolbar.hidden",
                   },
                 },
               },
@@ -218,9 +208,6 @@ const toolbarMachine = createMachine<Context, Event>(
       getSelection: fromPromise(async ({ input: { editor } }) =>
         getSelection(editor)
       ),
-    },
-    delays: {
-      anotherInputDelay: 150,
     },
   }
 );

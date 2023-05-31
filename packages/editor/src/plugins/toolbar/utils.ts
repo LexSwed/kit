@@ -29,7 +29,7 @@ export async function getSelection(editor: LexicalEditor) {
   if (editor.isComposing()) {
     return null;
   }
-  return new Promise<null | { range: Range; collapsed: boolean }>((resolve) => {
+  return new Promise<Range | null>((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
 
@@ -42,33 +42,18 @@ export async function getSelection(editor: LexicalEditor) {
 
       const nativeSelection = window.getSelection();
       const rootElement = editor.getRootElement();
+      const isCollapsed = selection.isCollapsed();
       if (
         nativeSelection === null ||
         rootElement === null ||
-        !rootElement.contains(nativeSelection.anchorNode)
+        !rootElement.contains(nativeSelection.anchorNode) ||
+        isCollapsed
       ) {
         return resolve(null);
       }
 
-      const linkNode = $getLinkSelection();
-      const isCollapsed = selection.isCollapsed();
-
-      if (linkNode) {
-        const link = editor.getElementByKey(linkNode.getKey());
-        if (link) {
-          const range = new Range();
-          range.setStartBefore(link);
-          range.setEndAfter(link);
-          return resolve({ range: range, collapsed: isCollapsed });
-        }
-      }
-
       const range = nativeSelection.getRangeAt(0);
-      if (isCollapsed) {
-        return resolve(null);
-      } else {
-        return resolve({ range: range, collapsed: false });
-      }
+      return resolve(range);
     });
   });
 }

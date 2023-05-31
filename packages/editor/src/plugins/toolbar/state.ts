@@ -8,10 +8,7 @@ interface Context {
   /**
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
-  selection: {
-    range: Range;
-    collapsed: boolean;
-  } | null;
+  selection: Range | null;
   editor: LexicalEditor;
 }
 
@@ -21,7 +18,7 @@ type Event =
   | { type: "focus" }
   | { type: "blur" }
   | { type: "selection change" }
-  | { type: "selected" }
+  | { type: "selected"; selection: "link" | "range" }
   | { type: "deselected" }
   | { type: "edit link" }
   | { type: "close" }
@@ -34,7 +31,9 @@ type Event =
 const toolbarMachine = createMachine<Context, Event>(
   {
     id: "toolbarMachine",
-    context: {} as Context,
+    context: {
+      selection: null,
+    } as Context,
     type: "parallel",
     states: {
       focus: {
@@ -88,14 +87,14 @@ const toolbarMachine = createMachine<Context, Event>(
         },
         states: {
           idle: {},
+          // "check selection": {
+          //   after: {
+          //     150: {
+          //       target: "checking selection",
+          //     },
+          //   },
+          // },
           "check selection": {
-            after: {
-              50: {
-                target: "checking selection",
-              },
-            },
-          },
-          "checking selection": {
             invoke: {
               src: "getSelection",
               id: "selector",
@@ -105,11 +104,6 @@ const toolbarMachine = createMachine<Context, Event>(
               onDone: [
                 {
                   guard: "isRangeSelection",
-                  actions: ["assignSelection", "raiseSelected"],
-                  target: "idle",
-                },
-                {
-                  guard: "isLinkSelection",
                   actions: ["assignSelection", "raiseSelected"],
                   target: "idle",
                 },
@@ -126,17 +120,14 @@ const toolbarMachine = createMachine<Context, Event>(
       toolbar: {
         id: "toolbar",
         initial: "hidden",
+        on: {
+          selected: ".shown",
+        },
         states: {
-          hidden: {
-            on: {
-              selected: {
-                target: "shown",
-              },
-            },
-          },
+          hidden: {},
           shown: {
             id: "shown",
-            initial: "open",
+            initial: "range",
             on: {
               deselected: {
                 target: "hidden",
@@ -146,7 +137,7 @@ const toolbarMachine = createMachine<Context, Event>(
               },
             },
             states: {
-              open: {
+              range: {
                 on: {
                   "edit link": {
                     target: "linkEditShown",
@@ -157,7 +148,7 @@ const toolbarMachine = createMachine<Context, Event>(
                 on: {
                   "cancel link edit": "#shown",
                   selected: {
-                    target: "open",
+                    target: "range",
                   },
                 },
               },
@@ -171,7 +162,7 @@ const toolbarMachine = createMachine<Context, Event>(
     actions: {
       assignSelection: assign({
         selection: ({ context, event }) => {
-          if ("output" in event && event.output) {
+          if (event.type === "done.invoke.selector") {
             return event.output;
           }
           return context.selection;
@@ -184,6 +175,7 @@ const toolbarMachine = createMachine<Context, Event>(
         if (event.type === "done.invoke.selector" && event.output) {
           return {
             type: "selected",
+            selection: event.output.collapsed ? "link" : "range",
           };
         }
         throw new Error("Cannot raise selected event from non-selection queue");
@@ -191,15 +183,9 @@ const toolbarMachine = createMachine<Context, Event>(
       raiseDeselected: raise({ type: "deselected" }),
     },
     guards: {
-      isLinkSelection: ({ event }) => {
-        if (event.type === "done.invoke.selector" && event.output) {
-          return event.output.range ? event.output.collapsed : false;
-        }
-        return false;
-      },
       isRangeSelection: ({ event }) => {
-        if (event.type === "done.invoke.selector" && event.output) {
-          return event.output.range ? !event.output.collapsed : false;
+        if (event.type === "done.invoke.selector") {
+          return Boolean(event.output);
         }
         return false;
       },
@@ -232,5 +218,5 @@ const {
 export { toolbarMachine, ToolbarStateProvider, useActorRef, useSelector };
 
 export function useReferenceNode() {
-  return useSelector((state) => state.context.selection?.range);
+  return useSelector((state) => state.context.selection);
 }

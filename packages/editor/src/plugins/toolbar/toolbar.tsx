@@ -14,7 +14,6 @@ import { createMachine } from "xstate";
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
 import { LinkEdit } from "./link-edit.tsx";
-import { LinkPopup } from "./link-popup.tsx";
 import {
   toolbarMachine,
   ToolbarStateProvider,
@@ -47,7 +46,7 @@ function FloatingToolbar() {
 
   const actor = useActorRef();
 
-  const selectedNode = useReferenceNode();
+  const selection = useReferenceNode();
   const isShown = useSelector((state) => state.matches({ toolbar: "shown" }));
 
   useEffect(() => {
@@ -119,7 +118,7 @@ function FloatingToolbar() {
   return (
     <EditorPopover
       open={isShown}
-      reference={selectedNode}
+      reference={selection}
       // className={
       //   state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
       // }

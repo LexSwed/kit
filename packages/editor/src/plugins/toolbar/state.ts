@@ -124,11 +124,11 @@ const toolbarMachine = createMachine<Context, Event>(
         initial: "hidden",
         on: {
           selected: {
-            target: ".shown.range",
+            target: "#shown.range.pendingEndOfAction",
           },
           "link clicked": {
             actions: "assignLink",
-            target: ".shown.link",
+            target: "#shown.link.pendingEndOfAction",
           },
         },
         states: {
@@ -136,18 +136,32 @@ const toolbarMachine = createMachine<Context, Event>(
           shown: {
             id: "shown",
             initial: "range",
-            on: {
-              deselected: {
-                target: "#toolbar.shown.closing",
-              },
-              close: {
-                target: "#toolbar.shown.closing",
-              },
-            },
             states: {
               range: {
+                on: {
+                  deselected: {
+                    target: "#toolbar.shown.closing",
+                  },
+                  close: {
+                    target: "#toolbar.shown.closing",
+                  },
+                },
                 initial: "initial",
                 states: {
+                  pendingEndOfAction: {
+                    after: {
+                      150: [
+                        {
+                          guard: ({ context }) => !!context.selection,
+                          target: "#shown.range",
+                        },
+                        {
+                          guard: ({ context }) => !!context.link,
+                          target: "#shown.link",
+                        },
+                      ],
+                    },
+                  },
                   initial: {
                     on: {
                       "edit link": {
@@ -168,7 +182,26 @@ const toolbarMachine = createMachine<Context, Event>(
               link: {
                 initial: "initial",
                 exit: "clearLink",
+                on: {
+                  deselected: {
+                    target: "#toolbar.shown.closing",
+                  },
+                },
                 states: {
+                  pendingEndOfAction: {
+                    after: {
+                      150: [
+                        {
+                          guard: ({ context }) => !!context.selection,
+                          target: "#shown.range",
+                        },
+                        {
+                          guard: ({ context }) => !!context.link,
+                          target: "#shown.link",
+                        },
+                      ],
+                    },
+                  },
                   initial: {
                     on: {
                       "edit link": {

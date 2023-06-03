@@ -5,17 +5,7 @@
     "paths": {
       "~/*": ["./src/*"],
       "@fxtrot/ui": ["src/lib"]
-    },
-    "plugins": [
-      {
-        "name": "typescript-plugin-css-modules",
-        "options": {
-          "postcssOptions": {
-            "useConfig": true
-          }
-        }
-      }
-    ]
+    }
   },
   "include": ["docs", "src", "public"],
   "exclude": ["node_modules"]

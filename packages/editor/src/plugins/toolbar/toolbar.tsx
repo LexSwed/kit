@@ -14,11 +14,11 @@ import { createMachine } from "xstate";
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
 import { LinkEdit } from "./link-edit.tsx";
+import { LinkPreview } from "./link-preview.tsx";
 import {
   toolbarMachine,
   ToolbarStateProvider,
   useActorRef,
-  useReferenceNode,
   useSelector,
 } from "./state.ts";
 import { TextFormatFloatingToolbar } from "./text-format.tsx";
@@ -37,6 +37,7 @@ export function FloatingToolbarPlugin() {
   return (
     <ToolbarStateProvider machine={machine}>
       <FloatingToolbar />
+      <LinkPreview />
     </ToolbarStateProvider>
   );
 }
@@ -46,8 +47,10 @@ function FloatingToolbar() {
 
   const actor = useActorRef();
 
-  const selection = useReferenceNode();
-  const isShown = useSelector((state) => state.matches({ toolbar: "shown" }));
+  const selection = useSelector((state) => state.context.selection);
+  const isShown = useSelector((state) =>
+    state.matches({ toolbar: { shown: "range" } })
+  );
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -119,6 +122,7 @@ function FloatingToolbar() {
     <EditorPopover
       open={isShown}
       reference={selection}
+      offset={offset}
       // className={
       //   state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
       // }
@@ -130,3 +134,5 @@ function FloatingToolbar() {
     </EditorPopover>
   );
 }
+
+const offset = { mainAxis: 8, crossAxis: -32 };

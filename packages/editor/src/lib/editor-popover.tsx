@@ -40,7 +40,7 @@ const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
       reference,
       className,
       placement = "top-start",
-      offset: offsetOptions = { mainAxis: 8, crossAxis: -32 },
+      offset: offsetOptions = 8,
       children,
       ...props
     },

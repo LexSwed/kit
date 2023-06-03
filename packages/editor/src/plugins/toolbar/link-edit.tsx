@@ -23,7 +23,7 @@ import {
 
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
-import { useActorRef, useReferenceNode, useSelector } from "./state.ts";
+import { useActorRef, useSelector } from "./state.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
 import {
   getLinkDetails,
@@ -34,7 +34,7 @@ import {
 
 export const LinkEdit = () => {
   const [editor] = useLexicalComposerContext();
-  const selection = useReferenceNode();
+  const selection = useSelector((state) => state.context.selection);
 
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
@@ -113,7 +113,7 @@ export const LinkEditPopup = ({
   onClose,
 }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
-  const selection = useReferenceNode();
+  const selection = useSelector((state) => state.context.selection);
   const supportsTextEditing = Boolean(initialValues.text);
 
   useEffect(() => {

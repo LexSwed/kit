@@ -9,6 +9,7 @@ interface Context {
    * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
    */
   selection: Range | null;
+  link: HTMLElement | null;
   editor: LexicalEditor;
 }
 
@@ -23,6 +24,7 @@ type Event =
   | { type: "edit link" }
   | { type: "close" }
   | { type: "cancel link edit" }
+  | { type: "link clicked"; link: HTMLElement }
   | {
       type: "done.invoke.selector";
       output: Awaited<ReturnType<typeof getSelection>>;
@@ -121,7 +123,13 @@ const toolbarMachine = createMachine<Context, Event>(
         id: "toolbar",
         initial: "hidden",
         on: {
-          selected: ".shown",
+          selected: {
+            target: ".shown.range",
+          },
+          "link clicked": {
+            actions: "assignLink",
+            target: ".shown.link",
+          },
         },
         states: {
           hidden: {},
@@ -130,25 +138,58 @@ const toolbarMachine = createMachine<Context, Event>(
             initial: "range",
             on: {
               deselected: {
-                target: "hidden",
+                target: "#toolbar.shown.closing",
               },
               close: {
-                target: "hidden",
+                target: "#toolbar.shown.closing",
               },
             },
             states: {
               range: {
-                on: {
-                  "edit link": {
-                    target: "linkEditShown",
+                initial: "initial",
+                states: {
+                  initial: {
+                    on: {
+                      "edit link": {
+                        target: "linkEditShown",
+                      },
+                    },
+                  },
+                  linkEditShown: {
+                    on: {
+                      "cancel link edit": "#shown",
+                      selected: {
+                        target: "initial",
+                      },
+                    },
                   },
                 },
               },
-              linkEditShown: {
-                on: {
-                  "cancel link edit": "#shown",
-                  selected: {
-                    target: "range",
+              link: {
+                initial: "initial",
+                exit: "clearLink",
+                states: {
+                  initial: {
+                    on: {
+                      "edit link": {
+                        target: "linkEditShown",
+                      },
+                    },
+                  },
+                  linkEditShown: {
+                    on: {
+                      "cancel link edit": "#shown",
+                      selected: {
+                        target: "initial",
+                      },
+                    },
+                  },
+                },
+              },
+              closing: {
+                after: {
+                  150: {
+                    target: "#toolbar.hidden",
                   },
                 },
               },
@@ -160,6 +201,14 @@ const toolbarMachine = createMachine<Context, Event>(
   },
   {
     actions: {
+      assignLink: assign({
+        link: ({ context, event }) => {
+          if (event.type === "link clicked") {
+            return event.link;
+          }
+          return context.link;
+        },
+      }),
       assignSelection: assign({
         selection: ({ context, event }) => {
           if (event.type === "done.invoke.selector") {
@@ -170,6 +219,9 @@ const toolbarMachine = createMachine<Context, Event>(
       }),
       clearSelection: assign({
         selection: null,
+      }),
+      clearLink: assign({
+        link: null,
       }),
       raiseSelected: raise(({ event }) => {
         if (event.type === "done.invoke.selector" && event.output) {
@@ -216,7 +268,3 @@ const {
 );
 
 export { toolbarMachine, ToolbarStateProvider, useActorRef, useSelector };
-
-export function useReferenceNode() {
-  return useSelector((state) => state.context.selection);
-}

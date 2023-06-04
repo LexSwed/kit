@@ -42,8 +42,8 @@ export const TextFormatFloatingToolbar = () => {
   }, []);
 
   /**
-   * EditorStateChange to sync selection FORMAT_TEXT_COMMAND
-   * with the local state.
+   * EditorStateChange to sync not just selection change
+   * but also selection's FORMAT_TEXT_COMMAND with the local state.
    */
   useEditorStateChange(updateFormat);
 

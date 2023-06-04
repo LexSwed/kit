@@ -3,25 +3,17 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { mergeRegister } from "@lexical/utils";
 import {
   BLUR_COMMAND,
+  CLICK_COMMAND,
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
   FOCUS_COMMAND,
-  KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { createMachine } from "xstate";
 
-import { EditorPopover } from "../../lib/editor-popover.tsx";
-
-import { LinkEdit } from "./link-edit.tsx";
-import { LinkPreview } from "./link-preview.tsx";
-import {
-  toolbarMachine,
-  ToolbarStateProvider,
-  useActorRef,
-  useSelector,
-} from "./state.ts";
-import { TextFormatFloatingToolbar } from "./text-format.tsx";
+import { LinkSelection } from "./link-selection.tsx";
+import { RangeSelection } from "./range-selection.tsx";
+import { toolbarMachine, ToolbarStateProvider, useActorRef } from "./state.ts";
 
 export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -36,21 +28,17 @@ export function FloatingToolbarPlugin() {
   }, [editor]);
   return (
     <ToolbarStateProvider machine={machine}>
-      <FloatingToolbar />
-      <LinkPreview />
+      <EditorEvents />
+      <LinkSelection />
+      <RangeSelection />
     </ToolbarStateProvider>
   );
 }
 
-function FloatingToolbar() {
+function EditorEvents() {
   const [editor] = useLexicalComposerContext();
 
   const actor = useActorRef();
-
-  const selection = useSelector((state) => state.context.selection);
-  const isShown = useSelector((state) =>
-    state.matches({ toolbar: { shown: "range" } })
-  );
 
   useEffect(() => {
     /** Should always listen to document pointer down and up in case selection
@@ -106,33 +94,9 @@ function FloatingToolbar() {
           return false;
         },
         COMMAND_PRIORITY_HIGH
-      ),
-      editor.registerCommand(
-        KEY_ESCAPE_COMMAND,
-        () => {
-          actor.send({ type: "close" });
-          return true;
-        },
-        COMMAND_PRIORITY_HIGH
       )
     );
   }, [editor, actor]);
 
-  return (
-    <EditorPopover
-      open={isShown}
-      reference={selection}
-      offset={offset}
-      // className={
-      //   state.pointerMove ? 'hover:!opacity-20 hover:duration-200' : ''
-      // }
-    >
-      <div className="flex gap-1">
-        <TextFormatFloatingToolbar />
-        <LinkEdit />
-      </div>
-    </EditorPopover>
-  );
+  return null;
 }
-
-const offset = { mainAxis: 8, crossAxis: -32 };

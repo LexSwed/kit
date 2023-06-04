@@ -5,9 +5,6 @@ import { assign, createMachine, fromPromise, raise, stateIn } from "xstate";
 import { getSelection } from "./utils.ts";
 
 interface Context {
-  /**
-   * Reference for the Popups, updated only when the pointer is up (keyboard selection or pointer up)
-   */
   selection: Range | null;
   link: HTMLElement | null;
   editor: LexicalEditor;
@@ -19,12 +16,12 @@ type Event =
   | { type: "focus" }
   | { type: "blur" }
   | { type: "selection change" }
-  | { type: "selected"; selection: "link" | "range" }
+  | { type: "selected" }
+  | { type: "link clicked" }
   | { type: "deselected" }
   | { type: "edit link" }
   | { type: "close" }
   | { type: "cancel link edit" }
-  | { type: "link clicked"; link: HTMLElement }
   | {
       type: "done.invoke.selector";
       output: Awaited<ReturnType<typeof getSelection>>;
@@ -35,6 +32,7 @@ const toolbarMachine = createMachine<Context, Event>(
     id: "toolbarMachine",
     context: {
       selection: null,
+      link: null,
     } as Context,
     type: "parallel",
     states: {
@@ -106,7 +104,16 @@ const toolbarMachine = createMachine<Context, Event>(
               onDone: [
                 {
                   guard: "isRangeSelection",
-                  actions: ["assignSelection", "raiseSelected"],
+                  actions: [
+                    "clearSelection",
+                    "assignSelection",
+                    "raiseSelected",
+                  ],
+                  target: "idle",
+                },
+                {
+                  guard: "isLinkClicked",
+                  actions: ["clearSelection", "assignLink", "raiseLinkClicked"],
                   target: "idle",
                 },
                 {
@@ -127,7 +134,6 @@ const toolbarMachine = createMachine<Context, Event>(
             target: ".shown.range",
           },
           "link clicked": {
-            actions: "assignLink",
             target: ".shown.link",
           },
         },
@@ -151,13 +157,13 @@ const toolbarMachine = createMachine<Context, Event>(
                   initial: {
                     on: {
                       "edit link": {
-                        target: "linkEditShown",
+                        target: "link-edit",
                       },
                     },
                   },
-                  linkEditShown: {
+                  "link-edit": {
                     on: {
-                      "cancel link edit": "#shown",
+                      "cancel link edit": "initial",
                       selected: {
                         target: "initial",
                       },
@@ -167,18 +173,17 @@ const toolbarMachine = createMachine<Context, Event>(
               },
               link: {
                 initial: "initial",
-                exit: "clearLink",
                 states: {
                   initial: {
                     on: {
                       "edit link": {
-                        target: "linkEditShown",
+                        target: "link-edit",
                       },
                     },
                   },
-                  linkEditShown: {
+                  "link-edit": {
                     on: {
-                      "cancel link edit": "#shown",
+                      "cancel link edit": "initial",
                       selected: {
                         target: "initial",
                       },
@@ -203,31 +208,45 @@ const toolbarMachine = createMachine<Context, Event>(
     actions: {
       assignLink: assign({
         link: ({ context, event }) => {
-          if (event.type === "link clicked") {
-            return event.link;
+          console.log(event);
+          if (
+            event.type === "done.invoke.selector" &&
+            event.output &&
+            "link" in event.output
+          ) {
+            return event.output.link;
           }
           return context.link;
         },
       }),
       assignSelection: assign({
         selection: ({ context, event }) => {
-          if (event.type === "done.invoke.selector") {
-            return event.output;
+          if (
+            event.type === "done.invoke.selector" &&
+            event.output &&
+            "range" in event.output
+          ) {
+            return event.output.range;
           }
           return context.selection;
         },
       }),
       clearSelection: assign({
         selection: null,
-      }),
-      clearLink: assign({
         link: null,
       }),
+      raiseLinkClicked: raise(({ event }) => {
+        if (event.type === "done.invoke.selector") {
+          return {
+            type: "link clicked",
+          };
+        }
+        throw new Error("Cannot raise selected event from non-selection queue");
+      }),
       raiseSelected: raise(({ event }) => {
-        if (event.type === "done.invoke.selector" && event.output) {
+        if (event.type === "done.invoke.selector") {
           return {
             type: "selected",
-            selection: event.output.collapsed ? "link" : "range",
           };
         }
         throw new Error("Cannot raise selected event from non-selection queue");
@@ -235,9 +254,15 @@ const toolbarMachine = createMachine<Context, Event>(
       raiseDeselected: raise({ type: "deselected" }),
     },
     guards: {
+      isLinkClicked: ({ event }) => {
+        if (event.type === "done.invoke.selector" && event.output) {
+          return "link" in event.output && Boolean(event.output.link);
+        }
+        return false;
+      },
       isRangeSelection: ({ event }) => {
-        if (event.type === "done.invoke.selector") {
-          return Boolean(event.output);
+        if (event.type === "done.invoke.selector" && event.output) {
+          return "range" in event.output && Boolean(event.output.range);
         }
         return false;
       },

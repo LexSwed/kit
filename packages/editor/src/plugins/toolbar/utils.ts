@@ -29,33 +29,51 @@ export async function getSelection(editor: LexicalEditor) {
   if (editor.isComposing()) {
     return null;
   }
-  return new Promise<Range | null>((resolve) => {
-    editor.update(() => {
-      const selection = $getSelection();
+  return new Promise<null | { range: Range } | { link: HTMLElement }>(
+    (resolve) => {
+      editor.update(() => {
+        const selection = $getSelection();
 
-      if (
-        !$isRangeSelection(selection) ||
-        $isCodeHighlightNode(selection.anchor.getNode())
-      ) {
+        if (
+          !$isRangeSelection(selection) ||
+          $isCodeHighlightNode(selection.anchor.getNode())
+        ) {
+          return resolve(null);
+        }
+
+        const nativeSelection = window.getSelection();
+        const rootElement = editor.getRootElement();
+        if (
+          nativeSelection === null ||
+          rootElement === null ||
+          !rootElement.contains(nativeSelection.anchorNode)
+        ) {
+          return resolve(null);
+        }
+        const isCollapsed = selection.isCollapsed();
+
+        const linkNode = $getSelectedLinkNode();
+        const link = linkNode
+          ? editor.getElementByKey(linkNode.getKey())
+          : null;
+
+        if (isCollapsed && link) {
+          return resolve({ link });
+        }
+        if (link) {
+          const range = new Range();
+          range.setStartBefore(link);
+          range.setEndAfter(link);
+          return resolve({ range });
+        }
+        if (!isCollapsed) {
+          const nativeRange = nativeSelection.getRangeAt(0);
+          return resolve({ range: nativeRange });
+        }
         return resolve(null);
-      }
-
-      const nativeSelection = window.getSelection();
-      const rootElement = editor.getRootElement();
-      const isCollapsed = selection.isCollapsed();
-      if (
-        nativeSelection === null ||
-        rootElement === null ||
-        !rootElement.contains(nativeSelection.anchorNode) ||
-        isCollapsed
-      ) {
-        return resolve(null);
-      }
-
-      const range = nativeSelection.getRangeAt(0);
-      return resolve(range);
-    });
-  });
+      });
+    }
+  );
 }
 
 export async function selectWholeLink(editor: LexicalEditor, newRange: Range) {
@@ -74,12 +92,12 @@ export async function selectWholeLink(editor: LexicalEditor, newRange: Range) {
   });
 }
 
-export async function getLinkDetails(editor: LexicalEditor) {
+export async function getLinkDetailsFromSelection(editor: LexicalEditor) {
   return new Promise<{ link: string; text: string }>((resolve) => {
     editor.update(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
-      const linkNode = $getLinkSelection();
+      const linkNode = $getSelectedLinkNode();
       if (!linkNode) return resolve({ link: "", text: "" });
       let text = "";
       const textNodes = linkNode.getAllTextNodes();
@@ -93,9 +111,6 @@ export async function getLinkDetails(editor: LexicalEditor) {
       resolve({
         link: linkNode ? linkNode.getURL() : "",
         text,
-        // text: JSON.stringify(
-        //   selection.getNodes().map((node) => node..exportJSON())
-        // ),
       });
     });
   });
@@ -107,7 +122,7 @@ export function updateSelectedLink(
 ) {
   if (text) {
     editor.update(() => {
-      const linkNode = $getLinkSelection();
+      const linkNode = $getSelectedLinkNode();
       if (!linkNode) return;
 
       const textNodes = linkNode.getAllTextNodes();
@@ -120,7 +135,7 @@ export function updateSelectedLink(
   editor.dispatchCommand(TOGGLE_LINK_COMMAND, link);
 }
 
-export function $getLinkSelection(): LinkNode | AutoLinkNode | null {
+export function $getSelectedLinkNode(): LinkNode | AutoLinkNode | null {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) {
     return null;
@@ -132,7 +147,36 @@ export function $getLinkSelection(): LinkNode | AutoLinkNode | null {
     $findMatchingParent(selectedNode, $isLinkNode) ||
     $findMatchingParent(selectedNode, $isAutoLinkNode);
 
-  return linkNode ? (linkNode as any) : null;
+  return linkNode ? (linkNode as LinkNode | AutoLinkNode) : null;
+}
+
+export function highlightSelectedLink(editor: LexicalEditor) {
+  // @ts-expect-error Highlights API is not yet in lib/dom
+  if (typeof Highlight !== "undefined") {
+    editor.update(() => {
+      const selection = $getSelection();
+      if (!$isRangeSelection(selection)) return;
+      const linkNode = $getSelectedLinkNode();
+      if (!linkNode) return;
+      const link = editor.getElementByKey(linkNode.getKey());
+      if (!link) return;
+      const range = new Range();
+      range.setStartBefore(link);
+      range.setEndAfter(link);
+      selection.applyDOMRange(range);
+      // @ts-expect-error Highlights API is not yet in lib/dom
+      if (range && typeof Highlight !== "undefined") {
+        // @ts-expect-error Highlights API is not yet in lib/dom
+        const highlight = new Highlight(range);
+        // @ts-expect-error Highlights API is not yet in lib/dom
+        CSS.highlights.set("editor", highlight);
+      }
+    });
+    return () => {
+      // @ts-expect-error Highlights API is not yet in lib/dom
+      CSS.highlights.delete("editor");
+    };
+  }
 }
 
 export function isSelectionCollapsed() {
@@ -141,7 +185,7 @@ export function isSelectionCollapsed() {
   return nativeSelection.isCollapsed;
 }
 
-export function useIsLinkSelected() {
+export function useIsLinkNodeSelected() {
   const [isLink, setIsLink] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
 
@@ -162,30 +206,30 @@ export function useIsLinkSelected() {
     const isLink = [$isLinkNode, $isAutoLinkNode].some((check) =>
       $findMatchingParent(node, check)
     );
-    if (isLink) {
-      setIsLink(true);
-    } else {
-      setIsLink(false);
-    }
+    setIsLink(isLink);
   });
 
   return [isLink, isDisabled] as const;
 }
 
 export function useSelectionChange(
-  handler: () => void,
+  handler: (selection: ReturnType<typeof $getSelection>) => void,
   priority: CommandListenerPriority = COMMAND_PRIORITY_HIGH
 ) {
   const [editor] = useLexicalComposerContext();
   const handlerRef = useLatest(handler);
 
   useEffect(() => {
-    editor.getEditorState().read(handlerRef.current);
+    const $callback = () => {
+      const selection = $getSelection();
+      handlerRef.current?.(selection);
+    };
+    editor.getEditorState().read($callback);
     return mergeRegister(
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          handlerRef.current?.();
+          $callback();
           return false;
         },
         priority

@@ -11,7 +11,6 @@ import {
   useMergeRefs,
 } from "@floating-ui/react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import * as RdxPresence from "@radix-ui/react-presence";
 import { clsx } from "clsx";
 
 import { PopoverBox, Portal } from "@fxtrot/ui";
@@ -24,16 +23,6 @@ interface Props extends ComponentProps<typeof PopoverBox> {
 }
 
 export const EditorPopover = forwardRef<HTMLDivElement, Props>(
-  function EditorPopoverWithRef(props, ref) {
-    return (
-      <RdxPresence.Presence present={props.open}>
-        <EditorPopoverInner {...props} ref={ref} />
-      </RdxPresence.Presence>
-    );
-  }
-);
-
-const EditorPopoverInner = forwardRef<HTMLDivElement, Props>(
   function EditorPopoverWithRef(
     {
       open,

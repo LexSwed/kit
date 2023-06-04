@@ -249,4 +249,8 @@
   .button--icon svg {
     color: inherit;
   }
+
+  .link-button {
+    cursor: pointer;
+  }
 }

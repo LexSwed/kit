@@ -77,6 +77,7 @@ const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>((props, ref) =
     <a
       {...rest}
       className={clsx(
+        styles['link-button'],
         buttonCss({ display, main, cross, flow, gap, variant, size }),
         isIconButton(props) && styles['button--icon'],
         className

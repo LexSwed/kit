@@ -1,5 +1,4 @@
 import {
-  type ChangeEvent,
   type ChangeEventHandler,
   type ComponentProps,
   forwardRef,
@@ -32,15 +31,12 @@ export const TextArea = forwardRef(
       gap,
       style,
       className,
-      onChange,
       validity,
-      value,
       disabled,
       variant = 'boxed',
       id,
       size = 'md',
       as: Component,
-      ref: _ignoreRef,
       ...props
     },
     ref
@@ -58,14 +54,14 @@ export const TextArea = forwardRef(
         wrap={wrap}
         style={style}
         className={className}
-        ref={ref}
+        ref={ref as unknown as Ref<HTMLDivElement>}
       >
         {label !== undefined && (
           <Label label={label} secondary={secondaryLabel} htmlFor={ariaProps.id} disabled={disabled} />
         )}
         <Column gap="xs">
           {!Component ? (
-            <TextAreaInner {...props} {...ariaProps} className={inputClassName} />
+            <TextAreaInner {...props} {...ariaProps}  className={inputClassName} />
           ) : (
             <Component {...props} {...ariaProps} className={inputClassName} />
           )}
@@ -78,9 +74,9 @@ export const TextArea = forwardRef(
       </FormFieldWrapper>
     );
   }
-) as ForwardRefComponent<'textarea', Props & { ref?: ComponentProps<typeof FormFieldWrapper>['ref'] }>;
+) as ForwardRefComponent<'textarea', Props>;
 
-const TextAreaInner = ({ onChange, inputRef, ...props }: TextAreaProps & ComponentProps<'textarea'>) => {
+const TextAreaInner = ({ onChange, inputRef, ...props }: Props & TextAreaElementProps) => {
   const innerRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -91,26 +87,23 @@ const TextAreaInner = ({ onChange, inputRef, ...props }: TextAreaProps & Compone
 
   const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     const el = e.currentTarget;
-    onChange?.(el.value, e);
+    onChange?.(e);
     autosize(el);
   };
 
-  const refs = useForkRef(inputRef as any, innerRef);
+  const refs = useForkRef(inputRef, innerRef);
 
   return <textarea rows={1} {...props} onChange={handleChange} ref={refs} />;
 };
 
 TextArea.displayName = 'TextArea';
 
-interface TextAreaProps {
-  inputRef?: Pick<ComponentProps<'textarea'>, 'ref'>;
-  onChange?: (value: string, event: ChangeEvent<HTMLTextAreaElement>) => void;
-}
-
-interface Props extends FlexVariants, FieldVariants, TextAreaProps {
+type TextAreaElementProps = ComponentProps<'textarea'>
+interface Props extends FlexVariants, FieldVariants {
   label?: string;
   secondaryLabel?: string;
   hint?: string;
+  inputRef?: Ref<HTMLTextAreaElement>;
 }
 
 function autosize(el: HTMLTextAreaElement) {

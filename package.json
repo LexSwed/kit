@@ -8,7 +8,9 @@
     "dev": "npm run dev --workspace @fxtrot/app",
     "build:app": "npm run build --workspace @fxtrot/app",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "check": "npm run lint && npm run typecheck",
+    "prepare": "husky install"
   },
   "author": "Lex Swed",
   "license": "MIT",
@@ -25,6 +27,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
+    "husky": "^8.0.3",
     "prettier": "^2.8.8",
     "prettier-plugin-tailwindcss": "^0.3.0",
     "turbo": "^1.10.1",

@@ -46,7 +46,7 @@ export function createThemeVariables(theme: Theme): ThemeVariableEntry[] {
         const config = theme[configKey];
         if (config) {
           return createThemeColors(config);
-        }
+        }``
         break;
       }
       case 'fontSize': {
@@ -79,10 +79,10 @@ export function mergeTheme(theme: Theme): DeepRequired<Theme> {
   Object.keys(theme).forEach((themeKey) => {
     const themeConfig = theme[themeKey as ThemeKey];
     if (!themeConfig) return;
-    // @ts-expect-error
+    // @ts-expect-error fixme
     resultingTheme[themeKey as ThemeKey] = { ...defaultTheme[themeKey as ThemeKey] };
     Object.keys(themeConfig).forEach((configKey) => {
-      // @ts-expect-error
+      // @ts-expect-error fixme
       resultingTheme[themeKey as ThemeKey][configKey] = themeConfig[configKey as ThemeKey];
     });
   });

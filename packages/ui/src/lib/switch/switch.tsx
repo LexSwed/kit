@@ -27,7 +27,6 @@ export const Switch = ({
   display = 'inline',
   cross = 'center',
   disabled,
-  id,
   ...props
 }: Props) => {
   const handleChange = useMemo(() => {

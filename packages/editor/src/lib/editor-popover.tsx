@@ -1,4 +1,4 @@
-import React, { type ComponentProps, forwardRef, useEffect } from "react";
+import React, { type ComponentProps, useEffect, useState } from "react";
 import {
   flip,
   inline,
@@ -8,7 +8,6 @@ import {
   type ReferenceType,
   shift,
   useFloating,
-  useMergeRefs,
 } from "@floating-ui/react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 import { clsx } from "clsx";
@@ -22,80 +21,78 @@ interface Props extends ComponentProps<typeof PopoverBox> {
   offset?: OffsetOptions;
 }
 
-export const EditorPopover = forwardRef<HTMLDivElement, Props>(
-  function EditorPopoverWithRef(
-    {
-      open,
-      reference,
-      className,
-      placement = "top-start",
-      offset: offsetOptions = 8,
-      children,
-      ...props
-    },
-    propRef
-  ) {
-    const [editor] = useLexicalComposerContext();
-    const { x, y, strategy, refs, context } = useFloating({
-      open: open,
-      placement,
-      strategy: "fixed",
-      elements: reference
-        ? {
-            reference: reference,
-          }
-        : undefined,
-      middleware: [
-        inline(),
-        offset(offsetOptions),
-        flip({
-          crossAxis: false,
-        }),
-        shift(),
-      ],
-    });
-    const [side, align] = getSideAndAlignFromPlacement(context.placement);
+export const EditorPopover = ({
+  open,
+  reference,
+  className,
+  placement = "top-start",
+  offset: offsetOptions = 8,
+  children,
+  ...props
+}: Props) => {
+  const [editor] = useLexicalComposerContext();
+  const [floating, setFloating] = useState<HTMLDivElement | null>(null);
+  const { x, y, strategy, context } = useFloating({
+    open: open,
+    placement,
+    strategy: "fixed",
+    elements: reference
+      ? {
+          floating,
+          reference,
+        }
+      : undefined,
+    middleware: [
+      inline(),
+      offset(offsetOptions),
+      flip({
+        crossAxis: false,
+      }),
+      shift(),
+    ],
+  });
 
-    const ref = useMergeRefs([propRef, refs.setFloating]);
+  useEffect(() => {
+    // Can't return focus to the trigger as the reference is selected text
+    if (open) {
+      return () => {
+        if (editor.getRootElement() !== document.activeElement) {
+          editor.focus(undefined, { defaultSelection: "rootStart" });
+        }
+      };
+    }
+  }, [editor, open]);
 
-    useEffect(() => {
-      // Can't return focus to the trigger as the reference is selected text
-      if (open) {
-        return () => {
-          if (editor.getRootElement() !== document.activeElement) {
-            editor.focus();
-          }
-        };
-      }
-    }, [editor, open]);
+  if (!open) return null;
 
-    /* using the portal the buttons inside the popovers being able to open own popovers 
+  const [side, align] = getSideAndAlignFromPlacement(context.placement);
+
+  /* using the portal the buttons inside the popovers being able to open own popovers 
       that are portaled to the root, instead of rendered next to the button itself */
-    return (
-      <Portal>
-        <PopoverBox
-          data-align={align}
-          data-side={side}
-          ref={ref}
-          data-state={open ? "open" : "closed"}
-          style={{
-            position: strategy,
-            top: y ?? 0,
-            left: x ?? 0,
-            width: "max-content",
-          }}
-          className={clsx(
-            "isolate transition-[opacity,width,height] duration-300",
-            className
-          )}
-          {...props}
-        >
-          {children}
-        </PopoverBox>
-      </Portal>
-    );
-  }
-);
+  return (
+    <Portal>
+      <PopoverBox
+        data-align={align}
+        data-side={side}
+        ref={setFloating}
+        data-state={open ? "open" : "closed"}
+        style={{
+          position: strategy,
+          top: y ?? 0,
+          left: x ?? 0,
+          width: "max-content",
+        }}
+        className={clsx(
+          "isolate transition-[opacity,width,height] duration-150",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </PopoverBox>
+    </Portal>
+  );
+};
 
 function getSideAndAlignFromPlacement(placement: Placement) {
   const [side, align = "center"] = placement.split("-");

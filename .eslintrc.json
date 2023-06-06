@@ -4,17 +4,15 @@
     "plugin:react-hooks/recommended",
     "eslint:recommended",
     "plugin:import/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier", "simple-import-sort"],
+  "plugins": ["@typescript-eslint", "simple-import-sort"],
   "parserOptions": {
     "sourceType": "module"
   },
   "env": { "es6": true },
   "rules": {
-    "prettier/prettier": "error",
     "simple-import-sort/exports": "error",
     "import/first": "error",
     "import/newline-after-import": "error",

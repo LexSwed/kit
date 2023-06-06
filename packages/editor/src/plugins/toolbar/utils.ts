@@ -83,11 +83,6 @@ export async function selectWholeLink(editor: LexicalEditor, newRange: Range) {
       if (!$isRangeSelection(selection)) return;
       selection.applyDOMRange(newRange);
       resolve(undefined);
-      // enforce focusing for and waiting for selection change event to be emitted
-      // lexical ignores selection change if the editor is not focused
-      // editor.focus(() => {
-      //   requestAnimationFrame(resolve);
-      // });
     });
   });
 }
@@ -99,18 +94,14 @@ export async function getLinkDetailsFromSelection(editor: LexicalEditor) {
       if (!$isRangeSelection(selection)) return;
       const linkNode = $getSelectedLinkNode();
       if (!linkNode) return resolve({ link: "", text: "" });
-      let text = "";
+      
       const textNodes = linkNode.getAllTextNodes();
-
       const textNode: TextNode | null =
         textNodes.length === 1 ? textNodes.at(0) : null;
-      if (textNode) {
-        text = textNode.getTextContent();
-      }
 
       resolve({
         link: linkNode ? linkNode.getURL() : "",
-        text,
+        text: textNode ? textNode.getTextContent() : ''
       });
     });
   });
@@ -153,9 +144,7 @@ export function $getSelectedLinkNode(): LinkNode | AutoLinkNode | null {
 export function highlightSelectedLink(editor: LexicalEditor) {
   // @ts-expect-error Highlights API is not yet in lib/dom
   if (typeof Highlight !== "undefined") {
-    editor.update(() => {
-      const selection = $getSelection();
-      if (!$isRangeSelection(selection)) return;
+    editor.getEditorState().read(() => {
       const linkNode = $getSelectedLinkNode();
       if (!linkNode) return;
       const link = editor.getElementByKey(linkNode.getKey());
@@ -163,7 +152,6 @@ export function highlightSelectedLink(editor: LexicalEditor) {
       const range = new Range();
       range.setStartBefore(link);
       range.setEndAfter(link);
-      selection.applyDOMRange(range);
       // @ts-expect-error Highlights API is not yet in lib/dom
       if (range && typeof Highlight !== "undefined") {
         // @ts-expect-error Highlights API is not yet in lib/dom

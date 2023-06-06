@@ -89,19 +89,6 @@ export const LinkEditPopup = ({ isLink, reference }: LinkEditPopupProps) => {
         className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2"
         onSubmit={saveLink}
       >
-        {/* 
-         TODO: to implement this, the editor needs to get the
-               selection and extract from selected nodes selected text with their styles.
-               Then, on save, selected nodes need to be split on selection anchor and offset and new nodes created.
-               Maybe at some point, but not now :)
-        <MinimalEditor
-          size="sm"
-          placeholder={t("Text")}
-          name="text"
-          label={t("Text")}
-          autoFocus
-          initialEditorState={initialValues.text}
-        /> */}
         <fieldset autoFocus>
           {supportsTextEditing && (
             <TextField

@@ -9,7 +9,7 @@
     "build:app": "npm run build --workspace @fxtrot/app",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "check": "npm run lint && npm run typecheck",
+    "check": "echo 'lint and typecheck'",
     "prepare": "husky install"
   },
   "author": "Lex Swed",

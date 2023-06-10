@@ -1,19 +1,17 @@
-import { useEffect, useMemo } from "react";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { mergeRegister } from "@lexical/utils";
+import { useEffect, useMemo } from 'react';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
+import { mergeRegister } from '@lexical/utils';
 import {
   BLUR_COMMAND,
-  CLICK_COMMAND,
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
   FOCUS_COMMAND,
   SELECTION_CHANGE_COMMAND,
-} from "lexical";
-import { createMachine } from "xstate";
+} from 'lexical';
+import { createMachine } from 'xstate';
 
-import { LinkSelection } from "./link-selection.tsx";
-import { RangeSelection } from "./range-selection.tsx";
-import { toolbarMachine, ToolbarStateProvider, useActorRef } from "./state.ts";
+import { Selection } from './selection.tsx';
+import { toolbarMachine, ToolbarStateProvider, useActorRef } from './state.ts';
 
 export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -29,8 +27,7 @@ export function FloatingToolbarPlugin() {
   return (
     <ToolbarStateProvider machine={machine}>
       <EditorEvents />
-      <LinkSelection />
-      <RangeSelection />
+      <Selection />
     </ToolbarStateProvider>
   );
 }
@@ -44,10 +41,10 @@ function EditorEvents() {
     /** Should always listen to document pointer down and up in case selection
      * went outside of the editor - it should still be valid */
     function handlePointerDown() {
-      actor.send({ type: "pointer down" });
+      actor.send({ type: 'pointer down' });
     }
     function handlePointerUp() {
-      actor.send({ type: "pointer up" });
+      actor.send({ type: 'pointer up' });
     }
 
     /** Apply to editorElement to void applying opacity when pointer down is within the toolbar itself. */
@@ -59,12 +56,12 @@ function EditorEvents() {
     // }
     // const editorElement = editor.getRootElement();
 
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("pointerup", handlePointerUp);
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('pointerup', handlePointerUp);
     // editorElement?.addEventListener('pointermove', handlePointerMove);
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("pointerup", handlePointerUp);
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('pointerup', handlePointerUp);
       // editorElement?.removeEventListener('pointermove', handlePointerMove);
     };
   }, [actor, editor]);
@@ -74,7 +71,7 @@ function EditorEvents() {
       editor.registerCommand(
         FOCUS_COMMAND,
         () => {
-          actor.send({ type: "focus" });
+          actor.send({ type: 'focus' });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -82,7 +79,7 @@ function EditorEvents() {
       editor.registerCommand(
         BLUR_COMMAND,
         () => {
-          actor.send({ type: "blur" });
+          actor.send({ type: 'blur' });
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -90,7 +87,7 @@ function EditorEvents() {
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          actor.send({ type: "selection change" });
+          actor.send({ type: 'selection change' });
           return false;
         },
         COMMAND_PRIORITY_HIGH

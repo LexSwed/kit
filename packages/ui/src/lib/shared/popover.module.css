@@ -6,6 +6,7 @@
     animation-timing-function: ease-in;
     animation-fill-mode: forwards;
     animation-duration: 0.15s;
+    max-width: calc(100vw - theme('spacing.4'));
     --translate-offset: 5px;
     --translate: calc(var(--translate-x, 0) * var(--translate-offset)),
       calc(var(--translate-y, 0) * var(--translate-offset));

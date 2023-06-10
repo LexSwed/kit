@@ -1,33 +1,21 @@
-import { type FormEvent, useEffect, useState } from "react";
-import { RxLinkBreak2 } from "react-icons/rx/index.js";
-import type { ReferenceType } from "@floating-ui/react";
+import { type FormEvent, useEffect, useState } from 'react';
+import { RxLinkBreak2 } from 'react-icons/rx/index.js';
+import type { ReferenceType } from '@floating-ui/react';
 import {
   ArrowTopRightOnSquareIcon,
   ClipboardDocumentCheckIcon,
   ClipboardDocumentListIcon,
-} from "@heroicons/react/24/outline";
-import { TOGGLE_LINK_COMMAND } from "@lexical/link";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
+} from '@heroicons/react/24/outline';
+import { TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 
-import { t } from "@fxtrot/lib";
-import {
-  Button,
-  Row,
-  Text,
-  TextField,
-  Tooltip,
-  useCopyToClipboard,
-  useKeyboardHandles,
-} from "@fxtrot/ui";
+import { t } from '@fxtrot/lib';
+import { Button, Row, Text, TextField, Tooltip, useCopyToClipboard, useKeyboardHandles } from '@fxtrot/ui';
 
-import { EditorPopover } from "../../lib/editor-popover.tsx";
+import { EditorPopover } from '../../lib/editor-popover.tsx';
 
-import { useActorRef } from "./state.ts";
-import {
-  getLinkDetailsFromSelection,
-  highlightSelectedLink,
-  updateSelectedLink,
-} from "./utils.ts";
+import { useActorRef } from './state.ts';
+import { getLinkDetailsFromSelection, highlightSelectedLink, updateSelectedLink } from './utils.ts';
 
 interface LinkEditPopupProps {
   isLink: boolean;
@@ -55,14 +43,14 @@ export const LinkEditPopup = ({ isLink, reference }: LinkEditPopupProps) => {
   }, [isLink, reference, editor]);
 
   const close = () => {
-    actor.send({ type: "cancel link edit" });
+    actor.send({ type: 'cancel link edit' });
   };
 
   const saveLink = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const text = (form.get("text") as string) || "";
-    const link = (form.get("link") as string) || "";
+    const text = (form.get('text') as string) || '';
+    const link = (form.get('link') as string) || '';
     updateSelectedLink(editor, { text, link });
     close();
   };
@@ -76,19 +64,9 @@ export const LinkEditPopup = ({ isLink, reference }: LinkEditPopupProps) => {
   const supportsTextEditing = Boolean(initialValues.text);
 
   return (
-    <EditorPopover
-      onKeyDown={onKeyDown}
-      open
-      placement="bottom"
-      reference={reference}
-    >
-      {isLink ? (
-        <LinkActions href={initialValues.link} onClose={close} />
-      ) : null}
-      <form
-        className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2"
-        onSubmit={saveLink}
-      >
+    <EditorPopover onKeyDown={onKeyDown} open placement="bottom" reference={reference}>
+      {isLink ? <LinkActions href={initialValues.link} onClose={close} /> : null}
+      <form className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2" onSubmit={saveLink}>
         <fieldset autoFocus>
           {supportsTextEditing && (
             <TextField
@@ -112,10 +90,10 @@ export const LinkEditPopup = ({ isLink, reference }: LinkEditPopupProps) => {
         </fieldset>
         <div className="flex flex-row justify-end gap-2 pt-1">
           <Button size="sm" onClick={close}>
-            {t("Cancel")}
+            {t('Cancel')}
           </Button>
           <Button size="sm" type="submit" variant="tonal">
-            {t("Save")}
+            {t('Save')}
           </Button>
         </div>
       </form>
@@ -136,27 +114,11 @@ const LinkActions = ({ href, onClose }: LinkActionsProps) => {
 
   return (
     <Row main="end" cross="center">
-      <Tooltip
-        delayDuration={200}
-        content={<Text textStyle="body-sm">Open in a new tab</Text>}
-      >
-        <Button
-          size="sm"
-          icon={ArrowTopRightOnSquareIcon}
-          aria-label={t("Open in a new tab")}
-        />
+      <Tooltip delayDuration={200} content={<Text textStyle="body-sm">Open in a new tab</Text>}>
+        <Button size="sm" icon={ArrowTopRightOnSquareIcon} aria-label={t('Open in a new tab')} />
       </Tooltip>
-      <Tooltip
-        delayDuration={200}
-        content={<Text textStyle="body-sm">Unlink</Text>}
-      >
-        <Button
-          size="sm"
-          icon={RxLinkBreak2}
-          label={t("Remove link")}
-          intent="danger"
-          onClick={removeLink}
-        />
+      <Tooltip delayDuration={200} content={<Text textStyle="body-sm">Unlink</Text>}>
+        <Button size="sm" icon={RxLinkBreak2} label={t('Remove link')} intent="danger" onClick={removeLink} />
       </Tooltip>
       <CopyLinkButton href={href} />
     </Row>
@@ -180,7 +142,7 @@ export const CopyLinkButton = ({ href }: { href: string }) => {
       <Button
         size="sm"
         icon={copied ? ClipboardDocumentCheckIcon : ClipboardDocumentListIcon}
-        label={t("Copy link")}
+        label={t('Copy link')}
         onClick={() => copy(href)}
       />
     </Tooltip>

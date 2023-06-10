@@ -1,4 +1,4 @@
-import React, { type ComponentProps, useEffect, useState } from "react";
+import React, { type ComponentProps, useEffect, useState } from 'react';
 import {
   flip,
   inline,
@@ -8,11 +8,11 @@ import {
   type ReferenceType,
   shift,
   useFloating,
-} from "@floating-ui/react";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { clsx } from "clsx";
+} from '@floating-ui/react';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
+import { clsx } from 'clsx';
 
-import { PopoverBox, Portal } from "@fxtrot/ui";
+import { PopoverBox, Portal } from '@fxtrot/ui';
 
 interface Props extends ComponentProps<typeof PopoverBox> {
   open: boolean;
@@ -25,23 +25,24 @@ export const EditorPopover = ({
   open,
   reference,
   className,
-  placement = "top-start",
+  placement = 'top-start',
   offset: offsetOptions = 8,
   children,
   ...props
 }: Props) => {
   const [editor] = useLexicalComposerContext();
   const [floating, setFloating] = useState<HTMLDivElement | null>(null);
+  const elements = reference
+    ? {
+        floating,
+        reference,
+      }
+    : undefined;
   const { x, y, strategy, context } = useFloating({
-    open: open,
+    open: open && Boolean(elements),
     placement,
-    strategy: "fixed",
-    elements: reference
-      ? {
-          floating,
-          reference,
-        }
-      : undefined,
+    strategy: 'fixed',
+    elements,
     middleware: [
       inline(),
       offset(offsetOptions),
@@ -57,7 +58,7 @@ export const EditorPopover = ({
     if (open) {
       return () => {
         if (editor.getRootElement() !== document.activeElement) {
-          editor.focus(undefined, { defaultSelection: "rootStart" });
+          editor.focus(undefined, { defaultSelection: 'rootStart' });
         }
       };
     }
@@ -70,22 +71,20 @@ export const EditorPopover = ({
   /* using the portal the buttons inside the popovers being able to open own popovers 
       that are portaled to the root, instead of rendered next to the button itself */
   return (
-    <Portal>
+    <Portal
+      ref={setFloating}
+      style={{
+        position: strategy,
+        top: y ?? 0,
+        left: x ?? 0,
+        width: 'max-content',
+      }}
+    >
       <PopoverBox
         data-align={align}
         data-side={side}
-        ref={setFloating}
-        data-state={open ? "open" : "closed"}
-        style={{
-          position: strategy,
-          top: y ?? 0,
-          left: x ?? 0,
-          width: "max-content",
-        }}
-        className={clsx(
-          "isolate transition-[opacity,width,height] duration-150",
-          className
-        )}
+        data-state={open ? 'open' : 'closed'}
+        className={clsx('isolate transition-[opacity,width,height] duration-150', className)}
         {...props}
       >
         {children}
@@ -95,6 +94,6 @@ export const EditorPopover = ({
 };
 
 function getSideAndAlignFromPlacement(placement: Placement) {
-  const [side, align = "center"] = placement.split("-");
+  const [side, align = 'center'] = placement.split('-');
   return [side, align] as const;
 }

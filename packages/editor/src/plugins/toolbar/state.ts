@@ -1,124 +1,112 @@
-import { createActorContext } from "@xstate/react";
-import type { LexicalEditor } from "lexical/LexicalEditor.js";
-import { assign, createMachine, fromPromise, raise, stateIn } from "xstate";
+import { createActorContext } from '@xstate/react';
+import type { LexicalEditor } from 'lexical/LexicalEditor.js';
+import { assign, createMachine, fromPromise, raise, stateIn } from 'xstate';
 
-import { getSelection } from "./utils.ts";
+import { getSelection } from './utils.ts';
 
 interface Context {
-  selection: Range | null;
-  link: HTMLElement | null;
+  selection: Range | HTMLAnchorElement | null;
   editor: LexicalEditor;
 }
 
 type Event =
-  | { type: "pointer down" }
-  | { type: "pointer up" }
-  | { type: "focus" }
-  | { type: "blur" }
-  | { type: "selection change" }
-  | { type: "selected" }
-  | { type: "link clicked" }
-  | { type: "deselected" }
-  | { type: "edit link" }
-  | { type: "close" }
-  | { type: "cancel link edit" }
+  | { type: 'pointer down' }
+  | { type: 'pointer up' }
+  | { type: 'focus' }
+  | { type: 'blur' }
+  | { type: 'selection change' }
+  | { type: 'range selected' }
+  | { type: 'link clicked' }
+  | { type: 'deselected' }
+  | { type: 'edit link' }
+  | { type: 'close' }
+  | { type: 'toggle edit link' }
+  | { type: 'cancel link edit' }
   | {
-      type: "done.invoke.selector";
+      type: 'done.invoke.selector';
       output: Awaited<ReturnType<typeof getSelection>>;
     };
 
 const toolbarMachine = createMachine<Context, Event>(
   {
-    id: "toolbarMachine",
+    id: 'toolbarMachine',
     context: {
       selection: null,
-      link: null,
     } as Context,
-    type: "parallel",
+    type: 'parallel',
     states: {
       focus: {
-        initial: "in",
+        initial: 'in',
         states: {
           in: {
-            on: { blur: "out" },
+            on: { blur: 'out' },
           },
           out: {
             on: {
-              focus: "in",
+              focus: 'in',
             },
           },
         },
       },
       pointer: {
-        initial: "up",
+        initial: 'up',
         states: {
           up: {
             on: {
-              "pointer down": "down",
+              'pointer down': 'down',
             },
           },
           down: {
             on: {
-              "pointer up": "up",
+              'pointer up': 'up',
             },
           },
         },
       },
 
       selection: {
-        id: "selection",
-        initial: "idle",
+        id: 'selection',
+        initial: 'idle',
         on: {
-          deselected: {
-            target: ".idle",
+          'deselected': {
+            target: '.idle',
           },
-          "pointer up": [
+          'pointer up': [
             {
-              guard: stateIn({ focus: "in" }),
-              target: ".check selection",
+              guard: stateIn({ focus: 'in' }),
+              target: '.check selection',
             },
           ],
-          "selection change": [
+          'selection change': [
             {
-              guard: stateIn({ focus: "in", pointer: "up" }),
-              target: ".check selection",
+              guard: stateIn({ focus: 'in', pointer: 'up' }),
+              target: '.check selection',
             },
           ],
         },
         states: {
-          idle: {},
-          // "check selection": {
-          //   after: {
-          //     150: {
-          //       target: "checking selection",
-          //     },
-          //   },
-          // },
-          "check selection": {
+          'idle': {},
+          'check selection': {
             invoke: {
-              src: "getSelection",
-              id: "selector",
+              src: 'getSelection',
+              id: 'selector',
               input: ({ context }: { context: Context }) => ({
                 editor: context.editor,
               }),
               onDone: [
                 {
-                  guard: "isRangeSelection",
-                  actions: [
-                    "clearSelection",
-                    "assignSelection",
-                    "raiseSelected",
-                  ],
-                  target: "idle",
+                  guard: 'isRangeSelection',
+                  actions: ['clearSelection', 'assignSelection', 'raiseSelected'],
+                  target: 'idle',
                 },
                 {
-                  guard: "isLinkClicked",
-                  actions: ["clearSelection", "assignLink", "raiseLinkClicked"],
-                  target: "idle",
+                  guard: 'isLinkClicked',
+                  actions: ['clearSelection', 'assignSelection', 'raiseLinkClicked'],
+                  target: 'idle',
                 },
                 {
-                  actions: ["clearSelection", "raiseDeselected"],
-                  target: "idle",
+                  actions: ['clearSelection', 'raiseDeselected'],
+                  target: 'idle',
                 },
               ],
             },
@@ -127,66 +115,62 @@ const toolbarMachine = createMachine<Context, Event>(
       },
 
       toolbar: {
-        id: "toolbar",
-        initial: "hidden",
+        id: 'toolbar',
+        initial: 'hidden',
         on: {
-          selected: {
-            target: ".shown.range",
+          'range selected': {
+            target: '.shown.range',
           },
-          "link clicked": {
-            target: ".shown.link",
+          'link clicked': {
+            target: '.shown.link',
           },
         },
         states: {
           hidden: {},
           shown: {
-            id: "shown",
-            initial: "range",
+            id: 'shown',
+            initial: 'range',
             on: {
               deselected: {
-                target: "#toolbar.shown.closing",
+                target: '#toolbar.shown.closing',
               },
               close: {
-                target: "#toolbar.shown.closing",
+                target: '#toolbar.shown.closing',
               },
             },
             states: {
               range: {
-                initial: "initial",
+                initial: 'initial',
                 states: {
-                  initial: {
+                  'initial': {
                     on: {
-                      "edit link": {
-                        target: "link-edit",
-                      },
+                      'edit link': 'link-edit',
+                      'toggle edit link': 'link-edit',
                     },
                   },
-                  "link-edit": {
+                  'link-edit': {
                     on: {
-                      "cancel link edit": "initial",
-                      selected: {
-                        target: "initial",
-                      },
+                      'cancel link edit': 'initial',
+                      'range selected': 'initial',
+                      'toggle edit link': 'initial',
                     },
                   },
                 },
               },
               link: {
-                initial: "initial",
+                initial: 'initial',
                 states: {
-                  initial: {
+                  'initial': {
                     on: {
-                      "edit link": {
-                        target: "link-edit",
-                      },
+                      'edit link': 'link-edit',
+                      'toggle edit link': 'link-edit',
                     },
                   },
-                  "link-edit": {
+                  'link-edit': {
                     on: {
-                      "cancel link edit": "initial",
-                      selected: {
-                        target: "initial",
-                      },
+                      'cancel link edit': 'initial',
+                      'range selected': 'initial',
+                      'toggle edit link': 'initial',
                     },
                   },
                 },
@@ -194,7 +178,7 @@ const toolbarMachine = createMachine<Context, Event>(
               closing: {
                 after: {
                   150: {
-                    target: "#toolbar.hidden",
+                    target: '#toolbar.hidden',
                   },
                 },
               },
@@ -206,71 +190,54 @@ const toolbarMachine = createMachine<Context, Event>(
   },
   {
     actions: {
-      assignLink: assign({
-        link: ({ context, event }) => {
-          console.log(event);
-          if (
-            event.type === "done.invoke.selector" &&
-            event.output &&
-            "link" in event.output
-          ) {
-            return event.output.link;
-          }
-          return context.link;
-        },
-      }),
       assignSelection: assign({
         selection: ({ context, event }) => {
-          if (
-            event.type === "done.invoke.selector" &&
-            event.output &&
-            "range" in event.output
-          ) {
+          if (event.type === 'done.invoke.selector' && event.output && 'range' in event.output) {
             return event.output.range;
+          }
+          if (event.type === 'done.invoke.selector' && event.output && 'link' in event.output) {
+            return event.output.link;
           }
           return context.selection;
         },
       }),
       clearSelection: assign({
         selection: null,
-        link: null,
       }),
       raiseLinkClicked: raise(({ event }) => {
-        if (event.type === "done.invoke.selector") {
+        if (event.type === 'done.invoke.selector') {
           return {
-            type: "link clicked",
+            type: 'link clicked',
           };
         }
-        throw new Error("Cannot raise selected event from non-selection queue");
+        throw new Error('Cannot raise selected event from non-selection queue');
       }),
       raiseSelected: raise(({ event }) => {
-        if (event.type === "done.invoke.selector") {
+        if (event.type === 'done.invoke.selector') {
           return {
-            type: "selected",
+            type: 'range selected',
           };
         }
-        throw new Error("Cannot raise selected event from non-selection queue");
+        throw new Error('Cannot raise selected event from non-selection queue');
       }),
-      raiseDeselected: raise({ type: "deselected" }),
+      raiseDeselected: raise({ type: 'deselected' }),
     },
     guards: {
       isLinkClicked: ({ event }) => {
-        if (event.type === "done.invoke.selector" && event.output) {
-          return "link" in event.output && Boolean(event.output.link);
+        if (event.type === 'done.invoke.selector' && event.output) {
+          return 'link' in event.output && Boolean(event.output.link);
         }
         return false;
       },
       isRangeSelection: ({ event }) => {
-        if (event.type === "done.invoke.selector" && event.output) {
-          return "range" in event.output && Boolean(event.output.range);
+        if (event.type === 'done.invoke.selector' && event.output) {
+          return 'range' in event.output && Boolean(event.output.range);
         }
         return false;
       },
     },
     actors: {
-      getSelection: fromPromise(async ({ input: { editor } }) =>
-        getSelection(editor)
-      ),
+      getSelection: fromPromise(async ({ input: { editor } }) => getSelection(editor)),
     },
   }
 );
@@ -282,9 +249,9 @@ const {
 } = createActorContext(
   toolbarMachine,
   {
-    devTools: process.env.NODE_ENV === "development",
+    devTools: process.env.NODE_ENV === 'development',
   },
-  process.env.NODE_ENV === "development"
+  process.env.NODE_ENV === 'development'
     ? (state) => {
         const { event, value, context } = state;
         console.log({ event, value, context });

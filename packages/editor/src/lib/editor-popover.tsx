@@ -1,5 +1,6 @@
 import React, { type ComponentProps, useEffect, useState } from 'react';
 import {
+  autoUpdate,
   flip,
   inline,
   offset,
@@ -44,6 +45,7 @@ export const EditorPopover = ({
     placement,
     strategy: 'fixed',
     elements,
+    whileElementsMounted: autoUpdate,
     middleware: [
       inline(),
       offset(offsetOptions),

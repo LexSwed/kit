@@ -117,7 +117,7 @@ const LinkActions = ({ href, onClose }: LinkActionsProps) => {
       <Tooltip delayDuration={200} content={<Text textStyle="body-sm">Open in a new tab</Text>}>
         <Button size="sm" icon={ArrowTopRightOnSquareIcon} aria-label={t('Open in a new tab')} />
       </Tooltip>
-      <Tooltip delayDuration={200} content={<Text textStyle="body-sm">Unlink</Text>}>
+      <Tooltip delayDuration={200} content={<Text textStyle="body-sm">{t('Unlink')}</Text>}>
         <Button size="sm" icon={RxLinkBreak2} label={t('Remove link')} intent="danger" onClick={removeLink} />
       </Tooltip>
       <CopyLinkButton href={href} />
@@ -133,9 +133,9 @@ export const CopyLinkButton = ({ href }: { href: string }) => {
       delayDuration={200}
       content={
         copied ? (
-          <Text textStyle="body-sm">Copied to clipboard</Text>
+          <Text textStyle="body-sm">{t('Copied to clipboard')}</Text>
         ) : (
-          <Text textStyle="body-sm">Copy to clipboard</Text>
+          <Text textStyle="body-sm">{t('Copy to clipboard')}</Text>
         )
       }
     >

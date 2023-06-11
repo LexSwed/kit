@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { mergeRegister } from '@lexical/utils';
-import { clsx } from 'clsx';
 import { COMMAND_PRIORITY_HIGH, KEY_ESCAPE_COMMAND } from 'lexical';
 
-import { Button, LinkButton, Row, Text } from '@fxtrot/ui';
+import { t } from '@fxtrot/lib';
+import { Button, LinkButton, Row, Text, Tooltip } from '@fxtrot/ui';
 
 import { EditorPopover } from '../../lib/editor-popover.tsx';
 
@@ -95,12 +95,14 @@ const LinkSelectionToggles = ({ link }: LinkSelectionProps) => {
 
   return (
     <Row gap="xs" cross="center">
-      <LinkButton href={href} title={href} className="max-w-[200px]" size="sm" main="start">
-        <Text className="truncate">{href}</Text>
-      </LinkButton>
+      <Tooltip content={t('Open in a new tab')}>
+        <LinkButton href={href} title={href} className="max-w-[200px]" size="sm" main="start">
+          <Text className="truncate">{href}</Text>
+        </LinkButton>
+      </Tooltip>
       <CopyLinkButton href={href} />
       <Button size="sm" onClick={toggleEdit}>
-        <Text textStyle="label-sm">Edit</Text>
+        <Text textStyle="label-sm">{t('Edit')}</Text>
       </Button>
     </Row>
   );

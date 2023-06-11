@@ -1,3 +1,4 @@
+import type { Config } from 'tailwindcss';
 import plugin from 'tailwindcss/plugin.js';
 
 import fxtrotTheme from './default-theme.ts';
@@ -9,6 +10,9 @@ import { createTailwindVariables } from './utils.ts';
 const logicalPropertiesPlugin = plugin(({ matchUtilities, theme }) => {
   matchUtilities(
     {
+      p: (value) => ({
+        padding: value,
+      }),
       pt: (value) => ({
         paddingBlockStart: value,
       }),
@@ -32,6 +36,9 @@ const logicalPropertiesPlugin = plugin(({ matchUtilities, theme }) => {
   );
   matchUtilities(
     {
+      m: (value) => ({
+        margin: value,
+      }),
       mt: (value) => ({
         marginBlockStart: value,
       }),
@@ -80,7 +87,6 @@ const logicalPropertiesPlugin = plugin(({ matchUtilities, theme }) => {
   );
 });
 
-/** @type {import('tailwindcss').Config} */
 const fxtrotPlugin = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
@@ -91,7 +97,11 @@ const fxtrotPlugin = {
       },
     },
   },
+  corePlugins: {
+    padding: false,
+    margin: false,
+  },
   plugins: [logicalPropertiesPlugin],
-};
+} satisfies Config;
 
 export default fxtrotPlugin;

@@ -7,7 +7,6 @@ import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatT
 import { t } from '@fxtrot/lib';
 import { Icon, ToggleButton } from '@fxtrot/ui';
 
-import { LinkEditPopup } from './link-edit-popup.tsx';
 import { useActorRef, useSelector } from './state.ts';
 import { ToggleGroup } from './toggle-group.tsx';
 import { selectWholeLink, useEditorStateChange, useIsLinkNodeSelected } from './utils.ts';

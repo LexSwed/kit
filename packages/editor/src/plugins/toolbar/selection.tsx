@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { mergeRegister } from '@lexical/utils';
+import { clsx } from 'clsx';
 import { COMMAND_PRIORITY_HIGH, KEY_ESCAPE_COMMAND } from 'lexical';
 
 import { Button, LinkButton, Row, Text } from '@fxtrot/ui';
@@ -15,6 +16,7 @@ export const Selection = () => {
   const [editor] = useLexicalComposerContext();
   const actor = useActorRef();
 
+  const pointerDown = useSelector((state) => state.matches({ pointer: 'down', focus: 'in' }));
   const linkSelected = useSelector((state) => state.matches({ toolbar: { shown: 'link' } }));
   const rangeSelected = useSelector((state) => state.matches({ toolbar: { shown: 'range' } }));
 
@@ -43,25 +45,29 @@ export const Selection = () => {
       )
     );
   }, [editor, actor]);
-  const offset = { mainAxis: 8, crossAxis: -32 };
+
   return (
     <>
       <EditorPopover
-        className="grid grid-cols-1 grid-rows-1 place-items-start p-1"
+        className={pointerDown ? 'hover:opacity-50' : undefined}
         open={linkSelected || rangeSelected}
         reference={selection}
         offset={offset}
       >
-        {linkSelected && selection instanceof HTMLAnchorElement ? (
-          <LinkSelectionToggles link={selection} />
-        ) : (
-          <RangeSelectionToggles />
-        )}
+        <div className={'grid grid-cols-1 grid-rows-1 place-items-start'}>
+          {linkSelected && selection instanceof HTMLAnchorElement ? (
+            <LinkSelectionToggles link={selection} />
+          ) : (
+            <RangeSelectionToggles />
+          )}
+        </div>
       </EditorPopover>
       {isLinkEditOpen ? <LinkEditPopup reference={selection} isLink /> : null}
     </>
   );
 };
+
+const offset = { mainAxis: 8, crossAxis: -32 };
 
 const RangeSelectionToggles = () => {
   return (

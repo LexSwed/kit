@@ -5,6 +5,7 @@ import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
+  DROP_COMMAND,
   FOCUS_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
@@ -47,22 +48,11 @@ function EditorEvents() {
       actor.send({ type: 'pointer up' });
     }
 
-    /** Apply to editorElement to void applying opacity when pointer down is within the toolbar itself. */
-    // function handlePointerMove(e: PointerEvent) {
-    //   if (!stateRef.current.floatingToolbarOpen || stateRef.current.pointerMove) return;
-    //   if (e.buttons === 1 || e.buttons === 3) {
-    //     dispatch({ type: 'pointer-move' });
-    //   }
-    // }
-    // const editorElement = editor.getRootElement();
-
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('pointerup', handlePointerUp);
-    // editorElement?.addEventListener('pointermove', handlePointerMove);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('pointerup', handlePointerUp);
-      // editorElement?.removeEventListener('pointermove', handlePointerMove);
     };
   }, [actor, editor]);
 
@@ -80,6 +70,16 @@ function EditorEvents() {
         BLUR_COMMAND,
         () => {
           actor.send({ type: 'blur' });
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      /** Pointer Up is not emitted on drop, but pointer down is on drag start */
+      editor.registerCommand(
+        DROP_COMMAND,
+        () => {
+          console.log('drag ended');
+          actor.send({ type: 'pointer up' });
           return false;
         },
         COMMAND_PRIORITY_LOW

@@ -24,6 +24,7 @@ interface Props extends ComponentProps<typeof PopoverBox> {
 export const EditorPopover = ({
   open,
   reference,
+  style,
   className,
   placement = 'top-start',
   offset: offsetOptions = 8,
@@ -78,13 +79,15 @@ export const EditorPopover = ({
         top: y ?? 0,
         left: x ?? 0,
         width: 'max-content',
+        ...style,
       }}
+      className={className}
     >
       <PopoverBox
         data-align={align}
         data-side={side}
         data-state={open ? 'open' : 'closed'}
-        className={clsx('isolate transition-[opacity,width,height] duration-150', className)}
+        className={'isolate transition-[opacity,width,height] duration-150'}
         {...props}
       >
         {children}

@@ -1,32 +1,34 @@
-import { useEffect, useRef } from "react";
-import { CodeHighlightNode, CodeNode } from "@lexical/code";
-import { AutoLinkNode, LinkNode } from "@lexical/link";
-import { ListItemNode, ListNode } from "@lexical/list";
-import { TRANSFORMERS } from "@lexical/markdown";
+import { useCallback, useEffect, useRef } from 'react';
+import { CodeHighlightNode, CodeNode } from '@lexical/code';
+import { AutoLinkNode, LinkNode } from '@lexical/link';
+import { ListItemNode, ListNode } from '@lexical/list';
+import { TRANSFORMERS } from '@lexical/markdown';
 import {
   type InitialConfigType,
   type InitialEditorStateType,
   LexicalComposer,
-} from "@lexical/react/LexicalComposer.js";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable.js";
-import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary.js";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin.js";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin.js";
-import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin.js";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin.js";
-import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin.js";
-import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+} from '@lexical/react/LexicalComposer.js';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable.js';
+import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary.js';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin.js';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin.js';
+import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin.js';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin.js';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin.js';
+import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin.js';
+import { HeadingNode, QuoteNode } from '@lexical/rich-text';
+import type { EditorState } from 'lexical';
 
-import { t } from "@fxtrot/lib";
+import { t } from '@fxtrot/lib';
 
-import CodeHighlightPlugin from "./plugins/code/index.ts";
-import { ImageNode, ImagesPlugin } from "./plugins/image/index.ts";
-import { LinkPlugin } from "./plugins/link/index.tsx";
-import { FloatingToolbarPlugin } from "./plugins/toolbar/index.ts";
-import { theme } from "./theme.ts";
+import CodeHighlightPlugin from './plugins/code/index.ts';
+import { ImageNode, ImagesPlugin } from './plugins/image/index.ts';
+import { LinkPlugin } from './plugins/link/index.tsx';
+import { FloatingToolbarPlugin } from './plugins/toolbar/index.ts';
+import { theme } from './theme.ts';
 
-import css from "./editor.module.css";
+import css from './editor.module.css';
 
 interface Props {
   initialEditorState: InitialEditorStateType;
@@ -40,7 +42,7 @@ export const Editor = ({ initialEditorState }: Props) => {
     console.error(error);
   }
   const initialConfig: InitialConfigType = {
-    namespace: "FxtrotEditor",
+    namespace: 'FxtrotEditor',
     onError,
     editorState: initialEditorState,
     theme,
@@ -64,17 +66,15 @@ export const Editor = ({ initialEditorState }: Props) => {
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className={`relative min-h-[70vh] rounded-sm p-6 font-sans text-on-background shadow-2xl outline-none ${css.editor}`}
+                className={`relative min-h-[70vh] rounded-sm font-sans text-on-background shadow-2xl outline-none p-6 ${css.editor}`}
               />
             }
             placeholder={
-              <div className="pointer-events-none absolute start-0 top-0 p-6 text-on-surface-variant">
-                {t("Enter some text...")}
+              <div className="pointer-events-none absolute start-0 top-0 text-on-surface-variant p-6">
+                {t('Enter some text...')}
               </div>
             }
-            ErrorBoundary={
-              LexicalErrorBoundary as unknown as typeof LexicalErrorBoundary.default
-            }
+            ErrorBoundary={LexicalErrorBoundary as unknown as typeof LexicalErrorBoundary.default}
           />
           <HistoryPlugin />
           <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
@@ -91,7 +91,7 @@ export const Editor = ({ initialEditorState }: Props) => {
   );
 };
 
-const LOCAL_STORAGE_KEY = "fxtrot-editor-state";
+const LOCAL_STORAGE_KEY = 'fxtrot-editor-state';
 const SaveToLocalStoragePlugin = () => {
   const [editor] = useLexicalComposerContext();
 
@@ -102,19 +102,18 @@ const SaveToLocalStoragePlugin = () => {
       firstRenderRef.current = false;
       const serializedEditorState = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (serializedEditorState) {
-        const initialEditorState = editor.parseEditorState(
-          serializedEditorState
-        );
+        const initialEditorState = editor.parseEditorState(serializedEditorState);
         editor.setEditorState(initialEditorState);
       }
     }
   }, [editor]);
 
   // const onChange = useCallback((editorState: EditorState) => {
-  //   localStorage.setItem(
-  //     LOCAL_STORAGE_KEY,
-  //     JSON.stringify(editorState.toJSON())
-  //   );
+  //   // console.log(editorState.toJSON());
+  //   // localStorage.setItem(
+  //   //   LOCAL_STORAGE_KEY,
+  //   //   JSON.stringify(editorState.toJSON())
+  //   // );
   // }, []);
   return null;
   // return <OnChangePlugin onChange={onChange} />;

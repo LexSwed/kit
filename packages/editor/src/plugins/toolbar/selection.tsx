@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { mergeRegister } from '@lexical/utils';
-import { COMMAND_PRIORITY_HIGH, KEY_ESCAPE_COMMAND } from 'lexical';
+import { COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, INSERT_TAB_COMMAND, KEY_ESCAPE_COMMAND } from 'lexical';
 
 import { t } from '@fxtrot/lib';
-import { Button, LinkButton, Row, Text, Tooltip } from '@fxtrot/ui';
+import { Button, LinkButton, Row, Text, Tooltip, useLatest } from '@fxtrot/ui';
 
 import { EditorPopover } from '../../lib/editor-popover.tsx';
 
@@ -33,6 +33,11 @@ export const Selection = () => {
     ].some(Boolean)
   );
 
+  const open = linkSelected || rangeSelected;
+
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const openRef = useLatest(open);
+
   useEffect(() => {
     return mergeRegister(
       editor.registerCommand(
@@ -42,17 +47,31 @@ export const Selection = () => {
           return true;
         },
         COMMAND_PRIORITY_HIGH
+      ),
+      editor.registerCommand(
+        INSERT_TAB_COMMAND,
+        () => {
+          if (openRef.current) {
+            console.log(popoverRef);
+            popoverRef.current?.focus();
+            return true;
+          }
+          console.log('tabbed');
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
       )
     );
-  }, [editor, actor]);
+  }, [editor, actor, openRef]);
 
   return (
     <>
       <EditorPopover
         className={pointerDown ? 'hover:opacity-50' : undefined}
-        open={linkSelected || rangeSelected}
+        open={open}
         reference={selection}
         offset={offset}
+        ref={popoverRef}
       >
         <div className={'grid grid-cols-1 grid-rows-1 place-items-start'}>
           {linkSelected && selection instanceof HTMLAnchorElement ? (
@@ -63,6 +82,7 @@ export const Selection = () => {
         </div>
       </EditorPopover>
       {isLinkEditOpen ? <LinkEditPopup reference={selection} isLink /> : null}
+      {open && <ToolbarTabPlugin />}
     </>
   );
 };
@@ -107,3 +127,20 @@ const LinkSelectionToggles = ({ link }: LinkSelectionProps) => {
     </Row>
   );
 };
+
+/**
+ * Intercepts TAB command to move focus inside and outside of toolbar.
+ */
+function ToolbarTabPlugin() {
+  const [editor] = useLexicalComposerContext();
+  const toolbarOpen = useSelector((state) => state.matches({ toolbar: 'shown' }));
+  const reference = useSelector((state) => state.context.selection);
+
+  const refs = useLatest({ toolbarOpen, reference });
+
+  useEffect(() => {
+    return mergeRegister();
+  }, [editor, refs]);
+
+  return null;
+}

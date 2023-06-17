@@ -46,7 +46,8 @@ export function createThemeVariables(theme: Theme): ThemeVariableEntry[] {
         const config = theme[configKey];
         if (config) {
           return createThemeColors(config);
-        }``
+        }
+        ``;
         break;
       }
       case 'fontSize': {
@@ -75,7 +76,8 @@ type ThemeVariableEntry = [`--fxtrot-${string}-${string}`, string];
  * Takes partial theme and merges it with the default one.
  */
 export function mergeTheme(theme: Theme): DeepRequired<Theme> {
-  const resultingTheme = { ...defaultTheme };
+  const resultingTheme: typeof defaultTheme = JSON.parse(JSON.stringify(defaultTheme));
+
   Object.keys(theme).forEach((themeKey) => {
     const themeConfig = theme[themeKey as ThemeKey];
     if (!themeConfig) return;

@@ -24,15 +24,15 @@ type Props = {
   children?: ReactNode;
   theme?: Theme;
   /**
-   * Apply all CSS variables to global window. Allows accessing CSS variables from ::overlay, :root, etc.
+   * Apply all CSS variables to global :root. Allows accessing CSS variables from ::overlay, :root, etc.
    * Pass `false` if polluting global :root is not desirable, f.e. in client extensions.
-   * @default true
+   * @default false
    */
   globalCss?: boolean;
 } & ComponentProps<'div'>;
 
 const ThemeProvider = forwardRef<HTMLDivElement, Props>(
-  ({ theme = {}, globalCss = true, className, children, ...props }, propRef) => {
+  ({ theme = {}, globalCss = false, className, children, ...props }, propRef) => {
     const rootRef = useFxtrotRootRef();
     const ref = useRef<HTMLDivElement>(null);
     const [direction, directionRef] = useDirection();
@@ -40,13 +40,14 @@ const ThemeProvider = forwardRef<HTMLDivElement, Props>(
 
     // slice :r0: -> r0
     const themeClassName = `fxtrot-ui-${useId().slice(1, -1)}`;
-    let css: string;
+    let css = '';
+    const cssVariables = createThemeCssText(theme);
     if (globalCss) {
-      css = createThemeCssText(':root, ::selection, ::before, ::after', theme);
-      css += `@supports selector(::backdrop) {${createThemeCssText('::backdrop', theme)}}`;
-      css += `@supports selector(::highlight(editor)) {${createThemeCssText('::highlight(editor)', theme)}}`;
+      css += `*, ::selection, ::before, ::after ${cssVariables}\n`;
+      css += `@supports selector(::backdrop) { ::backdrop ${cssVariables} }\n`;
+      css += `@supports selector(::highlight(editor)) { ::highlight(editor) ${cssVariables} }\n`;
     } else {
-      css = createThemeCssText(`.${themeClassName}`, theme);
+      css = `.${themeClassName} ${cssVariables} \n`;
     }
 
     return (
@@ -66,9 +67,9 @@ const ThemeProvider = forwardRef<HTMLDivElement, Props>(
   }
 );
 
-function createThemeCssText(selector: string, theme: Theme) {
+function createThemeCssText(theme: Theme) {
   const fullTheme = mergeTheme(theme);
-  const css = `${selector} {${createThemeVariables(fullTheme)
+  const css = `{${createThemeVariables(fullTheme)
     .map((entry) => entry.join(':'))
     .join(';')};}`.trim();
   return css;

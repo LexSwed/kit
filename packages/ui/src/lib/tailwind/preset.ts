@@ -86,7 +86,6 @@ const logicalPropertiesPlugin = plugin(({ matchUtilities, theme }) => {
     { values: theme('height') }
   );
 });
-
 const fxtrotPlugin = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {

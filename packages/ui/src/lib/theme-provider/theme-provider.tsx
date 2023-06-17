@@ -42,7 +42,7 @@ const ThemeProvider = forwardRef<HTMLDivElement, Props>(
     const themeClassName = `fxtrot-ui-${useId().slice(1, -1)}`;
     let css: string;
     if (globalCss) {
-      css = createThemeCssText('*, ::selection, ::before, ::after', theme);
+      css = createThemeCssText(':root, ::selection, ::before, ::after', theme);
       css += `@supports selector(::backdrop) {${createThemeCssText('::backdrop', theme)}}`;
       css += `@supports selector(::highlight(editor)) {${createThemeCssText('::highlight(editor)', theme)}}`;
     } else {

@@ -25,7 +25,16 @@ interface Props extends ComponentProps<typeof PopoverBox> {
 
 export const EditorPopover = forwardRef<HTMLDivElement, Props>(
   (
-    { open, reference, style, className, placement = 'top-start', offset: offsetOptions = 8, children, ...props },
+    {
+      open,
+      reference,
+      style,
+      className,
+      placement = 'top-start',
+      offset: offsetOptions = { mainAxis: 8, crossAxis: -32 },
+      children,
+      ...props
+    },
     propRef
   ) => {
     const [editor] = useLexicalComposerContext();

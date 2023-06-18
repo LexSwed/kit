@@ -5,7 +5,6 @@ import { clsx } from 'clsx';
 import {
   COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
-  FOCUS_COMMAND,
   FORMAT_TEXT_COMMAND,
   INSERT_TAB_COMMAND,
   KEY_ESCAPE_COMMAND,
@@ -97,7 +96,6 @@ export const Selection = () => {
       <EditorPopover
         open={open}
         reference={selection}
-        offset={offset}
         ref={popoverRef}
         tabIndex={-1}
         role="toolbar"
@@ -112,12 +110,10 @@ export const Selection = () => {
           )}
         </div>
       </EditorPopover>
-      {isLinkEditOpen ? <LinkEditPopup reference={selection} isLink /> : null}
+      {isLinkEditOpen ? <LinkEditPopup reference={selection} /> : null}
     </>
   );
 };
-
-const offset = { mainAxis: 8, crossAxis: -32 };
 
 const RangeSelectionToggles = () => {
   return (

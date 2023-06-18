@@ -15,20 +15,25 @@ import { Button, Row, Text, TextField, Tooltip, useCopyToClipboard, useKeyboardH
 import { EditorPopover } from '../../lib/editor-popover.tsx';
 
 import { useActorRef } from './state.ts';
-import { getLinkDetailsFromSelection, highlightSelectedLink, updateSelectedLink } from './utils.ts';
+import {
+  getLinkDetailsFromSelection,
+  highlightSelectedLink,
+  updateSelectedLink,
+  useIsLinkNodeSelected,
+} from './utils.ts';
 
 interface LinkEditPopupProps {
-  isLink: boolean;
   reference: ReferenceType | null;
 }
 
-export const LinkEditPopup = ({ isLink, reference }: LinkEditPopupProps) => {
+export const LinkEditPopup = ({ reference }: LinkEditPopupProps) => {
   const [editor] = useLexicalComposerContext();
   const [initialValues, setInitialValues] = useState<{
     text: string;
     link: string;
   } | null>(null);
   const actor = useActorRef();
+  const [isLink] = useIsLinkNodeSelected();
 
   useEffect(() => {
     getLinkDetailsFromSelection(editor).then((details) => {
@@ -64,7 +69,7 @@ export const LinkEditPopup = ({ isLink, reference }: LinkEditPopupProps) => {
   const supportsTextEditing = Boolean(initialValues.text);
 
   return (
-    <EditorPopover onKeyDown={onKeyDown} open placement="bottom" reference={reference}>
+    <EditorPopover onKeyDown={onKeyDown} open placement="bottom-start" reference={reference}>
       {isLink ? <LinkActions href={initialValues.link} onClose={close} /> : null}
       <form className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2" onSubmit={saveLink}>
         <fieldset autoFocus>

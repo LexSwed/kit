@@ -1,10 +1,10 @@
 /* eslint-disable simple-import-sort/imports */
+import './globals.css';
+
 import { lazy } from 'react';
 import type { AppComponent } from 'next/dist/shared/lib/router/router.js';
 import localFont from 'next/font/local';
 import { NextSeo } from 'next-seo';
-
-import './globals.css';
 
 import { ThemeProvider } from '@fxtrot/ui';
 
@@ -17,7 +17,6 @@ const MdxProvider = lazy(
     )
 );
 
-// @ts-expect-error esm imports :/
 const Inter = localFont({
   src: '../../public/fonts/Inter-VariableFont_slnt,wght.ttf',
   fallback: ['-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, sans-serif'],
@@ -25,7 +24,6 @@ const Inter = localFont({
   variable: '--fxtrot-fontFamily-sans',
 });
 
-// @ts-expect-error esm imports :/
 const FiraCode = localFont({
   src: '../../public/fonts/FiraCode-VariableFont_wght.ttf',
   fallback: ['Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace'],

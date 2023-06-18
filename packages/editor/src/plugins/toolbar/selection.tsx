@@ -1,10 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { mergeRegister } from '@lexical/utils';
-import { COMMAND_PRIORITY_HIGH, COMMAND_PRIORITY_LOW, INSERT_TAB_COMMAND, KEY_ESCAPE_COMMAND } from 'lexical';
+import { clsx } from 'clsx';
+import {
+  COMMAND_PRIORITY_HIGH,
+  COMMAND_PRIORITY_LOW,
+  FOCUS_COMMAND,
+  FORMAT_TEXT_COMMAND,
+  INSERT_TAB_COMMAND,
+  KEY_ESCAPE_COMMAND,
+} from 'lexical';
 
 import { t } from '@fxtrot/lib';
-import { Button, LinkButton, Row, Text, Tooltip, useLatest } from '@fxtrot/ui';
+import { Button, LinkButton, Row, Text, Tooltip, useKeyboardHandles, useLatest } from '@fxtrot/ui';
 
 import { EditorPopover } from '../../lib/editor-popover.tsx';
 
@@ -52,11 +60,25 @@ export const Selection = () => {
         INSERT_TAB_COMMAND,
         () => {
           if (openRef.current) {
-            console.log(popoverRef);
-            popoverRef.current?.focus();
-            return true;
+            const element = popoverRef.current;
+            if (element instanceof HTMLElement) {
+              element.focus({ preventScroll: true });
+              return true;
+            }
           }
-          console.log('tabbed');
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
+      editor.registerCommand(
+        FORMAT_TEXT_COMMAND,
+        () => {
+          if (openRef.current) {
+            const element = popoverRef.current;
+            if (element instanceof HTMLElement) {
+              element.focus({ preventScroll: true });
+            }
+          }
           return false;
         },
         COMMAND_PRIORITY_LOW
@@ -64,16 +86,25 @@ export const Selection = () => {
     );
   }, [editor, actor, openRef]);
 
+  const onKeyDown = useKeyboardHandles({
+    'Escape.propagate': () => {
+      actor.send({ type: 'close' });
+    },
+  });
+
   return (
     <>
       <EditorPopover
-        className={pointerDown ? 'hover:opacity-50' : undefined}
         open={open}
         reference={selection}
         offset={offset}
         ref={popoverRef}
+        tabIndex={-1}
+        role="toolbar"
+        onKeyDown={onKeyDown}
+        className={clsx('grid grid-cols-1 grid-rows-1 place-items-start', pointerDown ? 'hover:opacity-50' : undefined)}
       >
-        <div className={'grid grid-cols-1 grid-rows-1 place-items-start'}>
+        <div>
           {linkSelected && selection instanceof HTMLAnchorElement ? (
             <LinkSelectionToggles link={selection} />
           ) : (
@@ -82,7 +113,6 @@ export const Selection = () => {
         </div>
       </EditorPopover>
       {isLinkEditOpen ? <LinkEditPopup reference={selection} isLink /> : null}
-      {open && <ToolbarTabPlugin />}
     </>
   );
 };
@@ -127,20 +157,3 @@ const LinkSelectionToggles = ({ link }: LinkSelectionProps) => {
     </Row>
   );
 };
-
-/**
- * Intercepts TAB command to move focus inside and outside of toolbar.
- */
-function ToolbarTabPlugin() {
-  const [editor] = useLexicalComposerContext();
-  const toolbarOpen = useSelector((state) => state.matches({ toolbar: 'shown' }));
-  const reference = useSelector((state) => state.context.selection);
-
-  const refs = useLatest({ toolbarOpen, reference });
-
-  useEffect(() => {
-    return mergeRegister();
-  }, [editor, refs]);
-
-  return null;
-}

@@ -1,12 +1,12 @@
-"use client";
-import React, { type ReactNode } from "react";
+'use client';
+import React, { type ReactNode } from 'react';
 
-import { ThemeProvider } from "@fxtrot/ui";
+import { ThemeProvider } from '@fxtrot/ui';
 
 interface Props {
   children: ReactNode;
 }
 
 export const AppContext = ({ children }: Props) => {
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return <ThemeProvider globalCss>{children}</ThemeProvider>;
 };

@@ -1,3 +1,6 @@
+/* TODO: fix this hack */
+@layer tailwind-base, fxtrot-ui;
+
 @layer fxtrot-ui {
   .fxtrot-ui-theme {
     display: contents;

@@ -1,4 +1,4 @@
-import React, { type ComponentProps, forwardRef, useEffect, useState } from 'react';
+import React, { type ComponentProps, forwardRef, useEffect, useLayoutEffect } from 'react';
 import {
   autoUpdate,
   flip,
@@ -14,7 +14,7 @@ import {
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { clsx } from 'clsx';
 
-import { PopoverBox, Portal } from '@fxtrot/ui';
+import { PopoverBox } from '@fxtrot/ui';
 
 interface Props extends ComponentProps<typeof PopoverBox> {
   open: boolean;
@@ -35,7 +35,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
         }
       : undefined;
     const { x, y, strategy, refs, context } = useFloating({
-      open: open && Boolean(elements),
+      open,
       placement,
       strategy: 'fixed',
       elements,
@@ -50,18 +50,22 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
       ],
     });
 
-    useEffect(() => {
-      // Can't return focus to the trigger as the reference is selected text
+    useLayoutEffect(() => {
+      const floating = refs.floating.current;
+      if (!(floating && supportsPopover(floating))) return;
       if (open) {
-        return () => {
-          if (editor.getRootElement() !== document.activeElement) {
-            editor.focus(undefined, { defaultSelection: 'rootStart' });
-          }
-        };
+        if (!floating.matches(':popover-open')) {
+          floating.showPopover();
+        }
+      } else {
+        if (floating.matches(':popover-open')) {
+          floating.hidePopover();
+        }
       }
-    }, [editor, open]);
+    }, [editor, open, refs.floating]);
 
     const floatingRef = useMergeRefs([propRef, refs.setFloating]);
+
     if (!open) return null;
 
     const [side, align] = getSideAndAlignFromPlacement(context.placement);
@@ -69,27 +73,26 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
     /* using the portal the buttons inside the popovers being able to open own popovers 
       that are portaled to the root, instead of rendered next to the button itself */
     return (
-      <Portal
+      <PopoverBox
+        data-align={align}
+        data-side={side}
+        data-state={open ? 'open' : 'closed'}
+        // @ts-expect-error JSX lib not supporting popover yet: https://developer.mozilla.org/en-US/docs/Web/API/Popover_API/Using
+        popover="manual"
         ref={floatingRef}
         style={{
           position: strategy,
           top: y ?? 0,
           left: x ?? 0,
           width: 'max-content',
+          margin: 0,
           ...style,
         }}
-        className={className}
+        className={clsx('isolate transition-[opacity,width,height] duration-150', className)}
+        {...props}
       >
-        <PopoverBox
-          data-align={align}
-          data-side={side}
-          data-state={open ? 'open' : 'closed'}
-          className={'isolate transition-[opacity,width,height] duration-150'}
-          {...props}
-        >
-          {children}
-        </PopoverBox>
-      </Portal>
+        {children}
+      </PopoverBox>
     );
   }
 );
@@ -97,4 +100,10 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
 function getSideAndAlignFromPlacement(placement: Placement) {
   const [side, align = 'center'] = placement.split('-');
   return [side, align] as const;
+}
+
+function supportsPopover<T extends HTMLElement>(
+  element: T
+): element is T & { showPopover: () => void; hidePopover: () => void; togglePopover: () => void } {
+  return HTMLElement.prototype.hasOwnProperty!('popover');
 }

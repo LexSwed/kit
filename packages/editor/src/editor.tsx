@@ -74,7 +74,7 @@ export const Editor = ({ initialEditorState }: Props) => {
                 {t('Enter some text...')}
               </div>
             }
-            ErrorBoundary={LexicalErrorBoundary as unknown as typeof LexicalErrorBoundary.default}
+            ErrorBoundary={LexicalErrorBoundary as unknown as typeof LexicalErrorBoundary}
           />
           <HistoryPlugin />
           <MarkdownShortcutPlugin transformers={TRANSFORMERS} />

@@ -1,4 +1,11 @@
-import { type ComponentProps, type ComponentType, createContext, forwardRef, type ReactNode, useContext } from 'react';
+import React, {
+  type ComponentProps,
+  type ComponentType,
+  createContext,
+  forwardRef,
+  type ReactNode,
+  useContext,
+} from 'react';
 import * as RdxPortal from '@radix-ui/react-portal';
 
 import { useFxtrotRootRef } from '../theme-provider/theme-provider.tsx';

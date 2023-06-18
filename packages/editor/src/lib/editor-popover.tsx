@@ -1,4 +1,4 @@
-import React, { type ComponentProps, forwardRef, useEffect, useLayoutEffect } from 'react';
+import React, { type ComponentProps, forwardRef, useEffect } from 'react';
 import {
   autoUpdate,
   flip,
@@ -59,17 +59,15 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
       ],
     });
 
-    useLayoutEffect(() => {
+    useEffect(() => {
       const floating = refs.floating.current;
       if (!(floating && supportsPopover(floating))) return;
-      if (open) {
-        if (!floating.matches(':popover-open')) {
-          floating.showPopover();
-        }
+      if (!floating.isConnected) return;
+
+      if (open && !floating.matches(':popover-open')) {
+        floating.showPopover();
       } else {
-        if (floating.matches(':popover-open')) {
-          floating.hidePopover();
-        }
+        floating.hidePopover();
       }
     }, [editor, open, refs.floating]);
 

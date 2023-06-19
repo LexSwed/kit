@@ -23,6 +23,8 @@ import type { EditorState } from 'lexical';
 import { t } from '@fxtrot/lib';
 
 import CodeHighlightPlugin from './plugins/code/index.ts';
+import { CollapsiblePlugin } from './plugins/collapsible/collapsible.tsx';
+import { CollapsibleContainerNode, CollapsibleContentNode, CollapsibleTitleNode } from './plugins/collapsible/index.ts';
 import { ImageNode, ImagesPlugin } from './plugins/image/index.ts';
 import { LinkPlugin } from './plugins/link/index.tsx';
 import { FloatingToolbarPlugin } from './plugins/toolbar/index.ts';
@@ -56,6 +58,9 @@ export const Editor = ({ initialEditorState }: Props) => {
       CodeHighlightNode,
       LinkNode,
       AutoLinkNode,
+      CollapsibleContainerNode,
+      CollapsibleContentNode,
+      CollapsibleTitleNode,
     ],
   };
 
@@ -85,6 +90,7 @@ export const Editor = ({ initialEditorState }: Props) => {
           <TabIndentationPlugin />
           <SaveToLocalStoragePlugin />
           <FloatingToolbarPlugin />
+          <CollapsiblePlugin />
         </LexicalComposer>
       </div>
     </>

@@ -43,6 +43,11 @@ export const theme: EditorThemeClasses = {
     ol: css('list-decimal'),
     ul: css('list-disc'),
   },
+  collapsible: {
+    container: css('p-2 my-4 border-2 border-surface-variant/20 rounded-lg bg-surface-variant/5'),
+    title: css('cursor-default list-none'),
+    content: css(''),
+  },
   // image: 'editor-image',
   // mark: 'PlaygroundEditorTheme__mark',
   // markOverlap: 'PlaygroundEditorTheme__markOverlap',

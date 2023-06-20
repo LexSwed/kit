@@ -6,6 +6,7 @@
  *
  */
 
+import { addClassNamesToElement } from '@lexical/utils';
 import {
   type DOMConversionMap,
   type DOMConversionOutput,
@@ -36,7 +37,7 @@ export class CollapsibleContentNode extends ElementNode {
 
   createDOM(config: EditorConfig): HTMLElement {
     const dom = document.createElement('div');
-    dom.classList.add('Collapsible__content');
+    addClassNamesToElement(dom, config.theme.collapsible.content);
     return dom;
   }
 

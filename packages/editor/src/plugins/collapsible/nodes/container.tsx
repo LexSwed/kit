@@ -6,6 +6,7 @@
  *
  */
 
+import { addClassNamesToElement } from '@lexical/utils';
 import {
   type DOMConversionMap,
   type DOMConversionOutput,
@@ -52,7 +53,6 @@ export class CollapsibleContainerNode extends ElementNode {
 
   createDOM(config: EditorConfig, editor: LexicalEditor): HTMLElement {
     const dom = document.createElement('details');
-    dom.classList.add('Collapsible__container');
     dom.open = this.__open;
     dom.addEventListener('toggle', () => {
       const open = editor.getEditorState().read(() => this.getOpen());
@@ -60,6 +60,7 @@ export class CollapsibleContainerNode extends ElementNode {
         editor.update(() => this.toggleOpen());
       }
     });
+    addClassNamesToElement(dom, config.theme.collapsible.container);
     return dom;
   }
 

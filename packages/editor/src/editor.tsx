@@ -114,13 +114,8 @@ const SaveToLocalStoragePlugin = () => {
     }
   }, [editor]);
 
-  // const onChange = useCallback((editorState: EditorState) => {
-  //   // console.log(editorState.toJSON());
-  //   // localStorage.setItem(
-  //   //   LOCAL_STORAGE_KEY,
-  //   //   JSON.stringify(editorState.toJSON())
-  //   // );
-  // }, []);
-  return null;
-  // return <OnChangePlugin onChange={onChange} />;
+  const onChange = useCallback((editorState: EditorState) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(editorState.toJSON()));
+  }, []);
+  return <OnChangePlugin onChange={onChange} />;
 };

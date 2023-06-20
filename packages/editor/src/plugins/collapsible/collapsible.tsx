@@ -19,6 +19,7 @@ import {
   KEY_ARROW_UP_COMMAND,
   type LexicalNode,
   type NodeKey,
+  TextNode,
 } from 'lexical';
 
 import {
@@ -120,8 +121,7 @@ export const CollapsiblePlugin = () => {
 
       // This handles the case when container is collapsed and we delete its previous sibling
       // into it, it would cause collapsed content deleted (since it's display: none, and selection
-      // swallows it when deletes single char). Instead we expand container, which is although
-      // not perfect, but avoids bigger problem
+      // swallows it when deletes single char). Instead, we move the cursor to title node.
       editor.registerCommand(
         DELETE_CHARACTER_COMMAND,
         () => {
@@ -140,8 +140,14 @@ export const CollapsiblePlugin = () => {
           if (!$isCollapsibleContainerNode(container) || container.getOpen()) {
             return false;
           }
-
-          container.setOpen(true);
+          const title = container.getFirstChild();
+          if (!$isCollapsibleTitleNode(title)) {
+            container.setOpen(true);
+            return true;
+          }
+          const lastTextNode: TextNode = title.getAllTextNodes().at(-1);
+          const lastTextNodeLength = lastTextNode.getTextContentSize();
+          selection.setTextNodeRange(lastTextNode, lastTextNodeLength, lastTextNode, lastTextNodeLength);
           return true;
         },
         COMMAND_PRIORITY_LOW
@@ -164,34 +170,35 @@ export const CollapsiblePlugin = () => {
       editor.registerCommand(KEY_ARROW_LEFT_COMMAND, onEscapeUp, COMMAND_PRIORITY_LOW),
 
       // Handling CMD+Enter to toggle collapsible element collapsed state
-      // editor.registerCommand(
-      //   INSERT_PARAGRAPH_COMMAND,
-      //   () => {
-      //     const windowEvent: KeyboardEvent | undefined = editor._window?.event;
+      editor.registerCommand(
+        INSERT_PARAGRAPH_COMMAND,
+        (...args) => {
+          // const windowEvent: KeyboardEvent | undefined = editor._window.;
 
-      //     if (windowEvent && (windowEvent.ctrlKey || windowEvent.metaKey) && windowEvent.key === 'Enter') {
-      //       const selection = $getPreviousSelection();
-      //       if ($isRangeSelection(selection) && selection.isCollapsed()) {
-      //         const parent = $findMatchingParent(
-      //           selection.anchor.getNode(),
-      //           (node) => $isElementNode(node) && !node.isInline()
-      //         );
+          // if (windowEvent && (windowEvent.ctrlKey || windowEvent.metaKey) && windowEvent.key === 'Enter') {
+          //   const selection = $getPreviousSelection();
+          //   if ($isRangeSelection(selection) && selection.isCollapsed()) {
+          //     const parent = $findMatchingParent(
+          //       selection.anchor.getNode(),
+          //       (node) => $isElementNode(node) && !node.isInline()
+          //     );
 
-      //         if ($isCollapsibleTitleNode(parent)) {
-      //           const container = parent.getParent<ElementNode>();
-      //           if ($isCollapsibleContainerNode(container)) {
-      //             container.toggleOpen();
-      //             $setSelection(selection.clone());
-      //             return true;
-      //           }
-      //         }
-      //       }
-      //     }
+          //     if ($isCollapsibleTitleNode(parent)) {
+          //       const container = parent.getParent<ElementNode>();
+          //       if ($isCollapsibleContainerNode(container)) {
+          //         container.toggleOpen();
+          //         $setSelection(selection.clone());
+          //         return true;
+          //       }
+          //     }
+          //   }
+          // }
+          console.log(...args);
 
-      //     return false;
-      //   },
-      //   COMMAND_PRIORITY_LOW
-      // ),
+          return false;
+        },
+        COMMAND_PRIORITY_LOW
+      ),
       editor.registerCommand(
         INSERT_COLLAPSIBLE_COMMAND,
         () => {

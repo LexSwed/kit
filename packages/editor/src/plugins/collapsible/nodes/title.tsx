@@ -6,6 +6,7 @@
  *
  */
 
+import { addClassNamesToElement } from '@lexical/utils';
 import {
   $createParagraphNode,
   $isElementNode,
@@ -43,7 +44,7 @@ export class CollapsibleTitleNode extends ElementNode {
 
   createDOM(config: EditorConfig, editor: LexicalEditor): HTMLElement {
     const dom = document.createElement('summary');
-    dom.classList.add('Collapsible__title');
+    addClassNamesToElement(dom, config.theme.collapsible.title);
     return dom;
   }
 

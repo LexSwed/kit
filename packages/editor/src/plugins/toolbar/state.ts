@@ -250,13 +250,13 @@ const {
   toolbarMachine,
   {
     devTools: process.env.NODE_ENV === 'development',
-  },
-  process.env.NODE_ENV === 'development'
-    ? (state) => {
-        const { event, value, context } = state;
-        console.log({ event, value, context });
-      }
-    : undefined
+  }
+  // process.env.NODE_ENV === 'development'
+  //   ? (state) => {
+  //       const { event, value, context } = state;
+  //       console.log({ event, value, context });
+  //     }
+  //   : undefined
 );
 
 export { toolbarMachine, ToolbarStateProvider, useActorRef, useSelector };

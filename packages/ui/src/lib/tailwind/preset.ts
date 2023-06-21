@@ -58,7 +58,7 @@ const logicalPropertiesPlugin = plugin(({ matchUtilities, theme }) => {
         marginInline: value,
       }),
     },
-    { values: theme('margin') }
+    { values: theme('margin'), supportsNegativeValues: true }
   );
   matchUtilities(
     {

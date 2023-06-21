@@ -44,9 +44,9 @@ export const theme: EditorThemeClasses = {
     ul: css('list-disc'),
   },
   collapsible: {
-    container: css('p-2 my-4 border-2 border-surface-variant/20 rounded-lg bg-surface-variant/5'),
-    title: css('cursor-default list-none'),
-    content: css(''),
+    container: css('p-2 my-4 border-2 border-surface-variant/30 rounded-lg bg-surface-variant/5'),
+    title: css('cursor-default p-2 -m-2 list-none'),
+    content: css('p-2 mt-2 border-t-2 border-dashed border-surface-variant/30 -mx-2'),
   },
   // image: 'editor-image',
   // mark: 'PlaygroundEditorTheme__mark',

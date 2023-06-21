@@ -25,8 +25,9 @@ export function FloatingToolbarPlugin() {
       toolbarMachine.options
     );
   }, [editor]);
+
   return (
-    <ToolbarStateProvider machine={machine}>
+    <ToolbarStateProvider logic={machine}>
       <EditorEvents />
       <Selection />
     </ToolbarStateProvider>

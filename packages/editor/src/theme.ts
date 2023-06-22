@@ -45,8 +45,12 @@ export const theme: EditorThemeClasses = {
   },
   collapsible: {
     container: css('p-2 my-4 border-2 border-surface-variant/30 rounded-lg bg-surface-variant/5'),
-    title: css('cursor-default p-2 -m-2 list-none'),
+    title: css('cursor-default flex flex-row gap-1 items-center p-2 -m-2 list-none'),
     content: css('p-2 mt-2 border-t-2 border-dashed border-surface-variant/30 -mx-2'),
+    expandButton: css('select-none -ml-1 -my-2 p-2 rounded-md hover:bg-surface-variant/40 focus:bg-surface-variant/40'),
+    expandButtonInnerHTML: `<svg class="${css(
+      'size-4'
+    )}" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12 19.24-4.95-4.95-1.41 1.42L12 22.07l6.36-6.36-1.41-1.42L12 19.24zM5.64 8.29l1.41 1.42L12 4.76l4.95 4.95 1.41-1.42L12 1.93 5.64 8.29z"></path></svg>`,
   },
   // image: 'editor-image',
   // mark: 'PlaygroundEditorTheme__mark',

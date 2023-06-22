@@ -54,7 +54,7 @@ export class CollapsibleContainerNode extends ElementNode {
   createDOM(config: EditorConfig, editor: LexicalEditor): HTMLElement {
     const dom = document.createElement('details');
     dom.open = this.__open;
-    dom.addEventListener('toggle', () => {
+    dom.addEventListener('toggle', (e) => {
       const open = editor.getEditorState().read(() => this.getOpen());
       if (open !== dom.open) {
         editor.update(() => this.toggleOpen());

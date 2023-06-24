@@ -1,10 +1,10 @@
-import { type ComponentProps, forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { clsx } from 'clsx';
+
+import type { ForwardRefComponent } from '../utils/polymorphic';
 
 import styles from './floating-list.module.css';
 
-type Props = ComponentProps<'div'>;
-
-export const FloatingList = forwardRef<HTMLDivElement, Props>((props, ref) => {
-  return <div {...props} className={clsx(styles['floating-list'], props.className)} ref={ref} />;
-});
+export const FloatingList = forwardRef(({ as: Component = 'div', className, ...props }, ref) => {
+  return <Component {...props} className={clsx(styles['floating-list'], className)} ref={ref} />;
+}) as ForwardRefComponent<'div'>;

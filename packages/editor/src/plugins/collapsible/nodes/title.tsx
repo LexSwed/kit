@@ -50,10 +50,12 @@ export class CollapsibleTitleNode extends ElementNode {
     addClassNamesToElement(dom, config.theme.collapsible.title);
 
     if (config.theme.collapsible.expandButtonInnerHTML) {
-      // avoid clicking on whole summary to open
-      dom.addEventListener('click', (e) => {
-        e.preventDefault();
-      });
+      if (!editor.isEditable()) {
+        // avoid clicking on whole summary to open
+        dom.addEventListener('click', (e) => {
+          e.preventDefault();
+        });
+      }
       const button = document.createElement('button');
       addClassNamesToElement(button, config.theme.collapsible.expandButton);
       button.type = 'button';

@@ -43,7 +43,7 @@ export const CollapsiblePlugin = () => {
       );
     }
 
-    const onArrowNavigationAbove = () => {
+    const onArrowNavigationAbove = (): boolean => {
       const selection = $getSelection();
       if ($isRangeSelection(selection) && selection.isCollapsed() && selection.anchor.offset === 0) {
         const container = $findMatchingParent(selection.anchor.getNode(), $isCollapsibleContainerNode);
@@ -63,15 +63,15 @@ export const CollapsiblePlugin = () => {
       return false;
     };
 
-    const onArrowNavigationBelow = () => {
+    const onArrowNavigationBelow = (): boolean => {
       const selection = $getSelection();
       if ($isRangeSelection(selection) && selection.isCollapsed()) {
         const anchorNode: LexicalNode = selection.anchor.getNode();
         const container = $findMatchingParent(anchorNode, $isCollapsibleContainerNode);
 
-        if (!$isCollapsibleContainerNode(container)) return;
+        if (!$isCollapsibleContainerNode(container)) return false;
         const parent = container.getParent<ElementNode>();
-        if (parent === null || parent.getLastChild<LexicalNode>() !== container) return;
+        if (parent === null || parent.getLastChild<LexicalNode>() !== container) return false;
 
         let lastDescendant: null | LexicalNode;
         if (container.getOpen()) {
@@ -79,7 +79,7 @@ export const CollapsiblePlugin = () => {
         } else {
           lastDescendant = container.getFirstChild();
         }
-        if (lastDescendant === null) return;
+        if (lastDescendant === null) return false;
 
         if (selection.anchor.offset === lastDescendant.getTextContentSize()) {
           container.insertAfter($createParagraphNode());

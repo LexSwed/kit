@@ -14,6 +14,7 @@ export { Picker } from './picker/index.ts';
 export { Popover, usePopoverRef } from './popover/index.ts';
 export { Portal } from './portal/index.ts';
 export { Section } from './section/index.ts';
+export { ListItem } from './shared/list-item.tsx';
 export { PopoverBox } from './shared/popover-box.tsx';
 export { Spinner } from './spinner/index.ts';
 export { Switch } from './switch/index.ts';

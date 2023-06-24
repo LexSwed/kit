@@ -3,6 +3,7 @@
     width: 100%;
     margin: 0;
     padding: theme('spacing.1');
+    scroll-padding: theme('spacing.1');
     overflow-y: auto;
     max-height: theme('spacing.60');
     &:empty {

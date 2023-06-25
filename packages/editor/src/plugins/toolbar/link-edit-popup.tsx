@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, type FormEventHandler, useEffect, useRef, useState } from 'react';
 import { RxLinkBreak2 } from 'react-icons/rx/index.js';
 import type { ReferenceType } from '@floating-ui/react';
 import {
@@ -34,13 +34,15 @@ export const LinkEditPopup = ({ reference }: LinkEditPopupProps) => {
   } | null>(null);
   const actor = useActorRef();
   const [isLink] = useIsLinkNodeSelected();
+  const floatingRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getLinkDetailsFromSelection(editor).then((details) => {
+      console.log({ details });
       setInitialValues(details);
     });
   }, [editor, reference]);
-
+  console.log({ initialValues });
   useEffect(() => {
     if (isLink) {
       return highlightSelectedLink(editor);
@@ -64,14 +66,34 @@ export const LinkEditPopup = ({ reference }: LinkEditPopupProps) => {
     Escape: close,
   });
 
-  if (!initialValues) return;
-
-  const supportsTextEditing = Boolean(initialValues.text);
-
   return (
-    <EditorPopover onKeyDown={onKeyDown} open placement="bottom-start" reference={reference}>
-      {isLink ? <LinkActions href={initialValues.link} onClose={close} /> : null}
-      <form className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2" onSubmit={saveLink}>
+    <EditorPopover ref={floatingRef} onKeyDown={onKeyDown} open placement="bottom-start" reference={reference}>
+      {initialValues && (
+        <LinkEditForm initialValues={initialValues} isLink={isLink} onClose={close} onSubmit={saveLink} />
+      )}
+    </EditorPopover>
+  );
+};
+
+const LinkEditForm = ({
+  isLink,
+  initialValues,
+  onSubmit,
+  onClose,
+}: {
+  isLink: boolean;
+  initialValues: {
+    text: string;
+    link: string;
+  };
+  onSubmit: FormEventHandler<HTMLFormElement>;
+  onClose: () => void;
+}) => {
+  const supportsTextEditing = Boolean(initialValues.text);
+  return (
+    <>
+      {isLink ? <LinkActions href={initialValues.link} onClose={onClose} /> : null}
+      <form className="col-span-full row-start-2 flex w-64 flex-col gap-2 p-2" onSubmit={onSubmit}>
         <fieldset autoFocus>
           {supportsTextEditing && (
             <TextField
@@ -94,7 +116,7 @@ export const LinkEditPopup = ({ reference }: LinkEditPopupProps) => {
           />
         </fieldset>
         <div className="flex flex-row justify-end gap-2 pt-1">
-          <Button size="sm" onClick={close}>
+          <Button size="sm" onClick={onClose}>
             {t('Cancel')}
           </Button>
           <Button size="sm" type="submit" variant="tonal">
@@ -102,7 +124,7 @@ export const LinkEditPopup = ({ reference }: LinkEditPopupProps) => {
           </Button>
         </div>
       </form>
-    </EditorPopover>
+    </>
   );
 };
 

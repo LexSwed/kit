@@ -4,6 +4,7 @@ import {
   type ForwardRefExoticComponent,
   type ReactElement,
   type RefAttributes,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -15,7 +16,7 @@ import { Portal } from '../portal/index.ts';
 import { ListItem, type ListItemVariants } from '../shared/list-item.tsx';
 import { PopoverBox } from '../shared/popover-box.tsx';
 import { Presence } from '../shared/presence.tsx';
-import { useIsomorphicLayoutEffect } from '../utils/hooks.ts';
+import { useForkRef, useIsomorphicLayoutEffect } from '../utils/hooks.ts';
 import {
   OpenStateProvider,
   type OpenStateRef,
@@ -52,7 +53,7 @@ const MenuRoot = forwardRef<OpenStateRef, MenuProps>((props, ref) => {
       <MenuInner {...props} />
     </OpenStateProvider>
   );
-}) as ForwardRefExoticComponent<MenuListProps & RefAttributes<OpenStateRef>> & {
+}) as ForwardRefExoticComponent<MenuProps & RefAttributes<OpenStateRef>> & {
   List: typeof List;
   Item: typeof MenuItem;
   Separator: typeof Separator;
@@ -70,35 +71,46 @@ const List = ({ align = 'start', side = 'bottom', sideOffset = 8, ...props }: Me
   const open = useOpenState();
   return (
     <Presence present={open}>
-      {({ ref: presenceRef }) => (
-        <Portal radixPortal={RdxMenu.Portal} forceMount>
-          <RdxMenu.Content align={align} side={side} sideOffset={sideOffset} asChild>
+      {({ ref: presenceRef }) => {
+        const content = (
+          <RdxMenu.Content align={align} side={side} sideOffset={sideOffset} forceMount asChild>
             <MenuListContent {...props} ref={presenceRef} />
           </RdxMenu.Content>
-        </Portal>
-      )}
+        );
+
+        if (props.popover) return content;
+
+        return (
+          <Portal radixPortal={RdxMenu.Portal} forceMount>
+            {content}
+          </Portal>
+        );
+      }}
     </Presence>
   );
 };
 
-const MenuListContent = forwardRef<HTMLDivElement, MenuListProps>(({ style = {}, ...props }, ref) => {
-  const minWidth = useTriggerWidth(props['aria-labelledby']);
-  return <PopoverBox {...props} style={{ ...style, minWidth }} ref={ref} />;
-});
+const MenuListContent = forwardRef<HTMLDivElement, MenuListProps>(({ popover, style = {}, id, ...props }, ref) => {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const refs = useForkRef(ref, innerRef);
 
-function useTriggerWidth(triggerElementId?: string) {
-  const [width, setWidth] = useState<number>();
-
-  useIsomorphicLayoutEffect(() => {
-    if (!triggerElementId) return;
-    const triggerEl = document.getElementById(triggerElementId);
-    if (triggerEl) {
-      setWidth(triggerEl.getBoundingClientRect().width);
+  // hacks
+  useEffect(() => {
+    const popoverBox = innerRef.current;
+    if (popover && popoverBox) {
+      const radixParent =
+        popoverBox.parentElement?.getAttribute('data-radix-popper-content-wrapper') !== null
+          ? popoverBox.parentElement
+          : popoverBox;
+      if (!radixParent) return;
+      id && radixParent.setAttribute('id', id);
+      radixParent.setAttribute('popover', popover);
+      radixParent.style.margin = '0';
     }
-  }, [triggerElementId]);
+  }, [popover, id]);
 
-  return width;
-}
+  return <PopoverBox {...props} style={{ ...style, minWidth: `var(--radix-popper-anchor-width)` }} ref={refs} />;
+});
 
 interface MenuItemProps extends ListItemVariants, Omit<ComponentProps<typeof RdxMenu.Item>, 'asChild'> {}
 

@@ -10,6 +10,7 @@ import styles from './button.module.css';
 interface ButtonOwnProps extends VariantProps<typeof buttonCss> {
   icon?: ElementType;
   label?: string;
+  popovertarget?: string;
 }
 
 interface ButtonProps extends ButtonOwnProps, ComponentProps<'button'> {}

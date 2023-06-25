@@ -5,6 +5,10 @@ import type { ForwardRefComponent } from '../utils/polymorphic';
 
 import styles from './floating-list.module.css';
 
+interface FloatingListProps {
+  popover?: 'auto' | 'manual';
+}
+
 export const FloatingList = forwardRef(({ as: Component = 'div', className, ...props }, ref) => {
   return <Component {...props} className={clsx(styles['floating-list'], className)} ref={ref} />;
-}) as ForwardRefComponent<'div'>;
+}) as ForwardRefComponent<'div', FloatingListProps>;

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { $isCodeHighlightNode } from '@lexical/code';
 import { $isAutoLinkNode, $isLinkNode, AutoLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $isListNode, ListNode } from '@lexical/list';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
-import { $findMatchingParent, mergeRegister } from '@lexical/utils';
+import { $isHeadingNode } from '@lexical/rich-text';
+import { $findMatchingParent, $getNearestNodeOfType, mergeRegister } from '@lexical/utils';
 import {
   $getSelection,
   $isRangeSelection,
+  $isRootOrShadowRoot,
   $isTextNode,
   COMMAND_PRIORITY_HIGH,
   type CommandListenerPriority,
@@ -72,7 +75,7 @@ export async function selectWholeLink(editor: LexicalEditor, newRange: Range) {
 
 export async function getLinkDetailsFromSelection(editor: LexicalEditor) {
   return new Promise<{ link: string; text: string }>((resolve) => {
-    editor.update(() => {
+    editor.getEditorState().read(() => {
       const selection = $getSelection();
       if (!$isRangeSelection(selection)) return;
       const linkNode = $getSelectedLinkNode();
@@ -213,4 +216,29 @@ export function useEditorStateChange(onChange: () => void) {
       })
     );
   }, [editor, handlerRef]);
+}
+
+export function $getSelectedBlockType() {
+  const selection = $getSelection();
+  if (!$isRangeSelection(selection)) return null;
+  const anchorNode = selection.anchor.getNode();
+  let rootElement =
+    anchorNode.getKey() === 'root'
+      ? anchorNode
+      : $findMatchingParent(anchorNode, (node) => {
+          const parent = node.getParent();
+          return parent !== null && $isRootOrShadowRoot(parent);
+        });
+
+  if (rootElement === null) {
+    rootElement = anchorNode.getTopLevelElementOrThrow();
+  }
+  if ($isListNode(rootElement)) {
+    const parentList = $getNearestNodeOfType<ListNode>(anchorNode, ListNode);
+    const type = parentList ? parentList.getListType() : rootElement.getListType();
+    return type;
+  } else {
+    const type = $isHeadingNode(rootElement) ? rootElement.getTag() : rootElement.getType();
+    return type;
+  }
 }

@@ -16,7 +16,7 @@ import { Button, LinkButton, Row, Text, Tooltip, useKeyboardHandles, useLatest }
 import { EditorPopover } from '../../lib/editor-popover.tsx';
 
 import { CopyLinkButton, LinkEditPopup } from './link-edit-popup.tsx';
-import { RangeSelectionLink, TextFormat } from './range-selection.tsx';
+import { BlockTypeSelector, RangeSelectionLink, TextFormat } from './range-selection.tsx';
 import { useActorRef, useSelector } from './state.ts';
 
 export const Selection = () => {
@@ -118,6 +118,7 @@ export const Selection = () => {
 const RangeSelectionToggles = () => {
   return (
     <div className="flex gap-1">
+      <BlockTypeSelector />
       <TextFormat />
       <RangeSelectionLink />
     </div>

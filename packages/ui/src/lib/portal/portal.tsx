@@ -15,6 +15,7 @@ interface Props extends ComponentProps<'div'> {
   children: ReactNode;
   radixPortal?: ComponentType<PortalProps>;
   forceMount?: true;
+  popover?: 'auto' | 'manual';
 }
 
 /**

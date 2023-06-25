@@ -14,7 +14,7 @@ import {
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
 import { clsx } from 'clsx';
 
-import { PopoverBox } from '@fxtrot/ui';
+import { PopoverBox, Portal } from '@fxtrot/ui';
 
 interface Props extends ComponentProps<typeof PopoverBox> {
   open: boolean;
@@ -37,7 +37,6 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
     },
     propRef
   ) => {
-    const [editor] = useLexicalComposerContext();
     const elements = reference
       ? {
           reference,
@@ -59,18 +58,6 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
       ],
     });
 
-    useEffect(() => {
-      const floating = refs.floating.current;
-      if (!(floating && supportsPopover(floating))) return;
-      if (!floating.isConnected) return;
-
-      if (open && !floating.matches(':popover-open')) {
-        floating.showPopover();
-      } else {
-        floating.hidePopover();
-      }
-    }, [editor, open, refs.floating]);
-
     const floatingRef = useMergeRefs([propRef, refs.setFloating]);
 
     if (!open) return null;
@@ -80,26 +67,26 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
     /* using the portal the buttons inside the popovers being able to open own popovers 
       that are portaled to the root, instead of rendered next to the button itself */
     return (
-      <PopoverBox
-        data-align={align}
-        data-side={side}
-        data-state={open ? 'open' : 'closed'}
-        // @ts-expect-error JSX lib not supporting popover yet: https://developer.mozilla.org/en-US/docs/Web/API/Popover_API/Using
-        popover="manual"
-        ref={floatingRef}
-        style={{
-          position: strategy,
-          top: y ?? 0,
-          left: x ?? 0,
-          width: 'max-content',
-          margin: 0,
-          ...style,
-        }}
-        className={clsx('isolate transition-[opacity,width,height] duration-150', className)}
-        {...props}
-      >
-        {children}
-      </PopoverBox>
+      <Portal>
+        <PopoverBox
+          data-align={align}
+          data-side={side}
+          data-state={open ? 'open' : 'closed'}
+          ref={floatingRef}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            width: 'max-content',
+            margin: 0,
+            ...style,
+          }}
+          className={clsx('isolate transition-[opacity,width,height] duration-150', className)}
+          {...props}
+        >
+          {children}
+        </PopoverBox>
+      </Portal>
     );
   }
 );

@@ -45,7 +45,6 @@ class ComponentPickerOption extends MenuOption {
     options: {
       icon?: ElementType;
       keywords?: Array<string>;
-      keyboardShortcut?: string;
       onSelect: (queryString: string) => void;
     }
   ) {

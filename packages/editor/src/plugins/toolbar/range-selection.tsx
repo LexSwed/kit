@@ -1,15 +1,42 @@
-import { type MouseEvent, useCallback, useState } from 'react';
-import { BsCodeSlash, BsTypeBold, BsTypeItalic, BsTypeUnderline } from 'react-icons/bs/index.js';
-import { RxLink2 } from 'react-icons/rx/index.js';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
-import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, type TextFormatType } from 'lexical';
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useState,
+} from "react";
+import {
+  BsCodeSlash,
+  BsTypeBold,
+  BsTypeItalic,
+  BsTypeUnderline,
+} from "react-icons/bs";
+import { RxLink2 } from "react-icons/rx";
+import { $isListNode, ListNode } from "@lexical/list";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
+import { $isHeadingNode } from "@lexical/rich-text";
+import { $findMatchingParent, $getNearestNodeOfType } from "@lexical/utils";
+import {
+  $getSelection,
+  $isRangeSelection,
+  $isRootOrShadowRoot,
+  COMMAND_PRIORITY_CRITICAL,
+  FORMAT_TEXT_COMMAND,
+  SELECTION_CHANGE_COMMAND,
+  type TextFormatType,
+} from "lexical";
 
-import { t } from '@fxtrot/lib';
-import { Icon, ToggleButton } from '@fxtrot/ui';
+import { t } from "@fxtrot/lib";
+import { Button, Icon, Menu, ToggleButton } from "@fxtrot/ui";
 
-import { useActorRef, useSelector } from './state.ts';
-import { ToggleGroup } from './toggle-group.tsx';
-import { selectWholeLink, useEditorStateChange, useIsLinkNodeSelected } from './utils.ts';
+import { useActorRef, useSelector } from "./state.ts";
+import { ToggleGroup } from "./toggle-group.tsx";
+import {
+  $getSelectedBlockType,
+  selectWholeLink,
+  useEditorStateChange,
+  useIsLinkNodeSelected,
+} from "./utils.ts";
 
 export const TextFormat = () => {
   const [editor] = useLexicalComposerContext();
@@ -27,10 +54,10 @@ export const TextFormat = () => {
     }
 
     // Update text format
-    setIsBold(selection.hasFormat('bold'));
-    setIsItalic(selection.hasFormat('italic'));
-    setIsUnderline(selection.hasFormat('underline'));
-    setIsCode(selection.hasFormat('code'));
+    setIsBold(selection.hasFormat("bold"));
+    setIsItalic(selection.hasFormat("italic"));
+    setIsUnderline(selection.hasFormat("underline"));
+    setIsCode(selection.hasFormat("code"));
   }, []);
 
   /**
@@ -41,9 +68,12 @@ export const TextFormat = () => {
 
   const handleToggle = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
-      editor.dispatchCommand(FORMAT_TEXT_COMMAND, e.currentTarget.value as TextFormatType);
+      editor.dispatchCommand(
+        FORMAT_TEXT_COMMAND,
+        e.currentTarget.value as TextFormatType,
+      );
     },
-    [editor]
+    [editor],
   );
 
   return (
@@ -52,7 +82,7 @@ export const TextFormat = () => {
         pressed={isBold}
         onClick={handleToggle}
         value="bold"
-        label={t('Format text as bold')}
+        label={t("Format text as bold")}
         size="sm"
         icon={BsTypeBold}
         className="disabled:bg-surface disabled:opacity-80"
@@ -62,7 +92,7 @@ export const TextFormat = () => {
         value="italic"
         onClick={handleToggle}
         size="sm"
-        label={t('Format text as italics')}
+        label={t("Format text as italics")}
         icon={BsTypeItalic}
         className="disabled:bg-surface disabled:opacity-80"
       />
@@ -71,7 +101,7 @@ export const TextFormat = () => {
         value="underline"
         onClick={handleToggle}
         size="sm"
-        label={t('Format text to underlined')}
+        label={t("Format text to underlined")}
         icon={BsTypeUnderline}
         className="disabled:bg-surface disabled:opacity-80"
       />
@@ -80,7 +110,7 @@ export const TextFormat = () => {
         value="code"
         onClick={handleToggle}
         size="sm"
-        label={t('Insert code block')}
+        label={t("Insert code block")}
         icon={BsCodeSlash}
         className="disabled:bg-surface disabled:opacity-80"
       />
@@ -94,8 +124,8 @@ export const RangeSelectionLink = () => {
 
   const isLinkEditOpen = useSelector((state) =>
     state.matches({
-      toolbar: { shown: { range: 'link-edit' } },
-    })
+      toolbar: { shown: { range: "link-edit" } },
+    }),
   );
   const actor = useActorRef();
   const [isLink, isDisabled] = useIsLinkNodeSelected();
@@ -104,18 +134,86 @@ export const RangeSelectionLink = () => {
     if (isLink && reference instanceof Range) {
       await selectWholeLink(editor, reference);
     }
-    actor.send({ type: 'toggle edit link' });
+    actor.send({ type: "toggle edit link" });
   };
 
   return (
     <>
-      <div className="w-0.5 bg-outline/10" />
+      <Divider />
       <ToggleGroup disabled={isDisabled}>
-        <ToggleButton pressed={isLink || isLinkEditOpen} onClick={toggle} size="sm">
+        <ToggleButton
+          pressed={isLink || isLinkEditOpen}
+          onClick={toggle}
+          size="sm"
+        >
           <Icon size="sm" as={RxLink2} />
-          {t('Link')}
+          {t("Link")}
         </ToggleButton>
       </ToggleGroup>
+    </>
+  );
+};
+
+const Divider = () => {
+  return <hr className="block h-auto w-0.5 border-none bg-outline/10 my-1" />;
+};
+
+const blockTypeToBlockName = {
+  bullet: "Bulleted List",
+  check: "Check List",
+  code: "Code Block",
+  h1: "Heading 1",
+  h2: "Heading 2",
+  h3: "Heading 3",
+  h4: "Heading 4",
+  h5: "Heading 5",
+  h6: "Heading 6",
+  number: "Numbered List",
+  paragraph: "Normal",
+  quote: "Quote",
+};
+
+export const BlockTypeSelector = () => {
+  const [editor] = useLexicalComposerContext();
+  const [blockType, setBlockType] =
+    useState<keyof typeof blockTypeToBlockName>("paragraph");
+  const actor = useActorRef();
+
+  useEffect(() => {
+    function getSelectedBlockType() {
+      const type = $getSelectedBlockType();
+      if (type in blockTypeToBlockName) {
+        setBlockType(type as keyof typeof blockTypeToBlockName);
+      }
+    }
+    editor.getEditorState().read(getSelectedBlockType);
+    return editor.registerCommand(
+      SELECTION_CHANGE_COMMAND,
+      () => {
+        getSelectedBlockType();
+        return false;
+      },
+      COMMAND_PRIORITY_CRITICAL,
+    );
+  }, [editor]);
+
+  return (
+    <>
+      <Menu modal={false}>
+        <Button
+          onClick={() => {
+            actor.send({ type: "cancel link edit" });
+          }}
+        >
+          {t(blockTypeToBlockName[blockType])}
+        </Button>
+        <Menu.List>
+          {Object.keys(blockTypeToBlockName).map((key) => (
+            <Menu.Item key={key}>{key}</Menu.Item>
+          ))}
+        </Menu.List>
+      </Menu>
+      <Divider />
     </>
   );
 };

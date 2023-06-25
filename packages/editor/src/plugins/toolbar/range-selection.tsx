@@ -202,7 +202,7 @@ export const BlockTypeSelector = () => {
       <Menu modal={false}>
         <Button
           onClick={() => {
-            actor.send({ type: "cancel link edit" });
+            actor.send({ type: "menu item open" });
           }}
         >
           {t(blockTypeToBlockName[blockType])}

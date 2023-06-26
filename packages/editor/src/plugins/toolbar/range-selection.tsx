@@ -1,10 +1,4 @@
-import {
-  type MouseEvent,
-  useCallback,
-  useEffect,
-  useId,
-  useState,
-} from "react";
+import { type MouseEvent, useCallback, useEffect, useState } from "react";
 import {
   BsCodeSlash,
   BsTypeBold,
@@ -12,14 +6,11 @@ import {
   BsTypeUnderline,
 } from "react-icons/bs";
 import { RxLink2 } from "react-icons/rx";
-import { $isListNode, ListNode } from "@lexical/list";
+import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { $isHeadingNode } from "@lexical/rich-text";
-import { $findMatchingParent, $getNearestNodeOfType } from "@lexical/utils";
 import {
   $getSelection,
   $isRangeSelection,
-  $isRootOrShadowRoot,
   COMMAND_PRIORITY_CRITICAL,
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
@@ -27,7 +18,14 @@ import {
 } from "lexical";
 
 import { t } from "@fxtrot/lib";
-import { Button, Icon, Menu, ToggleButton } from "@fxtrot/ui";
+import {
+  Button,
+  Icon,
+  Menu,
+  ToggleButton,
+  useKeyboardHandles,
+  useMenuRef,
+} from "@fxtrot/ui";
 
 import { useActorRef, useSelector } from "./state.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
@@ -155,7 +153,7 @@ export const RangeSelectionLink = () => {
 };
 
 const Divider = () => {
-  return <hr className="block h-auto w-0.5 border-none bg-outline/10 my-1" />;
+  return <hr className="bg-outline/10 my-1 block h-auto w-0.5 border-none" />;
 };
 
 const blockTypeToBlockName = {
@@ -178,6 +176,7 @@ export const BlockTypeSelector = () => {
   const [blockType, setBlockType] =
     useState<keyof typeof blockTypeToBlockName>("paragraph");
   const actor = useActorRef();
+  const menuRef = useMenuRef();
 
   useEffect(() => {
     function getSelectedBlockType() {
@@ -197,17 +196,27 @@ export const BlockTypeSelector = () => {
     );
   }, [editor]);
 
+  const onKeyDown = useKeyboardHandles({
+    Escape: (e) => {
+      // to not close the toolbar itself
+      e.stopPropagation();
+      menuRef.current?.close();
+    },
+  });
+
   return (
     <>
-      <Menu modal={false}>
+      <Menu modal={false} ref={menuRef}>
         <Button
+          size="sm"
           onClick={() => {
             actor.send({ type: "menu item open" });
           }}
         >
           {t(blockTypeToBlockName[blockType])}
+          <Icon as={ChevronUpDownIcon} size="md" />
         </Button>
-        <Menu.List>
+        <Menu.List onKeyDown={onKeyDown}>
           {Object.keys(blockTypeToBlockName).map((key) => (
             <Menu.Item key={key}>{key}</Menu.Item>
           ))}

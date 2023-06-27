@@ -1,4 +1,4 @@
-import { type MouseEvent, useCallback, useEffect, useState } from "react";
+import { type MouseEvent, useCallback, useState } from "react";
 import {
   BsCodeSlash,
   BsTypeBold,
@@ -6,31 +6,20 @@ import {
   BsTypeUnderline,
 } from "react-icons/bs";
 import { RxLink2 } from "react-icons/rx";
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 import {
   $getSelection,
   $isRangeSelection,
-  COMMAND_PRIORITY_CRITICAL,
   FORMAT_TEXT_COMMAND,
-  SELECTION_CHANGE_COMMAND,
   type TextFormatType,
 } from "lexical";
 
 import { t } from "@fxtrot/lib";
-import {
-  Button,
-  Icon,
-  Menu,
-  ToggleButton,
-  useKeyboardHandles,
-  useMenuRef,
-} from "@fxtrot/ui";
+import { Icon, ToggleButton } from "@fxtrot/ui";
 
 import { useActorRef, useSelector } from "./state.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
 import {
-  $getSelectedBlockType,
   selectWholeLink,
   useEditorStateChange,
   useIsLinkNodeSelected,
@@ -136,93 +125,15 @@ export const RangeSelectionLink = () => {
   };
 
   return (
-    <>
-      <Divider />
-      <ToggleGroup disabled={isDisabled}>
-        <ToggleButton
-          pressed={isLink || isLinkEditOpen}
-          onClick={toggle}
-          size="sm"
-        >
-          <Icon size="sm" as={RxLink2} />
-          {t("Link")}
-        </ToggleButton>
-      </ToggleGroup>
-    </>
-  );
-};
-
-const Divider = () => {
-  return <hr className="bg-outline/10 my-1 block h-auto w-0.5 border-none" />;
-};
-
-const blockTypeToBlockName = {
-  bullet: "Bulleted List",
-  check: "Check List",
-  code: "Code Block",
-  h1: "Heading 1",
-  h2: "Heading 2",
-  h3: "Heading 3",
-  h4: "Heading 4",
-  h5: "Heading 5",
-  h6: "Heading 6",
-  number: "Numbered List",
-  paragraph: "Normal",
-  quote: "Quote",
-};
-
-export const BlockTypeSelector = () => {
-  const [editor] = useLexicalComposerContext();
-  const [blockType, setBlockType] =
-    useState<keyof typeof blockTypeToBlockName>("paragraph");
-  const actor = useActorRef();
-  const menuRef = useMenuRef();
-
-  useEffect(() => {
-    function getSelectedBlockType() {
-      const type = $getSelectedBlockType();
-      if (type in blockTypeToBlockName) {
-        setBlockType(type as keyof typeof blockTypeToBlockName);
-      }
-    }
-    editor.getEditorState().read(getSelectedBlockType);
-    return editor.registerCommand(
-      SELECTION_CHANGE_COMMAND,
-      () => {
-        getSelectedBlockType();
-        return false;
-      },
-      COMMAND_PRIORITY_CRITICAL,
-    );
-  }, [editor]);
-
-  const onKeyDown = useKeyboardHandles({
-    Escape: (e) => {
-      // to not close the toolbar itself
-      e.stopPropagation();
-      menuRef.current?.close();
-    },
-  });
-
-  return (
-    <>
-      <Menu modal={false} ref={menuRef}>
-        <Button
-          size="sm"
-          onClick={() => {
-            actor.send({ type: "menu item open" });
-          }}
-        >
-          {t(blockTypeToBlockName[blockType])}
-          <Icon as={ChevronUpDownIcon} size="md" />
-        </Button>
-        <Menu.List onKeyDown={onKeyDown}>
-          {Object.keys(blockTypeToBlockName).map((key) => (
-            <Menu.Item key={key}>{key}</Menu.Item>
-          ))}
-        </Menu.List>
-      </Menu>
-      <Divider />
-    </>
+    <ToggleGroup disabled={isDisabled}>
+      <ToggleButton
+        pressed={isLink || isLinkEditOpen}
+        onClick={toggle}
+        size="sm"
+      >
+        <Icon size="sm" as={RxLink2} />
+        {t("Link")}
+      </ToggleButton>
+    </ToggleGroup>
   );
 };

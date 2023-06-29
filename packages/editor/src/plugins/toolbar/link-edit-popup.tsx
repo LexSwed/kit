@@ -52,11 +52,10 @@ export const LinkEditPopup = ({ reference }: LinkEditPopupProps) => {
 
   useEffect(() => {
     getLinkDetailsFromSelection(editor).then((details) => {
-      console.log({ details });
       setInitialValues(details);
     });
   }, [editor, reference]);
-  console.log({ initialValues });
+
   useEffect(() => {
     if (isLink) {
       return highlightSelectedLink(editor);

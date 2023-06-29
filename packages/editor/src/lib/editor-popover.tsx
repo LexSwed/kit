@@ -1,4 +1,4 @@
-import React, { type ComponentProps, forwardRef, useEffect } from 'react';
+import React, { type ComponentProps, forwardRef } from "react";
 import {
   autoUpdate,
   flip,
@@ -10,11 +10,10 @@ import {
   shift,
   useFloating,
   useMergeRefs,
-} from '@floating-ui/react';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
-import { clsx } from 'clsx';
+} from "@floating-ui/react";
+import { clsx } from "clsx";
 
-import { PopoverBox, Portal } from '@fxtrot/ui';
+import { PopoverBox, Portal } from "@fxtrot/ui";
 
 interface Props extends ComponentProps<typeof PopoverBox> {
   open: boolean;
@@ -30,12 +29,12 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
       reference,
       style,
       className,
-      placement = 'top-start',
+      placement = "top-start",
       offset: offsetOptions = { mainAxis: 8, crossAxis: -32 },
       children,
       ...props
     },
-    propRef
+    propRef,
   ) => {
     const elements = reference
       ? {
@@ -45,7 +44,7 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
     const { x, y, strategy, refs, context } = useFloating({
       open,
       placement,
-      strategy: 'fixed',
+      strategy: "fixed",
       elements,
       whileElementsMounted: autoUpdate,
       middleware: [
@@ -71,33 +70,40 @@ export const EditorPopover = forwardRef<HTMLDivElement, Props>(
         <PopoverBox
           data-align={align}
           data-side={side}
-          data-state={open ? 'open' : 'closed'}
+          data-state={open ? "open" : "closed"}
           ref={floatingRef}
           style={{
             position: strategy,
             top: y ?? 0,
             left: x ?? 0,
-            width: 'max-content',
+            width: "max-content",
             margin: 0,
             ...style,
           }}
-          className={clsx('isolate transition-[opacity,width,height] duration-150', className)}
+          className={clsx(
+            "isolate transition-[opacity,width,height] duration-150",
+            className,
+          )}
           {...props}
         >
           {children}
         </PopoverBox>
       </Portal>
     );
-  }
+  },
 );
 
 function getSideAndAlignFromPlacement(placement: Placement) {
-  const [side, align = 'center'] = placement.split('-');
+  const [side, align = "center"] = placement.split("-");
   return [side, align] as const;
 }
 
 function supportsPopover<T extends HTMLElement>(
-  element: T
-): element is T & { showPopover: () => void; hidePopover: () => void; togglePopover: () => void } {
-  return HTMLElement.prototype.hasOwnProperty!('popover');
+  element: T,
+): element is T & {
+  showPopover: () => void;
+  hidePopover: () => void;
+  togglePopover: () => void;
+} {
+  return HTMLElement.prototype.hasOwnProperty!("popover");
 }

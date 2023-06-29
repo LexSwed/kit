@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
-import { mergeRegister } from '@lexical/utils';
+import { useEffect, useMemo } from "react";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
+import { mergeRegister } from "@lexical/utils";
 import {
   BLUR_COMMAND,
   COMMAND_PRIORITY_HIGH,
@@ -8,22 +8,21 @@ import {
   DROP_COMMAND,
   FOCUS_COMMAND,
   SELECTION_CHANGE_COMMAND,
-} from 'lexical';
-import { createMachine } from 'xstate';
+} from "lexical";
+import { fromPromise } from "xstate";
 
-import { Selection } from './selection.tsx';
-import { toolbarMachine, ToolbarStateProvider, useActorRef } from './state.ts';
+import { Selection } from "./selection.tsx";
+import { toolbarMachine, ToolbarStateProvider, useActorRef } from "./state.ts";
+import { getSelection } from "./utils.ts";
 
 export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const machine = useMemo(() => {
-    return createMachine(
-      {
-        ...toolbarMachine.config,
-        context: { ...toolbarMachine.getContext(), editor },
+    return toolbarMachine.provide({
+      actors: {
+        getSelection: fromPromise(async () => getSelection(editor)),
       },
-      toolbarMachine.options
-    );
+    });
   }, [editor]);
 
   return (
@@ -43,17 +42,17 @@ function EditorEvents() {
     /** Should always listen to document pointer down and up in case selection
      * went outside of the editor - it should still be valid */
     function handlePointerDown() {
-      actor.send({ type: 'pointer down' });
+      actor.send({ type: "pointer down" });
     }
     function handlePointerUp() {
-      actor.send({ type: 'pointer up' });
+      actor.send({ type: "pointer up" });
     }
 
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("pointerup", handlePointerUp);
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("pointerup", handlePointerUp);
     };
   }, [actor, editor]);
 
@@ -62,37 +61,37 @@ function EditorEvents() {
       editor.registerCommand(
         FOCUS_COMMAND,
         () => {
-          actor.send({ type: 'focus' });
+          actor.send({ type: "focus" });
           return false;
         },
-        COMMAND_PRIORITY_LOW
+        COMMAND_PRIORITY_LOW,
       ),
       editor.registerCommand(
         BLUR_COMMAND,
         () => {
-          actor.send({ type: 'blur' });
+          actor.send({ type: "blur" });
           return false;
         },
-        COMMAND_PRIORITY_LOW
+        COMMAND_PRIORITY_LOW,
       ),
       /** Pointer Up is not emitted on drop, but pointer down is on drag start */
       editor.registerCommand(
         DROP_COMMAND,
         () => {
-          console.log('drag ended');
-          actor.send({ type: 'pointer up' });
+          console.log("drag ended");
+          actor.send({ type: "pointer up" });
           return false;
         },
-        COMMAND_PRIORITY_LOW
+        COMMAND_PRIORITY_LOW,
       ),
       editor.registerCommand(
         SELECTION_CHANGE_COMMAND,
         () => {
-          actor.send({ type: 'selection change' });
+          actor.send({ type: "selection change" });
           return false;
         },
-        COMMAND_PRIORITY_HIGH
-      )
+        COMMAND_PRIORITY_HIGH,
+      ),
     );
   }, [editor, actor]);
 

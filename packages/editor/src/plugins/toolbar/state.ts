@@ -6,7 +6,6 @@ import { getSelection } from "./utils.ts";
 
 interface Context {
   selection: Range | HTMLAnchorElement | null;
-  editor: LexicalEditor;
 }
 
 type Event =
@@ -28,7 +27,11 @@ type Event =
       output: Awaited<ReturnType<typeof getSelection>>;
     };
 
-const toolbarMachine = createMachine<Context, Event>(
+type Actors = {
+  getSelection: { output: ReturnType<typeof getSelection> };
+};
+
+const toolbarMachine = createMachine<Context, Event, Actors>(
   {
     id: "toolbarMachine",
     context: {
@@ -91,9 +94,6 @@ const toolbarMachine = createMachine<Context, Event>(
             invoke: {
               src: "getSelection",
               id: "selector",
-              input: ({ context }: { context: Context }) => ({
-                editor: context.editor,
-              }),
               onDone: [
                 {
                   guard: "isRangeSelection",
@@ -254,11 +254,6 @@ const toolbarMachine = createMachine<Context, Event>(
         }
         return false;
       },
-    },
-    actors: {
-      getSelection: fromPromise(async ({ input: { editor } }) =>
-        getSelection(editor),
-      ),
     },
   },
 );

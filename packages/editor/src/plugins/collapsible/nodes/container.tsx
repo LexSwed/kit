@@ -6,7 +6,7 @@
  *
  */
 
-import { addClassNamesToElement } from '@lexical/utils';
+import { addClassNamesToElement } from "@lexical/utils";
 import {
   type DOMConversionMap,
   type DOMConversionOutput,
@@ -18,7 +18,7 @@ import {
   type NodeKey,
   type SerializedElementNode,
   type Spread,
-} from 'lexical';
+} from "lexical";
 
 type SerializedCollapsibleContainerNode = Spread<
   {
@@ -27,7 +27,9 @@ type SerializedCollapsibleContainerNode = Spread<
   SerializedElementNode
 >;
 
-export function convertDetailsElement(domNode: HTMLDetailsElement): DOMConversionOutput | null {
+export function convertDetailsElement(
+  domNode: HTMLDetailsElement,
+): DOMConversionOutput | null {
   const isOpen = domNode.open !== undefined ? domNode.open : true;
   const node = $createCollapsibleContainerNode(isOpen);
   return {
@@ -43,8 +45,8 @@ export class CollapsibleContainerNode extends ElementNode {
     this.__open = open;
   }
 
-  static getType(): string {
-    return 'collapsible-container';
+  static getType() {
+    return "collapsible-container" as const;
   }
 
   static clone(node: CollapsibleContainerNode): CollapsibleContainerNode {
@@ -52,9 +54,9 @@ export class CollapsibleContainerNode extends ElementNode {
   }
 
   createDOM(config: EditorConfig, editor: LexicalEditor): HTMLElement {
-    const dom = document.createElement('details');
+    const dom = document.createElement("details");
     dom.open = this.__open;
-    dom.addEventListener('toggle', (e) => {
+    dom.addEventListener("toggle", (e) => {
       const open = editor.getEditorState().read(() => this.getOpen());
       if (open !== dom.open) {
         editor.update(() => this.toggleOpen());
@@ -64,7 +66,10 @@ export class CollapsibleContainerNode extends ElementNode {
     return dom;
   }
 
-  updateDOM(prevNode: CollapsibleContainerNode, dom: HTMLDetailsElement): boolean {
+  updateDOM(
+    prevNode: CollapsibleContainerNode,
+    dom: HTMLDetailsElement,
+  ): boolean {
     if (prevNode.__open !== this.__open) {
       dom.open = this.__open;
     }
@@ -83,14 +88,16 @@ export class CollapsibleContainerNode extends ElementNode {
     };
   }
 
-  static importJSON(serializedNode: SerializedCollapsibleContainerNode): CollapsibleContainerNode {
+  static importJSON(
+    serializedNode: SerializedCollapsibleContainerNode,
+  ): CollapsibleContainerNode {
     const node = $createCollapsibleContainerNode(serializedNode.open);
     return node;
   }
 
   exportDOM(): DOMExportOutput {
-    const element = document.createElement('details');
-    element.setAttribute('open', this.__open.toString());
+    const element = document.createElement("details");
+    element.setAttribute("open", this.__open.toString());
     return { element };
   }
 
@@ -98,7 +105,7 @@ export class CollapsibleContainerNode extends ElementNode {
     return {
       ...super.exportJSON(),
       open: this.__open,
-      type: 'collapsible-container',
+      type: "collapsible-container",
       version: 1,
     };
   }
@@ -117,10 +124,14 @@ export class CollapsibleContainerNode extends ElementNode {
   }
 }
 
-export function $createCollapsibleContainerNode(isOpen: boolean): CollapsibleContainerNode {
+export function $createCollapsibleContainerNode(
+  isOpen: boolean,
+): CollapsibleContainerNode {
   return new CollapsibleContainerNode(isOpen);
 }
 
-export function $isCollapsibleContainerNode(node: LexicalNode | null | undefined): node is CollapsibleContainerNode {
+export function $isCollapsibleContainerNode(
+  node: LexicalNode | null | undefined,
+): node is CollapsibleContainerNode {
   return node instanceof CollapsibleContainerNode;
 }

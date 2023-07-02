@@ -6,7 +6,7 @@
  *
  */
 
-import { addClassNamesToElement } from '@lexical/utils';
+import { addClassNamesToElement } from "@lexical/utils";
 import {
   $createParagraphNode,
   $isElementNode,
@@ -19,25 +19,25 @@ import {
   type LexicalNode,
   type RangeSelection,
   type SerializedElementNode,
-} from 'lexical';
+} from "lexical";
 
-import { $isCollapsibleContainerNode } from './container';
-import { $isCollapsibleContentNode } from './content';
+import { $isCollapsibleContainerNode } from "./container";
+import { $isCollapsibleContentNode } from "./content";
 
 type SerializedCollapsibleTitleNode = SerializedElementNode;
 
-export function convertSummaryElement(domNode: HTMLElement): DOMConversionOutput | null {
+export function convertSummaryElement(
+  domNode: HTMLElement,
+): DOMConversionOutput | null {
   const node = $createCollapsibleTitleNode();
   return {
     node,
   };
 }
 
-const expandIcon = /* html */ `<svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 18v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path><path d="M4 9h16"></path><path d="M10 14l2 2l2 -2"></path></svg>`;
-
 export class CollapsibleTitleNode extends ElementNode {
   static getType(): string {
-    return 'collapsible-title';
+    return "collapsible-title";
   }
 
   static clone(node: CollapsibleTitleNode): CollapsibleTitleNode {
@@ -45,23 +45,23 @@ export class CollapsibleTitleNode extends ElementNode {
   }
 
   createDOM(config: EditorConfig, editor: LexicalEditor): HTMLElement {
-    const dom = document.createElement('summary');
+    const dom = document.createElement("summary");
 
     addClassNamesToElement(dom, config.theme.collapsible.title);
 
     if (config.theme.collapsible.expandButtonInnerHTML) {
-      if (!editor.isEditable()) {
+      if (editor.isEditable()) {
         // avoid clicking on whole summary to open
-        dom.addEventListener('click', (e) => {
+        dom.addEventListener("click", (e) => {
           e.preventDefault();
         });
       }
-      const button = document.createElement('button');
+      const button = document.createElement("button");
       addClassNamesToElement(button, config.theme.collapsible.expandButton);
-      button.type = 'button';
-      button.contentEditable = 'false';
+      button.type = "button";
+      button.contentEditable = "false";
       button.innerHTML = config.theme.collapsible.expandButtonInnerHTML;
-      button.addEventListener('click', () => {
+      button.addEventListener("click", () => {
         const summary = dom.parentElement as HTMLElement & { open: boolean };
         summary.open = !summary.open;
       });
@@ -85,19 +85,21 @@ export class CollapsibleTitleNode extends ElementNode {
     };
   }
 
-  static importJSON(serializedNode: SerializedCollapsibleTitleNode): CollapsibleTitleNode {
+  static importJSON(
+    serializedNode: SerializedCollapsibleTitleNode,
+  ): CollapsibleTitleNode {
     return $createCollapsibleTitleNode();
   }
 
   exportDOM(): DOMExportOutput {
-    const element = document.createElement('summary');
+    const element = document.createElement("summary");
     return { element };
   }
 
   exportJSON(): SerializedCollapsibleTitleNode {
     return {
       ...super.exportJSON(),
-      type: 'collapsible-title',
+      type: "collapsible-title",
       version: 1,
     };
   }
@@ -111,13 +113,17 @@ export class CollapsibleTitleNode extends ElementNode {
     const containerNode = this.getParentOrThrow();
 
     if (!$isCollapsibleContainerNode(containerNode)) {
-      throw new Error('CollapsibleTitleNode expects to be child of CollapsibleContainerNode');
+      throw new Error(
+        "CollapsibleTitleNode expects to be child of CollapsibleContainerNode",
+      );
     }
 
     if (containerNode.getOpen()) {
       const contentNode = this.getNextSibling();
       if (!$isCollapsibleContentNode(contentNode)) {
-        throw new Error('CollapsibleTitleNode expects to have CollapsibleContentNode sibling');
+        throw new Error(
+          "CollapsibleTitleNode expects to have CollapsibleContentNode sibling",
+        );
       }
 
       const firstChild = contentNode.getFirstChild();
@@ -140,6 +146,8 @@ export function $createCollapsibleTitleNode(): CollapsibleTitleNode {
   return new CollapsibleTitleNode();
 }
 
-export function $isCollapsibleTitleNode(node: LexicalNode | null | undefined): node is CollapsibleTitleNode {
+export function $isCollapsibleTitleNode(
+  node: LexicalNode | null | undefined,
+): node is CollapsibleTitleNode {
   return node instanceof CollapsibleTitleNode;
 }

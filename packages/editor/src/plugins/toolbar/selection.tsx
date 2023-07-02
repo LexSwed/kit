@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 import { mergeRegister } from "@lexical/utils";
 import { clsx } from "clsx";
@@ -24,10 +24,11 @@ import {
 import { Divider } from "../../lib/divider.tsx";
 import { EditorPopover } from "../../lib/editor-popover.tsx";
 
-import { BlockTypeSelector } from "./block-type.tsx";
+import { blocks, BlockTypeSelector } from "./block-type.tsx";
 import { CopyLinkButton, LinkEditPopup } from "./link-edit-popup.tsx";
 import { RangeSelectionLink, TextFormat } from "./range-selection.tsx";
 import { useActorRef, useSelector } from "./state.ts";
+import { $getSelectedBlockType, useSelectionChange } from "./utils.ts";
 
 export const Selection = () => {
   const [editor] = useLexicalComposerContext();
@@ -135,13 +136,20 @@ export const Selection = () => {
 };
 
 const RangeSelectionToggles = () => {
+  const [selectionBlockType, setBlockType] =
+    useState<keyof typeof blocks>("paragraph");
+  useSelectionChange(() => {
+    const type = $getSelectedBlockType();
+    if (type in blocks) {
+      setBlockType(type);
+    }
+  });
+
   return (
     <div className="flex gap-1">
-      <BlockTypeSelector />
-      <Divider />
+      <BlockTypeSelector selectionBlockType={selectionBlockType} />
       <TextFormat />
-      <Divider />
-      <RangeSelectionLink />
+      <RangeSelectionLink selectionBlockType={selectionBlockType} />
     </div>
   );
 };

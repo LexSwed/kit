@@ -17,6 +17,9 @@ import {
 import { t } from "@fxtrot/lib";
 import { Icon, ToggleButton } from "@fxtrot/ui";
 
+import { Divider } from "../../lib/divider.tsx";
+
+import type { blocks } from "./block-type.tsx";
 import { useActorRef, useSelector } from "./state.ts";
 import { ToggleGroup } from "./toggle-group.tsx";
 import {
@@ -105,7 +108,11 @@ export const TextFormat = () => {
   );
 };
 
-export const RangeSelectionLink = () => {
+export const RangeSelectionLink = ({
+  selectionBlockType,
+}: {
+  selectionBlockType: keyof typeof blocks;
+}) => {
   const [editor] = useLexicalComposerContext();
   const reference = useSelector((state) => state.context.selection);
 
@@ -117,6 +124,10 @@ export const RangeSelectionLink = () => {
   const actor = useActorRef();
   const [isLink, isDisabled] = useIsLinkNodeSelected();
 
+  if (selectionBlockType === "collapsible-container") {
+    return null;
+  }
+
   const toggle = async () => {
     if (isLink && reference instanceof Range) {
       await selectWholeLink(editor, reference);
@@ -125,15 +136,18 @@ export const RangeSelectionLink = () => {
   };
 
   return (
-    <ToggleGroup disabled={isDisabled}>
-      <ToggleButton
-        pressed={isLink || isLinkEditOpen}
-        onClick={toggle}
-        size="sm"
-      >
-        <Icon size="sm" as={RxLink2} />
-        {t("Link")}
-      </ToggleButton>
-    </ToggleGroup>
+    <>
+      <Divider />
+      <ToggleGroup disabled={isDisabled}>
+        <ToggleButton
+          pressed={isLink || isLinkEditOpen}
+          onClick={toggle}
+          size="sm"
+        >
+          <Icon size="sm" as={RxLink2} />
+          {t("Link")}
+        </ToggleButton>
+      </ToggleGroup>
+    </>
   );
 };

@@ -30,8 +30,6 @@ import {
 import { useLatest } from "@fxtrot/ui";
 
 import { getSelectedNode } from "../../utils/getSelectedNode.tsx";
-import { $isCollapsibleContainerNode } from "../collapsible/nodes/container.tsx";
-import { $isCollapsibleTitleNode } from "../collapsible/nodes/title.tsx";
 
 export async function getSelection(editor: LexicalEditor) {
   // copied from Lexical Playground code
@@ -75,8 +73,8 @@ export async function getSelection(editor: LexicalEditor) {
           range.setEndAfter(link);
           return resolve({ range });
         }
-        if (!isCollapsed) {
-          const nativeRange = nativeSelection.getRangeAt(0);
+        const nativeRange = nativeSelection.getRangeAt(0);
+        if (!isCollapsed && nativeRange.toString().trim() !== "") {
           return resolve({ range: nativeRange });
         }
         return resolve(null);
@@ -174,12 +172,6 @@ export function highlightSelectedLink(editor: LexicalEditor) {
       CSS.highlights.delete("editor");
     };
   }
-}
-
-export function isSelectionCollapsed() {
-  const nativeSelection = window.getSelection();
-  if (!nativeSelection) return false;
-  return nativeSelection.isCollapsed;
 }
 
 export function useIsLinkNodeSelected() {

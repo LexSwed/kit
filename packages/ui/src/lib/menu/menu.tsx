@@ -4,9 +4,7 @@ import {
   type ForwardRefExoticComponent,
   type ReactElement,
   type RefAttributes,
-  useEffect,
   useRef,
-  useState,
 } from 'react';
 import * as RdxMenu from '@radix-ui/react-dropdown-menu';
 import { clsx } from 'clsx';
@@ -16,7 +14,7 @@ import { Portal } from '../portal/index.ts';
 import { ListItem, type ListItemVariants } from '../shared/list-item.tsx';
 import { PopoverBox } from '../shared/popover-box.tsx';
 import { Presence } from '../shared/presence.tsx';
-import { useForkRef, useIsomorphicLayoutEffect } from '../utils/hooks.ts';
+import { useForkRef } from '../utils/hooks.ts';
 import {
   OpenStateProvider,
   type OpenStateRef,
@@ -32,6 +30,8 @@ interface MenuProps {
    * The modality of the dropdown menu. When set to true, interaction with outside elements will be disabled and only menu content will be visible to screen readers.
    */
   modal?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const MenuInner = ({ children, modal }: MenuProps) => {
@@ -47,9 +47,9 @@ const MenuInner = ({ children, modal }: MenuProps) => {
   );
 };
 
-const MenuRoot = forwardRef<OpenStateRef, MenuProps>((props, ref) => {
+const MenuRoot = forwardRef<OpenStateRef, MenuProps>(({ open, onOpenChange, ...props }, ref) => {
   return (
-    <OpenStateProvider ref={ref}>
+    <OpenStateProvider open={open} onChange={onOpenChange} ref={ref}>
       <MenuInner {...props} />
     </OpenStateProvider>
   );
@@ -90,24 +90,9 @@ const List = ({ align = 'start', side = 'bottom', sideOffset = 8, ...props }: Me
   );
 };
 
-const MenuListContent = forwardRef<HTMLDivElement, MenuListProps>(({ popover, style = {}, id, ...props }, ref) => {
+const MenuListContent = forwardRef<HTMLDivElement, MenuListProps>(({ style = {}, ...props }, ref) => {
   const innerRef = useRef<HTMLDivElement>(null);
   const refs = useForkRef(ref, innerRef);
-
-  // hacks
-  useEffect(() => {
-    const popoverBox = innerRef.current;
-    if (popover && popoverBox) {
-      const radixParent =
-        popoverBox.parentElement?.getAttribute('data-radix-popper-content-wrapper') !== null
-          ? popoverBox.parentElement
-          : popoverBox;
-      if (!radixParent) return;
-      id && radixParent.setAttribute('id', id);
-      radixParent.setAttribute('popover', popover);
-      radixParent.style.margin = '0';
-    }
-  }, [popover, id]);
 
   return <PopoverBox {...props} style={{ ...style, minWidth: `var(--radix-popper-anchor-width)` }} ref={refs} />;
 });

@@ -22,6 +22,7 @@ import {
   $isTextNode,
   COMMAND_PRIORITY_HIGH,
   type CommandListenerPriority,
+  ElementNode,
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
   TextNode,
@@ -241,6 +242,29 @@ export function useEditorStateChange(onChange: () => void) {
   }, [editor, handlerRef]);
 }
 
+export function $getSelectedRootElement() {
+  const selection = $getSelection();
+  if (!$isRangeSelection(selection)) return null;
+  const anchorNode: ElementNode = selection.anchor.getNode();
+  let rootElement =
+    anchorNode.getKey() === "root"
+      ? anchorNode
+      : $findMatchingParent(anchorNode, (node) => {
+          const parent = node.getParent();
+          return parent !== null && $isRootOrShadowRoot(parent);
+        });
+
+  if (rootElement === null) {
+    rootElement = anchorNode.getTopLevelElementOrThrow();
+  }
+
+  if ($isListNode(rootElement)) {
+    const listElement = $getNearestNodeOfType<ListNode>(anchorNode, ListNode);
+    rootElement = listElement ?? rootElement;
+  }
+  return rootElement;
+}
+
 export function $getSelectedBlockType() {
   const selection = $getSelection();
   if (!$isRangeSelection(selection)) return null;
@@ -256,6 +280,7 @@ export function $getSelectedBlockType() {
   if (rootElement === null) {
     rootElement = anchorNode.getTopLevelElementOrThrow();
   }
+
   if ($isListNode(rootElement)) {
     const parentList = $getNearestNodeOfType<ListNode>(anchorNode, ListNode);
     const type = parentList

@@ -28,7 +28,11 @@ import { blocks, BlockTypeSelector } from "./block-type.tsx";
 import { CopyLinkButton, LinkEditPopup } from "./link-edit-popup.tsx";
 import { RangeSelectionLink, TextFormat } from "./range-selection.tsx";
 import { useActorRef, useSelector } from "./state.ts";
-import { $getSelectedBlockType, useSelectionChange } from "./utils.ts";
+import {
+  $getSelectedBlockType,
+  useEditorStateChange,
+  useSelectionChange,
+} from "./utils.ts";
 
 export const Selection = () => {
   const [editor] = useLexicalComposerContext();
@@ -138,7 +142,9 @@ export const Selection = () => {
 const RangeSelectionToggles = () => {
   const [selectionBlockType, setBlockType] =
     useState<keyof typeof blocks>("paragraph");
-  useSelectionChange(() => {
+
+  /** Needs to update selected block after change when selection event not emitted */
+  useEditorStateChange(() => {
     const type = $getSelectedBlockType();
     if (type in blocks) {
       setBlockType(type);

@@ -121,7 +121,7 @@ export function useOnClickOutside(handler: Handler | null, isActive: boolean, ..
   }, [handlerRef, isActive, ...refs]); //eslint-disable-line react-hooks/exhaustive-deps
 }
 
-export function useDerivedState<V extends string | string[] | number | number[]>(
+export function useDerivedState<V extends string | string[] | number | number[] | boolean | boolean[]>(
   propValue?: V,
   propOnChange?: (newValue: V) => void,
   defaultValue?: V

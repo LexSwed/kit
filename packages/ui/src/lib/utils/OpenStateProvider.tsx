@@ -1,13 +1,22 @@
-import { createContext, forwardRef, type ReactNode, useContext, useImperativeHandle, useMemo, useState } from 'react';
+import { createContext, forwardRef, type ReactNode, useContext, useImperativeHandle, useMemo } from 'react';
+
+import { useDerivedState } from './hooks';
 
 const openStateContext = createContext(false);
 const openStateControlsContext = createContext<MenuControlFunctions>({} as MenuControlFunctions);
 
 export type OpenStateRef = MenuControlFunctions;
 
-export const OpenStateProvider = forwardRef<OpenStateRef, { defaultOpen?: boolean; children?: ReactNode }>(
-  ({ children, defaultOpen = false }, ref) => {
-    const [isOpen, setOpen] = useState<boolean>(defaultOpen);
+interface Props {
+  defaultOpen?: boolean;
+  children?: ReactNode;
+  open?: boolean;
+  onChange?: (open: boolean) => void;
+}
+
+export const OpenStateProvider = forwardRef<OpenStateRef, Props>(
+  ({ children, defaultOpen = false, open, onChange }, ref) => {
+    const [isOpen, setOpen] = useDerivedState(open, onChange, defaultOpen);
     const controls = useMemo<MenuControlFunctions>(
       () => ({
         open: () => {
@@ -23,7 +32,7 @@ export const OpenStateProvider = forwardRef<OpenStateRef, { defaultOpen?: boolea
           setOpen(value);
         },
       }),
-      []
+      [setOpen]
     );
 
     useImperativeHandle(ref, () => controls, [controls]);

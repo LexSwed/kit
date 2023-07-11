@@ -1,6 +1,6 @@
 .editor {
   & *::highlight(editor),
   & *::selection {
-    background-color: theme('colors.primary-container');
+    background-color: theme("colors.primary-container");
   }
 }

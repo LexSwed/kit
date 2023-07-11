@@ -7,20 +7,15 @@ import {
   type InitialConfigType,
   type InitialEditorStateType,
   LexicalComposer,
-} from "@lexical/react/LexicalComposer.js";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable.js";
-import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary.js";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin.js";
-import { ListPlugin } from "@lexical/react/LexicalListPlugin.js";
-import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin.js";
-import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin.js";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin.js";
-import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin.js";
+} from "@lexical/react/LexicalComposer";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import type { EditorState } from "lexical";
-
-import { t } from "@fxtrot/lib";
 
 import CodeHighlightPlugin from "./plugins/code/index.ts";
 import {
@@ -32,10 +27,9 @@ import {
 import { ComponentPickerMenuPlugin } from "./plugins/component-picker/index.ts";
 import { ImageNode, ImagesPlugin } from "./plugins/image/index.ts";
 import { LinkPlugin } from "./plugins/link/index.tsx";
+import { RichTextPlugin } from "./plugins/rich-text-plugin/index.ts";
 import { FloatingToolbarPlugin } from "./plugins/toolbar/index.ts";
 import { theme } from "./theme.ts";
-
-import css from "./editor.module.css";
 
 interface Props {
   initialEditorState: InitialEditorStateType;
@@ -73,21 +67,7 @@ export const Editor = ({ initialEditorState }: Props) => {
     <>
       <div className="relative">
         <LexicalComposer initialConfig={initialConfig}>
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                className={`text-on-background relative min-h-[70vh] rounded-sm p-6 font-sans shadow-2xl outline-none ${css.editor}`}
-              />
-            }
-            placeholder={
-              <div className="text-on-surface-variant pointer-events-none absolute start-0 top-0 p-6">
-                {t("Enter some text...")}
-              </div>
-            }
-            ErrorBoundary={
-              LexicalErrorBoundary as unknown as typeof LexicalErrorBoundary
-            }
-          />
+          <RichTextPlugin className="text-on-background relative min-h-[70vh] rounded-sm p-6 font-sans shadow-2xl outline-none " />
           <HistoryPlugin />
           <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
           <ListPlugin />

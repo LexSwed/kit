@@ -8,6 +8,7 @@
 
 import { addClassNamesToElement } from "@lexical/utils";
 import {
+  $applyNodeReplacement,
   $createParagraphNode,
   $isElementNode,
   type DOMConversionMap,
@@ -27,7 +28,7 @@ import { $isCollapsibleContentNode } from "./content";
 type SerializedCollapsibleTitleNode = SerializedElementNode;
 
 export function convertSummaryElement(
-  domNode: HTMLElement,
+  domNode: HTMLElement
 ): DOMConversionOutput | null {
   const node = $createCollapsibleTitleNode();
   return {
@@ -57,20 +58,30 @@ export class CollapsibleTitleNode extends ElementNode {
         });
       }
       const button = document.createElement("button");
-      addClassNamesToElement(button, config.theme.collapsible.expandButton);
+      addClassNamesToElement(
+        button,
+        "select-none order-none",
+        config.theme.collapsible.expandButton
+      );
       button.type = "button";
       button.contentEditable = "false";
       button.innerHTML = config.theme.collapsible.expandButtonInnerHTML;
       button.addEventListener("click", () => {
-        const summary = dom.parentElement as HTMLElement & { open: boolean };
-        summary.open = !summary.open;
+        const details = dom.parentElement as HTMLDetailsElement;
+        details.open = !details.open;
       });
       dom.appendChild(button);
     }
     return dom;
   }
 
+  setIndent(indentLevel: number): this {
+    return this;
+  }
+
   updateDOM(prevNode: CollapsibleTitleNode, dom: HTMLElement): boolean {
+    // recreate the node if the content was deleted, to keep the expand button
+    if (this.getTextContentSize() === 0) return true;
     return false;
   }
 
@@ -86,7 +97,7 @@ export class CollapsibleTitleNode extends ElementNode {
   }
 
   static importJSON(
-    serializedNode: SerializedCollapsibleTitleNode,
+    serializedNode: SerializedCollapsibleTitleNode
   ): CollapsibleTitleNode {
     return $createCollapsibleTitleNode();
   }
@@ -105,6 +116,7 @@ export class CollapsibleTitleNode extends ElementNode {
   }
 
   collapseAtStart(_selection: RangeSelection): boolean {
+    console.log("collapseAtStart");
     this.getParentOrThrow().insertBefore(this);
     return true;
   }
@@ -114,7 +126,7 @@ export class CollapsibleTitleNode extends ElementNode {
 
     if (!$isCollapsibleContainerNode(containerNode)) {
       throw new Error(
-        "CollapsibleTitleNode expects to be child of CollapsibleContainerNode",
+        "CollapsibleTitleNode expects to be child of CollapsibleContainerNode"
       );
     }
 
@@ -122,7 +134,7 @@ export class CollapsibleTitleNode extends ElementNode {
       const contentNode = this.getNextSibling();
       if (!$isCollapsibleContentNode(contentNode)) {
         throw new Error(
-          "CollapsibleTitleNode expects to have CollapsibleContentNode sibling",
+          "CollapsibleTitleNode expects to have CollapsibleContentNode sibling"
         );
       }
 
@@ -147,7 +159,7 @@ export function $createCollapsibleTitleNode(): CollapsibleTitleNode {
 }
 
 export function $isCollapsibleTitleNode(
-  node: LexicalNode | null | undefined,
+  node: LexicalNode | null | undefined
 ): node is CollapsibleTitleNode {
   return node instanceof CollapsibleTitleNode;
 }

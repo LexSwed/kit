@@ -6,28 +6,28 @@ const css = (classNames: string) => classNames;
 export const theme: EditorThemeClasses = {
   heading: {
     h1: css(
-      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-3xl",
+      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-3xl"
     ),
     h2: css(
-      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-2xl",
+      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-2xl"
     ),
     h3: css(
-      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-xl",
+      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-xl"
     ),
     h4: css(
-      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-xl",
+      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-xl"
     ),
     h5: css(
-      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-xl",
+      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-xl"
     ),
     h6: css(
-      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-lg uppercase",
+      "[text-wrap:balance] [margin-trim:block] mt-[0.8em] mb-[0.6em] text-lg uppercase"
     ),
   },
   text: {
     bold: css("font-bold"),
     code: css(
-      "rounded-xs -m-0.5 inline-block whitespace-pre-wrap bg-primary/10 align-middle font-mono text-[0.9em] text-primary px-0.5",
+      "rounded-xs -m-0.5 inline-block whitespace-pre-wrap bg-primary/10 align-middle font-mono text-[0.9em] text-primary px-0.5"
     ),
     italic: css("italic"),
     strikethrough: css("line-through"),
@@ -40,7 +40,7 @@ export const theme: EditorThemeClasses = {
   quote: css("mt-2 mb-3 px-3 py-0 border-l-2 border-outline"),
   indent: css("pl-6"),
   link: css(
-    "border-b-[1px] border-dotted pb-0.5 border-current cursor-pointer hover:border-solid",
+    "border-b-[1px] border-dotted pb-0.5 border-current cursor-pointer hover:border-solid"
   ),
   list: {
     listitem: css("ml-6"),
@@ -59,19 +59,19 @@ export const theme: EditorThemeClasses = {
   },
   collapsible: {
     container: css(
-      "p-2 my-4 border-2 border-surface-variant/30 rounded-lg bg-surface-variant/5",
+      "p-2 my-4 border-2 border-surface-variant/30 rounded-lg bg-surface-variant/5"
     ),
     title: css(
-      "cursor-default flex flex-row gap-1 items-center p-2 -m-2 list-none",
+      "cursor-default flex flex-row gap-1 items-center p-2 -m-2 list-none"
     ),
     content: css(
-      "p-2 mt-2 border-t-2 border-dashed border-surface-variant/30 -mx-2 [margin-trim:block]",
+      "p-2 mt-2 border-t-2 border-dashed border-surface-variant/30 -mx-2 [margin-trim:block]"
     ),
     expandButton: css(
-      "select-none -ml-1 -my-2 p-2 rounded-md hover:bg-surface-variant/40 focus:bg-surface-variant/40",
+      "-ml-1 -my-2 p-2 rounded-md hover:bg-surface-variant/40 focus:bg-surface-variant/40"
     ),
     expandButtonInnerHTML: `<svg class="${css(
-      "size-4",
+      "size-4"
     )}" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12 19.24-4.95-4.95-1.41 1.42L12 22.07l6.36-6.36-1.41-1.42L12 19.24zM5.64 8.29l1.41 1.42L12 4.76l4.95 4.95 1.41-1.42L12 1.93 5.64 8.29z"></path></svg>`,
   },
   // image: 'editor-image',

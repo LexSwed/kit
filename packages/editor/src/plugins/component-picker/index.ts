@@ -1,1 +1,1 @@
-export { ComponentPickerMenuPlugin } from './component-picker';
+export { ComponentPickerMenuPlugin as default } from "./component-picker";

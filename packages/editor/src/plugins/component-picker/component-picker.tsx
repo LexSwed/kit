@@ -54,7 +54,7 @@ export const ComponentPickerMenuPlugin = () => {
     (
       selectedOption: MenuOption,
       nodeToRemove: TextNode | null,
-      closeMenu: () => void,
+      closeMenu: () => void
     ) => {
       const block = blocks[selectedOption.key as keyof typeof blocks];
       editor.update(() => {
@@ -65,8 +65,10 @@ export const ComponentPickerMenuPlugin = () => {
         closeMenu();
       });
     },
-    [editor],
+    [editor]
   );
+
+  console.log(options.length);
 
   return (
     <>
@@ -75,9 +77,14 @@ export const ComponentPickerMenuPlugin = () => {
         onSelectOption={onSelectOption}
         triggerFn={checkForTriggerMatch}
         options={options}
+        anchorClassName={
+          options.length > 0
+            ? "border-b-2 border-on-surface !h-[1.5em] pointer-events-none"
+            : ""
+        }
         menuRenderFn={(
           anchorElementRef,
-          { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
+          { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }
         ) =>
           anchorElementRef.current ? (
             <EditorPopover open reference={anchorElementRef.current}>

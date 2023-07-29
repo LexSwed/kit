@@ -1,3 +1,15 @@
 {
-  "extends": "../../tsconfig.json"
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules",
+        "options": {
+          "postcssOptions": {
+            "useConfig": true
+          }
+        }
+      }
+    ]
+  }
 }

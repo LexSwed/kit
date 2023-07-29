@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { lazy, useCallback, useEffect, useRef } from "react";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
@@ -24,7 +24,6 @@ import {
   CollapsiblePlugin,
   CollapsibleTitleNode,
 } from "./plugins/collapsible/index.ts";
-import { ComponentPickerMenuPlugin } from "./plugins/component-picker/index.ts";
 import { ImageNode, ImagesPlugin } from "./plugins/image/index.ts";
 import { LinkPlugin } from "./plugins/link/index.tsx";
 import { RichTextPlugin } from "./plugins/rich-text-plugin/index.ts";
@@ -34,6 +33,9 @@ import { theme } from "./theme.ts";
 interface Props {
   initialEditorState: InitialEditorStateType;
 }
+const ComponentPickerMenuPlugin = lazy(
+  () => import("./plugins/component-picker/index.ts")
+);
 
 export const Editor = ({ initialEditorState }: Props) => {
   // Catch any errors that occur during Lexical updates and log them
@@ -98,7 +100,7 @@ const SaveToLocalStoragePlugin = () => {
       if (serializedEditorState) {
         requestAnimationFrame(() => {
           const initialEditorState = editor.parseEditorState(
-            serializedEditorState,
+            serializedEditorState
           );
           editor.setEditorState(initialEditorState);
         });
@@ -109,7 +111,7 @@ const SaveToLocalStoragePlugin = () => {
   const onChange = useCallback((editorState: EditorState) => {
     localStorage.setItem(
       LOCAL_STORAGE_KEY,
-      JSON.stringify(editorState.toJSON()),
+      JSON.stringify(editorState.toJSON())
     );
   }, []);
   return <OnChangePlugin onChange={onChange} />;

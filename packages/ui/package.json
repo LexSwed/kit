@@ -81,7 +81,7 @@
     "jest": "^29.6.2",
     "next": "^13.4.12",
     "next-seo": "^6.1.0",
-    "postcss": "^8.4.27",
+    "postcss": "^8.4.31",
     "postcss-preset-env": "^9.1.0",
     "react-icons": "^4.10.1",
     "react-live": "^4.1.3",

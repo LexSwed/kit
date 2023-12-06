@@ -90,7 +90,7 @@
     "remark-gfm": "^3.0.1",
     "remark-mdx-code-meta": "^2.0.0",
     "remark-mdx-frontmatter": "^3.0.0",
-    "vite": "^4.4.7"
+    "vite": "^4.4.12"
   },
   "peerDependencies": {
     "@heroicons/react": "^2.0.16",
